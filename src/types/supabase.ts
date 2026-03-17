@@ -85,38 +85,59 @@ export interface Database {
         Row: {
           id: string
           created_at: string
-          modelo: string
-          numero_vivienda: string
-          superficie_parcela: number
-          superficie_util: number
-          superficie_construida: number
-          habitaciones: number
+          n_orden: string
+          planta: string
+          portal: string
+          letra: string
+          orientacion: string
+          dormitorios: number
           banos: number
+          sup_util: number
+          sup_construida: number
+          sup_terrazas: number
+          sup_porche: number
+          garaje: string
+          trastero: string
           precio: number
+          estado_vivienda: string
         }
         Insert: {
           id?: string
           created_at?: string
-          modelo: string
-          numero_vivienda: string
-          superficie_parcela: number
-          superficie_util: number
-          superficie_construida: number
-          habitaciones: number
-          banos: number
+          n_orden: string
+          planta: string
+          portal?: string
+          letra?: string
+          orientacion?: string
+          dormitorios?: number
+          banos?: number
+          sup_util?: number
+          sup_construida?: number
+          sup_terrazas?: number
+          sup_porche?: number
+          garaje?: string
+          trastero?: string
           precio: number
+          estado_vivienda?: string
         }
         Update: {
           id?: string
           created_at?: string
-          modelo?: string
-          numero_vivienda?: string
-          superficie_parcela?: number
-          superficie_util?: number
-          superficie_construida?: number
-          habitaciones?: number
+          n_orden?: string
+          planta?: string
+          portal?: string
+          letra?: string
+          orientacion?: string
+          dormitorios?: number
           banos?: number
+          sup_util?: number
+          sup_construida?: number
+          sup_terrazas?: number
+          sup_porche?: number
+          garaje?: string
+          trastero?: string
           precio?: number
+          estado_vivienda?: string
         }
       }
       agenda: {
@@ -183,18 +204,6 @@ export interface Database {
           sent_at?: string | null
         }
       }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
     }
   }
 }

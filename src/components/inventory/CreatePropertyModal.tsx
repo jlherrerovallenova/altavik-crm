@@ -4,16 +4,30 @@ import {
   X,
   Home,
   Hash,
-  Maximize,
-  Ruler,
-  BedDouble,
-  Bath,
   Euro,
   Loader2,
   Save
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
+
+interface PropertyFormData {
+  n_orden: string;
+  planta: string;
+  portal: string;
+  letra: string;
+  orientacion: string;
+  dormitorios: string;
+  banos: string;
+  sup_util: string;
+  sup_construida: string;
+  sup_terrazas: string;
+  sup_porche: string;
+  garaje: string;
+  trastero: string;
+  precio: string;
+  estado_vivienda: string;
+}
 
 interface Props {
   isOpen: boolean;
@@ -25,14 +39,20 @@ interface Props {
 export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initialData }: Props) {
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
-  const [formData, setFormData] = useState({
-    modelo: initialData?.modelo || 'OLIVO',
-    numero_vivienda: initialData?.numero_vivienda || '',
-    superficie_parcela: initialData?.superficie_parcela || '',
-    superficie_util: initialData?.superficie_util || '',
-    superficie_construida: initialData?.superficie_construida || '',
-    habitaciones: initialData?.habitaciones?.toString() || '',
-    banos: initialData?.banos?.toString() || '',
+  const [formData, setFormData] = useState<PropertyFormData>({
+    n_orden: initialData?.n_orden || '',
+    planta: initialData?.planta || '',
+    portal: initialData?.portal || '',
+    letra: initialData?.letra || '',
+    orientacion: initialData?.orientacion || '',
+    dormitorios: initialData?.dormitorios?.toString() || '3',
+    banos: initialData?.banos?.toString() || '2',
+    sup_util: initialData?.sup_util?.toString() || '',
+    sup_construida: initialData?.sup_construida?.toString() || '',
+    sup_terrazas: initialData?.sup_terrazas?.toString() || '0',
+    sup_porche: initialData?.sup_porche?.toString() || '0',
+    garaje: initialData?.garaje || 'SÍ',
+    trastero: initialData?.trastero || 'SÍ',
     precio: initialData?.precio?.toString() || '',
     estado_vivienda: initialData?.estado_vivienda || 'DISPONIBLE'
   });
@@ -40,7 +60,7 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev: PropertyFormData) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,25 +69,28 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
 
     try {
       const propertyData = {
-        modelo: formData.modelo,
-        numero_vivienda: formData.numero_vivienda.trim(),
-        superficie_parcela: parseFloat(formData.superficie_parcela) || 0,
-        superficie_util: parseFloat(formData.superficie_util) || 0,
-        superficie_construida: parseFloat(formData.superficie_construida) || 0,
-        habitaciones: parseInt(formData.habitaciones) || 0,
+        n_orden: formData.n_orden.trim(),
+        planta: formData.planta.trim(),
+        portal: formData.portal.trim(),
+        letra: formData.letra.trim(),
+        orientacion: formData.orientacion.trim(),
+        dormitorios: parseInt(formData.dormitorios) || 0,
         banos: parseInt(formData.banos) || 0,
+        sup_util: parseFloat(formData.sup_util) || 0,
+        sup_construida: parseFloat(formData.sup_construida) || 0,
+        sup_terrazas: parseFloat(formData.sup_terrazas) || 0,
+        sup_porche: parseFloat(formData.sup_porche) || 0,
+        garaje: formData.garaje,
+        trastero: formData.trastero,
         precio: parseFloat(formData.precio) || 0,
         estado_vivienda: formData.estado_vivienda
       };
 
-      // 1. Validar duplicados (mismo modelo + mismo nº vivienda)
       let query = supabase
         .from('inventory')
         .select('id')
-        .eq('modelo', propertyData.modelo)
-        .eq('numero_vivienda', propertyData.numero_vivienda);
+        .eq('n_orden', propertyData.n_orden);
 
-      // Si estamos editando, excluir la vivienda actual de la búsqueda
       if (initialData?.id) {
         query = query.neq('id', initialData.id);
       }
@@ -79,21 +102,19 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
       if (existing && existing.length > 0) {
         await showAlert({ 
           title: 'Vivienda Duplicada', 
-          message: `Ya existe una vivienda con el número ${propertyData.numero_vivienda} para el modelo ${propertyData.modelo}.` 
+          message: `Ya existe una vivienda con el nº de orden ${propertyData.n_orden}.` 
         });
         setLoading(false);
         return;
       }
 
       if (initialData?.id) {
-        // Modo Edición: Actualizar
         const { error } = await (supabase as any)
           .from('inventory')
           .update(propertyData)
           .eq('id', initialData.id);
         if (error) throw error;
       } else {
-        // Modo Creación: Insertar
         const { error } = await (supabase as any)
           .from('inventory')
           .insert([propertyData]);
@@ -103,16 +124,21 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
       onSuccess?.();
       onClose();
 
-      // Resetear formulario si era creación
       if (!initialData?.id) {
         setFormData({
-          modelo: 'OLIVO',
-          numero_vivienda: '',
-          superficie_parcela: '',
-          superficie_util: '',
-          superficie_construida: '',
-          habitaciones: '',
-          banos: '',
+          n_orden: '',
+          planta: '',
+          portal: '',
+          letra: '',
+          orientacion: '',
+          dormitorios: '3',
+          banos: '2',
+          sup_util: '',
+          sup_construida: '',
+          sup_terrazas: '0',
+          sup_porche: '0',
+          garaje: 'SÍ',
+          trastero: 'SÍ',
           precio: '',
           estado_vivienda: 'DISPONIBLE'
         });
@@ -151,128 +177,183 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
         {/* Body (Scrollable) */}
         <div className="p-6 overflow-y-auto flex-1 bg-white">
           <form id="property-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* 1. MODELO */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Modelo</label>
-                <div className="relative mt-1.5">
-                  <Home className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <select
-                    name="modelo"
-                    value={formData.modelo}
-                    onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 appearance-none cursor-pointer"
-                  >
-                    <option value="OLIVO">OLIVO</option>
-                    <option value="ARCE">ARCE</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* 2. Nº DE VIVIENDA */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nº de Vivienda</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* 1. Nº ORDEN */}
+              <div className="col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nº Orden</label>
                 <div className="relative mt-1.5">
                   <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
-                    name="numero_vivienda"
+                    name="n_orden"
                     required
-                    value={formData.numero_vivienda}
+                    value={formData.n_orden}
                     onChange={handleChange}
-                    placeholder="Ej: 14A"
+                    placeholder="Ej: 01"
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
                   />
                 </div>
               </div>
 
-              {/* 3. SUPERFICIE PARCELA */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Superficie Parcela (m²)</label>
-                <div className="relative mt-1.5">
-                  <Maximize className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    name="superficie_parcela"
-                    type="number"
-                    required
-                    value={formData.superficie_parcela}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
-                  />
-                </div>
+              {/* 2. PLANTA */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Planta</label>
+                <input
+                  name="planta"
+                  required
+                  value={formData.planta}
+                  onChange={handleChange}
+                  placeholder="Ej: BAJA"
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
               </div>
 
-              {/* 4. SUPERFICIE UTIL */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Superficie Útil (m²)</label>
-                <div className="relative mt-1.5">
-                  <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    name="superficie_util"
-                    type="number"
-                    required
-                    value={formData.superficie_util}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
-                  />
-                </div>
+              {/* 3. PORTAL */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Portal</label>
+                <input
+                  name="portal"
+                  value={formData.portal}
+                  onChange={handleChange}
+                  placeholder="Ej: 1"
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
               </div>
 
-              {/* 5. SUPERFICIE CONSTRUIDA */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Superficie Construida (m²)</label>
-                <div className="relative mt-1.5">
-                  <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    name="superficie_construida"
-                    type="number"
-                    required
-                    value={formData.superficie_construida}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
-                  />
-                </div>
+              {/* 4. LETRA */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Letra</label>
+                <input
+                  name="letra"
+                  value={formData.letra}
+                  onChange={handleChange}
+                  placeholder="Ej: A"
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
               </div>
 
-              {/* 6. HABITACIONES */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Habitaciones</label>
-                <div className="relative mt-1.5">
-                  <BedDouble className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    name="habitaciones"
-                    type="number"
-                    required
-                    value={formData.habitaciones}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
-                  />
-                </div>
+              {/* 5. ORIENTACIÓN */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Orientación</label>
+                <input
+                  name="orientacion"
+                  value={formData.orientacion}
+                  onChange={handleChange}
+                  placeholder="Ej: Norte"
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
+              </div>
+
+              {/* 6. DORMITORIOS */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dormitorio</label>
+                <input
+                  name="dormitorios"
+                  type="number"
+                  required
+                  value={formData.dormitorios}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
               </div>
 
               {/* 7. BAÑOS */}
-              <div>
+              <div className="md:col-span-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Baños</label>
-                <div className="relative mt-1.5">
-                  <Bath className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    name="banos"
-                    type="number"
-                    required
-                    value={formData.banos}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
-                  />
-                </div>
+                <input
+                  name="banos"
+                  type="number"
+                  required
+                  value={formData.banos}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
               </div>
 
-              {/* 8. PRECIO */}
-              <div>
+              {/* 8. SUP ÚTIL */}
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Útil (m²)</label>
+                <input
+                  name="sup_util"
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.sup_util}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
+              </div>
+
+              {/* 9. SUP CONSTRUIDA */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Const. (m²)</label>
+                <input
+                  name="sup_construida"
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.sup_construida}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
+              </div>
+
+              {/* 10. SUP TERRAZAS */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Terrazas (m²)</label>
+                <input
+                  name="sup_terrazas"
+                  type="number"
+                  step="0.01"
+                  value={formData.sup_terrazas}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
+              </div>
+
+              {/* 11. SUP PORCHE */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Porche (m²)</label>
+                <input
+                  name="sup_porche"
+                  type="number"
+                  step="0.01"
+                  value={formData.sup_porche}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                />
+              </div>
+
+              {/* 12. GARAJE */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Garaje</label>
+                <select
+                  name="garaje"
+                  value={formData.garaje}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                >
+                  <option value="SÍ">SÍ</option>
+                  <option value="NO">NO</option>
+                </select>
+              </div>
+
+              {/* 13. TRASTERO */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Trastero</label>
+                <select
+                  name="trastero"
+                  value={formData.trastero}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
+                >
+                  <option value="SÍ">SÍ</option>
+                  <option value="NO">NO</option>
+                </select>
+              </div>
+
+              {/* 14. PRECIO */}
+              <div className="md:col-span-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Precio (€)</label>
                 <div className="relative mt-1.5">
                   <Euro className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -283,30 +364,27 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
                     value={formData.precio}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all font-bold"
                   />
                 </div>
               </div>
 
-              {/* 9. ESTADO VIVIENDA */}
+              {/* 15. ESTADO VIVIENDA */}
               <div className="md:col-span-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado de la Vivienda</label>
-                <div className="relative mt-2">
-                  <Home className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <select
-                    name="estado_vivienda"
-                    value={formData.estado_vivienda}
-                    onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 appearance-none cursor-pointer"
-                  >
-                    <option value="DISPONIBLE">DISPONIBLE</option>
-                    <option value="NO DISPONIBLE">NO DISPONIBLE</option>
-                    <option value="BLOQUEADA">BLOQUEADA</option>
-                    <option value="RESERVADA">RESERVADA</option>
-                    <option value="CONTRATO CV">CONTRATO CV</option>
-                    <option value="ESCRITURADA">ESCRITURADA</option>
-                  </select>
-                </div>
+                <select
+                  name="estado_vivienda"
+                  value={formData.estado_vivienda}
+                  onChange={handleChange}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 appearance-none cursor-pointer"
+                >
+                  <option value="DISPONIBLE">DISPONIBLE</option>
+                  <option value="NO DISPONIBLE">NO DISPONIBLE</option>
+                  <option value="BLOQUEADA">BLOQUEADA</option>
+                  <option value="RESERVADA">RESERVADA</option>
+                  <option value="CONTRATO CV">CONTRATO CV</option>
+                  <option value="ESCRITURADA">ESCRITURADA</option>
+                </select>
               </div>
 
             </div>
