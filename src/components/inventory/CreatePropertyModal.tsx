@@ -47,10 +47,10 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
     orientacion: initialData?.orientacion || '',
     dormitorios: initialData?.dormitorios?.toString() || '3',
     banos: initialData?.banos?.toString() || '2',
-    sup_util: initialData?.sup_util?.toString() || '',
-    sup_construida: initialData?.sup_construida?.toString() || '',
-    sup_terrazas: initialData?.sup_terrazas?.toString() || '0',
-    sup_porche: initialData?.sup_porche?.toString() || '0',
+    sup_util: initialData?.sup_util !== undefined ? Number(initialData.sup_util).toFixed(2) : '',
+    sup_construida: initialData?.sup_construida !== undefined ? Number(initialData.sup_construida).toFixed(2) : '',
+    sup_terrazas: initialData?.sup_terrazas !== undefined ? Number(initialData.sup_terrazas).toFixed(2) : '0.00',
+    sup_porche: initialData?.sup_porche !== undefined ? Number(initialData.sup_porche).toFixed(2) : '0.00',
     garaje: initialData?.garaje || 'SÍ',
     trastero: initialData?.trastero || 'SÍ',
     precio: initialData?.precio?.toString() || '',
@@ -135,8 +135,8 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
           banos: '2',
           sup_util: '',
           sup_construida: '',
-          sup_terrazas: '0',
-          sup_porche: '0',
+          sup_terrazas: '0.00',
+          sup_porche: '0.00',
           garaje: 'SÍ',
           trastero: 'SÍ',
           precio: '',
@@ -270,7 +270,7 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
               </div>
 
               {/* 8. SUP ÚTIL */}
-              <div className="md:col-span-2">
+              <div className="md:col-span-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Útil (m²)</label>
                 <input
                   name="sup_util"

@@ -563,10 +563,10 @@ export default function Inventory() {
       p.n_orden,
       `${p.planta} - ${p.portal} ${p.letra}`,
       `${p.dormitorios} / ${p.banos}`,
-      `${p.sup_util} m²`,
-      `${p.sup_construida} m²`,
-      `${p.sup_terrazas} m²`,
-      `${p.sup_porche} m²`,
+      `${p.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`,
+      `${p.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`,
+      `${p.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`,
+      `${p.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`,
       new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(p.precio),
       (p.estado_vivienda || 'DISPONIBLE').toUpperCase()
     ]);
@@ -795,7 +795,10 @@ export default function Inventory() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <span className="font-bold text-slate-600">{property.sup_util} m²</span>
+                      <div className="flex flex-col items-center">
+                        <span className="font-bold text-slate-700">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[10px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <span className="inline-flex px-3 py-1 rounded-lg bg-slate-900 text-white font-bold text-sm">
