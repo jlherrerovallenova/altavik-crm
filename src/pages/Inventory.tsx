@@ -56,6 +56,7 @@ export default function Inventory() {
   const [portalFilter, setPortalFilter] = useState('');
   const [dormitoriosFilter, setDormitoriosFilter] = useState('');
   const [plantaFilter, setPlantaFilter] = useState('');
+  const [orientacionFilter, setOrientacionFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -138,6 +139,7 @@ export default function Inventory() {
     setPortalFilter('');
     setDormitoriosFilter('');
     setPlantaFilter('');
+    setOrientacionFilter('');
     setCurrentPage(1);
   };
 
@@ -155,14 +157,15 @@ export default function Inventory() {
     const matchesPortal = portalFilter === '' || p.portal === portalFilter;
     const matchesDormitorios = dormitoriosFilter === '' || p.dormitorios?.toString() === dormitoriosFilter;
     const matchesPlanta = plantaFilter === '' || planta.toLowerCase().includes(plantaFilter.toLowerCase());
+    const matchesOrientacion = orientacionFilter === '' || p.orientacion === orientacionFilter;
     
-    return matchesSearch && matchesState && matchesPortal && matchesDormitorios && matchesPlanta;
+    return matchesSearch && matchesState && matchesPortal && matchesDormitorios && matchesPlanta && matchesOrientacion;
   });
 
   // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, stateFilter, portalFilter, dormitoriosFilter, plantaFilter]);
+  }, [searchTerm, stateFilter, portalFilter, dormitoriosFilter, plantaFilter, orientacionFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
@@ -172,6 +175,7 @@ export default function Inventory() {
   // Extraer valores únicos para los selectores de filtros
   const uniquePortals = Array.from(new Set(properties.map(p => p.portal).filter(Boolean))).sort();
   const uniqueDormitorios = Array.from(new Set(properties.map(p => p.dormitorios?.toString()).filter(Boolean))).sort();
+  const uniqueOrientations = Array.from(new Set(properties.map(p => p.orientacion).filter(Boolean))).sort();
   const handleGeneratePaymentForm = async (property: Property) => {
     try {
       const doc = new jsPDF({
@@ -757,6 +761,17 @@ export default function Inventory() {
             onChange={(e) => setPlantaFilter(e.target.value)}
             className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none text-slate-700 font-medium font-bold text-sm text-center"
           />
+        </div>
+
+        <div className="relative w-full md:w-32">
+          <select
+            value={orientacionFilter}
+            onChange={(e) => setOrientacionFilter(e.target.value)}
+            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
+          >
+            <option value="">Orient.</option>
+            {uniqueOrientations.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
         </div>
 
         <button
