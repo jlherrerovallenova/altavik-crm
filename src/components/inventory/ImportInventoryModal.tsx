@@ -81,14 +81,24 @@ export default function ImportInventoryModal({ isOpen, onClose, onSuccess }: Pro
         setHeaders(fileHeaders);
         setRawData(contentRows);
 
-        // Intento de auto-mapping básico
         const initialMapping: Record<string, string> = {};
         INVENTORY_FIELDS.forEach(field => {
-          const match = fileHeaders.find(h => 
-            h.toLowerCase() === field.label.toLowerCase() || 
-            h.toLowerCase() === field.key.toLowerCase() ||
-            h.toLowerCase().includes(field.label.toLowerCase())
-          );
+          const match = fileHeaders.find(h => {
+             const head = h.toLowerCase();
+             const label = field.label.toLowerCase();
+             const key = field.key.toLowerCase();
+             
+             // Coincidencia exacta
+             if (head === label || head === key) return true;
+             
+             // Coincidencia parcial inteligente para superficies
+             if (key.includes('sup_')) {
+                const subKey = key.replace('sup_', '').replace('s', ''); // quita sup_ y plurales
+                if (head.includes(subKey)) return true;
+             }
+             
+             return head.includes(label.replace(' (m²)', '').toLowerCase());
+          });
           if (match) initialMapping[field.key] = match;
         });
         setMapping(initialMapping);

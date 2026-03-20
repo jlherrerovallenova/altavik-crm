@@ -14,11 +14,18 @@ export function useInventory() {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('inventory')
-                .select('*')
-                .order('numero_vivienda', { ascending: true }); // Por defecto ordenado por Nº Vivienda
+                .select('*');
 
             if (error) throw new Error(error.message);
-            return data as PropertyInfo[];
+            
+            // Ordenar numéricamente por n_orden
+            const sorted = ((data as PropertyInfo[]) || []).sort((a, b) => {
+                const valA = a.n_orden || '';
+                const valB = b.n_orden || '';
+                return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+            
+            return sorted;
         },
     });
 }

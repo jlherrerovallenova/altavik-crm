@@ -12,7 +12,6 @@ import {
   AlertTriangle,
   Filter,
   RotateCcw,
-  Copy,
   FileText,
   Upload,
   ChevronLeft,
@@ -24,6 +23,7 @@ import autoTable from 'jspdf-autotable';
 import { supabase } from '../lib/supabase';
 import CreatePropertyModal from '../components/inventory/CreatePropertyModal';
 import ImportInventoryModal from '../components/inventory/ImportInventoryModal';
+import UploadFichasModal from '../components/inventory/UploadFichasModal';
 import { AppNotification } from '../components/AppNotification';
 import { useDialog } from '../context/DialogContext';
 
@@ -44,6 +44,7 @@ interface Property {
   trastero: string;
   precio: number;
   estado_vivienda?: string;
+  ficha_url?: string;
   created_at: string;
 }
 
@@ -60,6 +61,7 @@ export default function Inventory() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isFichasModalOpen, setIsFichasModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -78,16 +80,29 @@ export default function Inventory() {
     fetchProperties();
   }, []);
 
+
+
   const fetchProperties = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('inventory')
-        .select('*')
-        .order('n_orden', { ascending: true });
+        .select('*');
 
       if (error) throw error;
-      setProperties(data || []);
+
+      // Ordenar numéricamente por n_orden (1, 2, 3... en lugar de 1, 10, 11...)
+      const sortedData = ((data as Property[]) || []).sort((a, b) => {
+        const valA = a.n_orden || '';
+        const valB = b.n_orden || '';
+        const numA = parseInt(valA) || 0;
+        const numB = parseInt(valB) || 0;
+        if (numA !== numB) return numA - numB;
+        // Si los números son iguales (o ambos 0), comparamos como string por si acaso (natural sort)
+        return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+      setProperties(sortedData);
     } catch (error) {
       console.error('Error fetching inventory:', error);
     } finally {
@@ -126,21 +141,20 @@ export default function Inventory() {
     setCurrentPage(1);
   };
 
-  const handleClone = (property: Property) => {
-    // Para clonar, pasamos los datos pero SIN el ID
-    const { id, created_at, ...cloneData } = property;
-    setEditingProperty(cloneData as any);
-    setIsModalOpen(true);
-  };
+
 
   const filteredProperties = properties.filter(p => {
-    const matchesSearch = p.n_orden.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.planta.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.letra.toLowerCase().includes(searchTerm.toLowerCase());
+    const nOrden = p.n_orden || '';
+    const planta = p.planta || '';
+    const letra = p.letra || '';
+
+    const matchesSearch = nOrden.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          planta.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          letra.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesState = stateFilter === '' || p.estado_vivienda === stateFilter;
     const matchesPortal = portalFilter === '' || p.portal === portalFilter;
-    const matchesDormitorios = dormitoriosFilter === '' || p.dormitorios.toString() === dormitoriosFilter;
-    const matchesPlanta = plantaFilter === '' || p.planta.toLowerCase().includes(plantaFilter.toLowerCase());
+    const matchesDormitorios = dormitoriosFilter === '' || p.dormitorios?.toString() === dormitoriosFilter;
+    const matchesPlanta = plantaFilter === '' || planta.toLowerCase().includes(plantaFilter.toLowerCase());
     
     return matchesSearch && matchesState && matchesPortal && matchesDormitorios && matchesPlanta;
   });
@@ -157,7 +171,7 @@ export default function Inventory() {
 
   // Extraer valores únicos para los selectores de filtros
   const uniquePortals = Array.from(new Set(properties.map(p => p.portal).filter(Boolean))).sort();
-  const uniqueDormitorios = Array.from(new Set(properties.map(p => p.dormitorios.toString()).filter(Boolean))).sort();
+  const uniqueDormitorios = Array.from(new Set(properties.map(p => p.dormitorios?.toString()).filter(Boolean))).sort();
   const handleGeneratePaymentForm = async (property: Property) => {
     try {
       const doc = new jsPDF({
@@ -653,6 +667,15 @@ export default function Inventory() {
             {isExporting ? <Loader2 className="animate-spin text-altavik-600" size={20} /> : <FileText size={20} className="text-red-500" />}
             {isExporting ? 'Generando...' : 'Exportar PDF'}
           </button>
+          
+          <button
+            onClick={() => setIsFichasModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
+          >
+            <FileText size={20} />
+            <span>SUBIR FICHAS</span>
+          </button>
+
           <button
             onClick={() => setIsImportModalOpen(true)}
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
@@ -757,71 +780,92 @@ export default function Inventory() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white border-b border-slate-100">
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Nº Orden</th>
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Ubicación</th>
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Dorm/Baños</th>
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Superficies</th>
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest">Precio</th>
-                  <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Nº Orden</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Portal</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Planta/Letra</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Dorm/Baños</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Útil/Const.</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Orientación</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Precio</th>
+                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {currentItems.map((property) => (
                   <tr key={property.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold">
+                    <td className="px-4 py-5">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-9 h-9 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-sm">
                           {property.n_orden}
                         </div>
-                        <span className="font-bold text-slate-900">Urb. Altavik</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="text-center">
-                        <span className="block font-bold text-slate-700">Pl. {property.planta}</span>
-                        <span className="text-xs text-slate-400 font-medium">Por: {property.portal} | Let: {property.letra}</span>
+                    <td className="px-4 py-5">
+                      <div className="text-center font-bold text-slate-700 text-sm">
+                        {property.portal}
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center justify-center gap-4 text-slate-500">
-                        <div className="flex items-center gap-1.5">
-                          <BedDouble size={16} />
-                          <span className="font-bold">{property.dormitorios}</span>
+                    <td className="px-4 py-5">
+                      <div className="text-center font-bold text-slate-700 text-sm whitespace-nowrap">
+                        {property.planta} - {property.letra}
+                      </div>
+                    </td>
+                    <td className="px-4 py-5">
+                      <div className="flex items-center justify-center gap-3 text-slate-500">
+                        <div className="flex items-center gap-1">
+                          <BedDouble size={14} className="text-slate-400" />
+                          <span className="font-bold text-xs">{property.dormitorios}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Bath size={16} />
-                          <span className="font-bold">{property.banos}</span>
+                        <div className="flex items-center gap-1">
+                          <Bath size={14} className="text-slate-400" />
+                          <span className="font-bold text-xs">{property.banos}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-center">
+                    <td className="px-4 py-5 text-center">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                        <span className="text-[10px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="font-bold text-slate-700 text-[11px]">{property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[9px] text-slate-400 font-medium">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <span className="inline-flex px-3 py-1 rounded-lg bg-slate-900 text-white font-bold text-sm">
-                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(property.precio)}
+                    <td className="px-4 py-5 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className="font-bold text-slate-700 text-[11px]">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[9px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5">
+                      <div className="text-center text-xs font-medium text-slate-600">
+                        {property.orientacion || '-'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 text-center">
+                      <span className="inline-flex px-2.5 py-1 rounded-lg bg-slate-900 text-white font-bold text-[11px] whitespace-nowrap">
+                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.precio)}
                       </span>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex justify-end items-center gap-2">
+                    <td className="px-4 py-5">
+                      <div className="flex justify-center items-center gap-1">
+                        {property.ficha_url && (
+                          <a
+                            href={property.ficha_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Ver Ficha PDF"
+                          >
+                            <FileText size={18} />
+                          </a>
+                        )}
                         <button
                           onClick={() => handleGeneratePaymentForm(property)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-altavik-50 text-altavik-700 hover:bg-altavik-100 rounded-lg transition-all border border-altavik-100 whitespace-nowrap"
-                          title="Generar Forma de Pago"
+                          className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all"
+                          title="Forma de Pago"
                         >
-                          <Calculator size={16} />
-                          <span className="text-xs font-bold">FORMA DE PAGO</span>
+                          <Calculator size={18} />
                         </button>
-                        <button
-                          onClick={() => handleClone(property)}
-                          className="p-2 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all"
-                          title="Clonar Vivienda"
-                        >
-                          <Copy size={18} />
-                        </button>
+
                         <button
                           onClick={() => {
                             setEditingProperty(property);
@@ -956,6 +1000,16 @@ export default function Inventory() {
           onSuccess={() => {
             fetchProperties();
             setNotification({ show: true, type: 'success', title: 'Importación Finalizada', message: 'El catálogo se ha actualizado correctamente.' });
+          }}
+        />
+      )}
+
+      {isFichasModalOpen && (
+        <UploadFichasModal
+          isOpen={isFichasModalOpen}
+          onClose={() => setIsFichasModalOpen(false)}
+          onSuccess={() => {
+            fetchProperties();
           }}
         />
       )}
