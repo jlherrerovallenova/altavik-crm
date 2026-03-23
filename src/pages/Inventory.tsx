@@ -16,7 +16,8 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
-  Calculator
+  Euro,
+  PencilRuler
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -258,7 +259,7 @@ export default function Inventory() {
       doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
       doc.roundedRect(margin + 5, margin + 38, contentWidth - 10, 15, 3, 3, 'F');
       
-      doc.setFontSize(11);
+      doc.setFontSize(13);
       doc.setTextColor(255);
       doc.setFont('helvetica', 'bold');
       const headerText = `FORMA DE PAGO DE LA VIVIENDA ${property.planta} ${property.letra} PORTAL ${property.portal}`.toUpperCase();
@@ -320,10 +321,10 @@ export default function Inventory() {
       doc.setTextColor(255);
       // Numeración 2
       doc.text('2.', margin + 10, margin + 99.5);
-      doc.text('10% A LA FIRMA DE CONTRATO DE COMPRAVENTA - 6000\u20AC RESERVA', pageWidth / 2, margin + 99.5, { align: 'center' });
+      doc.text('10% A LA FIRMA DE CONTRATO DE COMPRAVENTA - 6.000\u20AC RESERVA', pageWidth / 2, margin + 99.5, { align: 'center' });
 
       doc.setFontSize(10);
-      doc.setTextColor(0);
+      doc.setTextColor(120);
       doc.text('IMPORTE', colL, margin + 110.5);
       doc.text(formatCurrency(total10Percent / 1.1), colVR1, margin + 110.5, { align: 'right' });
       doc.text('IVA 10%', colM, margin + 110.5);
@@ -331,7 +332,9 @@ export default function Inventory() {
       doc.text('TOTAL', colR, margin + 110.5);
       doc.text(formatCurrency(firmaContrato), rightBorder, margin + 110.5, { align: 'right' });
       doc.setFontSize(9);
+      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
       doc.text('(1)', margin + contentWidth - 2.7, margin + 110.5, { align: 'center' });
+      doc.setTextColor(120);
       doc.setFontSize(10);
 
       // --- 10% CUOTAS ---
@@ -349,7 +352,7 @@ export default function Inventory() {
       doc.setFontSize(10);
       const cuotaMensual = total10Percent / 24;
       
-      doc.setTextColor(0);
+      doc.setTextColor(120);
       doc.text('CUOTA MENSUAL', colL, margin + 138);
       doc.text('24', colQ, margin + 138);
       doc.text(formatCurrency(cuotaMensual / 1.1), colVR1, margin + 138, { align: 'right' });
@@ -366,7 +369,9 @@ export default function Inventory() {
       doc.text('TOTAL', colR, margin + 144);
       doc.text(formatCurrency(0), rightBorder, margin + 144, { align: 'right' });
       doc.setFontSize(9);
+      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
       doc.text('(2)', margin + contentWidth - 2.7, margin + 144, { align: 'center' });
+      doc.setTextColor(120);
       doc.setFontSize(10);
 
       doc.text('PENDIENTES', colL, margin + 150);
@@ -391,7 +396,7 @@ export default function Inventory() {
       doc.text('80% EN ESCRITURA DE COMPRAVENTA', pageWidth / 2, margin + 165.5, { align: 'center' });
 
       doc.setFontSize(10);
-      doc.setTextColor(0);
+      doc.setTextColor(120);
       doc.text('IMPORTE', colL, margin + 174.5);
       doc.text(formatCurrency(total80Percent / 1.1), colVR1, margin + 174.5, { align: 'right' });
       doc.text('IVA 10%', colM, margin + 174.5);
@@ -423,7 +428,7 @@ export default function Inventory() {
       doc.text('MEJORAS', margin + 5 + 5 * (contentWidth - 10) / 6, margin + 202.5, { align: 'center' });
 
       doc.setFontSize(12);
-      doc.setTextColor(0);
+      doc.setTextColor(120);
       doc.setFont('helvetica', 'bold');
       doc.text(formatCurrency(firmaContrato), margin + 5 + (contentWidth - 10) / 6, margin + 209.5, { align: 'center' });
       doc.text(formatCurrency(0), margin + 5 + (contentWidth - 10) / 2, margin + 209.5, { align: 'center' });
@@ -445,7 +450,7 @@ export default function Inventory() {
 
       // --- LOGOS FINALES Y FECHA ---
       doc.setFontSize(11);
-      doc.setTextColor(0);
+      doc.setTextColor(120);
       doc.setFont('helvetica', 'bold');
       doc.text('PROMUEVE:', margin + 15, 258);
       doc.text('COMERCIALIZA:', margin + 90, 258);
@@ -668,13 +673,13 @@ export default function Inventory() {
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 min-w-[150px]"
             title="Descargar Listado PDF"
           >
-            {isExporting ? <Loader2 className="animate-spin text-altavik-600" size={20} /> : <FileText size={20} className="text-red-500" />}
+            {isExporting ? <Loader2 className="animate-spin text-altavik-600" size={20} /> : <FileText size={20} className="text-altavik-600" />}
             {isExporting ? 'Generando...' : 'Exportar PDF'}
           </button>
           
           <button
             onClick={() => setIsFichasModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 font-bold rounded-2xl border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-altavik-50 text-altavik-600 font-bold rounded-2xl border border-altavik-100 hover:bg-altavik-100 transition-all active:scale-95 shadow-sm"
           >
             <FileText size={20} />
             <span>SUBIR FICHAS</span>
@@ -685,7 +690,7 @@ export default function Inventory() {
             className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
             title="Importar Excel/CSV"
           >
-            <Upload size={18} className="text-emerald-500" />
+            <Upload size={18} className="text-altavik-600" />
             Importar
           </button>
           <button
@@ -795,15 +800,15 @@ export default function Inventory() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white border-b border-slate-100">
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Nº Orden</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Portal</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Planta/Letra</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Dorm/Baños</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Útil/Const.</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Orientación</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Precio</th>
-                  <th className="px-4 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Acciones</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Nº Orden</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Portal</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Planta/Letra</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Dorm/Baños</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Útil/Const.</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Orientación</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Precio</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -811,52 +816,52 @@ export default function Inventory() {
                   <tr key={property.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-4 py-5">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-9 h-9 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-sm">
+                        <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-lg">
                           {property.n_orden}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center font-bold text-slate-700 text-sm">
+                      <div className="text-center font-bold text-slate-700 text-lg">
                         {property.portal}
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center font-bold text-slate-700 text-sm whitespace-nowrap">
+                      <div className="text-center font-bold text-slate-700 text-lg whitespace-nowrap">
                         {property.planta} - {property.letra}
                       </div>
                     </td>
                     <td className="px-4 py-5">
                       <div className="flex items-center justify-center gap-3 text-slate-500">
                         <div className="flex items-center gap-1">
-                          <BedDouble size={14} className="text-slate-400" />
-                          <span className="font-bold text-xs">{property.dormitorios}</span>
+                          <BedDouble size={18} className="text-slate-400" />
+                          <span className="font-bold text-base">{property.dormitorios}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Bath size={14} className="text-slate-400" />
-                          <span className="font-bold text-xs">{property.banos}</span>
+                          <Bath size={18} className="text-slate-400" />
+                          <span className="font-bold text-base">{property.banos}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-5 text-center">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700 text-[11px]">{property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                        <span className="text-[9px] text-slate-400 font-medium">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="font-bold text-slate-700 text-sm">{property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[11px] text-slate-400 font-medium">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                       </div>
                     </td>
                     <td className="px-4 py-5 text-center">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700 text-[11px]">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                        <span className="text-[9px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="font-bold text-slate-700 text-sm">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[11px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center text-xs font-medium text-slate-600">
+                      <div className="text-center text-base font-medium text-slate-600">
                         {property.orientacion || '-'}
                       </div>
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <span className="inline-flex px-2.5 py-1 rounded-lg bg-slate-900 text-white font-bold text-[11px] whitespace-nowrap">
+                      <span className="inline-flex px-3.5 py-2 rounded-lg bg-altavik-600 text-white font-bold text-sm whitespace-nowrap shadow-sm">
                         {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.precio)}
                       </span>
                     </td>
@@ -867,10 +872,10 @@ export default function Inventory() {
                             href={property.ficha_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all"
                             title="Ver Ficha PDF"
                           >
-                            <FileText size={18} />
+                            <PencilRuler size={18} />
                           </a>
                         )}
                         <button
@@ -878,7 +883,7 @@ export default function Inventory() {
                           className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all"
                           title="Forma de Pago"
                         >
-                          <Calculator size={18} />
+                          <Euro size={18} />
                         </button>
 
                         <button

@@ -29,7 +29,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Mirapinos <info@terravallpromociones.com>',
+        from: 'Residencial Altavik <info@terravallpromociones.com>',
         to: [to],
         subject,
         html,

@@ -13,7 +13,7 @@ interface Props {
 import { useCreateLead } from '../../hooks/useLeads';
 
 export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const createMutation = useCreateLead();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -79,7 +79,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
         phone: formData.phone || null,
         source: formData.source,
         status: 'new',
-        assigned_to: user.id
+        assigned_to: profile?.id || null
       };
 
       createMutation.mutate(payload, {

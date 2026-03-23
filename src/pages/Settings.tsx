@@ -23,7 +23,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { useDocuments, DOCUMENT_CATEGORIES } from '../hooks/useDocuments';
+import { useDocuments } from '../hooks/useDocuments';
 import type { SystemDocument } from '../hooks/useDocuments';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -49,8 +49,8 @@ const Settings: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Categoría seleccionada por defecto para subir
-  const [uploadCategory, setUploadCategory] = useState<string>(DOCUMENT_CATEGORIES[0]);
+  // Categoría seleccionada por defecto para subir (Eliminada - Todo va a General)
+  // const [uploadCategory, setUploadCategory] = useState<string>(DOCUMENT_CATEGORIES[0]);
 
   // Renombrado
   const [isEditingDoc, setIsEditingDoc] = useState<{ fullPath: string; category: string } | null>(null);
@@ -126,20 +126,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleMove = async (doc: SystemDocument, newCategory: string) => {
-    if (doc.category === newCategory) return;
-
-    const newFullPath = newCategory === 'Sin Categorizar' ? doc.name : `${newCategory}/${doc.name}`;
-
-    try {
-      const { error } = await supabase.storage.from('documents').move(doc.fullPath, newFullPath);
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['system_documents'] });
-    } catch (error) {
-      console.error('Error moviendo documento:', error);
-      await showAlert({ title: 'Error', message: 'El archivo ya existe en el destino o hubo un error de red.' });
-    }
-  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -149,8 +135,10 @@ const Settings: React.FC = () => {
     try {
       const duplicateFiles: string[] = [];
 
+      const uploadErrors: string[] = [];
+
       const uploadPromises = Array.from(files).map(async (file) => {
-        const fullPath = `${uploadCategory}/${file.name}`;
+        const fullPath = `Documentos Olivo/${file.name}`; // Se guarda internamente en una carpeta permitida por RLS
         const { error } = await supabase.storage.from('documents').upload(fullPath, file);
 
         if (error) {
@@ -158,6 +146,7 @@ const Settings: React.FC = () => {
             duplicateFiles.push(file.name);
           } else {
             console.error(`Error al subir ${file.name}:`, error);
+            uploadErrors.push(`${file.name}: ${error.message}`);
           }
         }
       });
@@ -165,7 +154,12 @@ const Settings: React.FC = () => {
       // Ejecutar todas las subidas en paralelo
       await Promise.all(uploadPromises);
 
-      if (duplicateFiles.length > 0) {
+      if (uploadErrors.length > 0) {
+        await showAlert({
+          title: 'Error de Permisos en Base de Datos',
+          message: `El servidor de Supabase bloqueó la subida. Verifica las políticas RLS del Storage.\n\nDetalle técnico:\n${uploadErrors.join('\n')}`
+        });
+      } else if (duplicateFiles.length > 0) {
         await showAlert({
           title: 'Atención',
           message: `Se subieron los archivos, pero los siguientes ya existían y se omitieron:\n\n${duplicateFiles.join(', ')}`
@@ -185,7 +179,7 @@ const Settings: React.FC = () => {
   const handleDelete = async (doc: SystemDocument) => {
     const confirmed = await showConfirm({
       title: 'Eliminar Archivo',
-      message: `¿Estás seguro de que deseas eliminar "${doc.name}" de la categoría "${doc.category}"? Esta acción será para todos los usuarios.`,
+      message: `¿Estás seguro de que deseas eliminar "${doc.name}"? Esta acción será para todos los usuarios.`,
       confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar'
     });
@@ -201,6 +195,7 @@ const Settings: React.FC = () => {
       await showAlert({ title: 'Error', message: 'El archivo está bloqueado o hubo un error de red.' });
     }
   };
+
 
   const handlePreview = async (fullPath: string) => {
     try {
@@ -219,7 +214,8 @@ const Settings: React.FC = () => {
     }
 
     try {
-      const newFullPath = `${oldDoc.category}/${newName}`;
+      const folderPrefix = oldDoc.fullPath.substring(0, oldDoc.fullPath.lastIndexOf('/'));
+      const newFullPath = folderPrefix ? `${folderPrefix}/${newName}` : newName;
       const { error } = await supabase.storage.from('documents').move(oldDoc.fullPath, newFullPath);
       if (error) throw error;
 
@@ -444,30 +440,18 @@ const Settings: React.FC = () => {
                     />
                   </div>
 
-                  {/* Selector de Categoría para Subida */}
-                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 bg-white border pr-1 rounded-lg">
-                    <select
-                      value={uploadCategory}
-                      onChange={(e) => setUploadCategory(e.target.value)}
-                      className="opacity-90 outline-none text-sm font-medium bg-transparent border-none py-2 px-3 text-slate-700 w-full sm:w-auto cursor-pointer"
-                    >
-                      {DOCUMENT_CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                    <div className="h-4 w-px bg-slate-200"></div>
-                    <label className={`flex items-center justify-center gap-1.5 px-3 py-1.5 my-1 ml-1 rounded text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${isUploading ? 'bg-slate-100 text-slate-400' : 'bg-altavik-600 text-white shadow-sm hover:bg-altavik-700'}`}>
-                      {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                      <span>Subir</span>
-                      <input
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        disabled={isUploading}
-                      />
-                    </label>
-                  </div>
+                  {/* Botón de Subida */}
+                  <label className={`flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto rounded-lg text-sm font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm shrink-0 ${isUploading ? 'bg-slate-100 text-slate-400 border border-slate-200' : 'bg-altavik-600 text-white hover:bg-altavik-700'}`}>
+                    {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                    <span>{isUploading ? 'Subiendo...' : 'Subir Documento'}</span>
+                    <input
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                    />
+                  </label>
                 </div>
               </div>
 
@@ -486,97 +470,76 @@ const Settings: React.FC = () => {
                   </div>
                 ) : (
                   <div className="pb-10">
-                    {['Sin Categorizar', ...DOCUMENT_CATEGORIES].map(categoryName => {
-                      const categoryDocs = searchedDocs.filter(d => d.category === categoryName);
-                      if (categoryDocs.length === 0) return null;
-
-                      return (
-                        <div key={categoryName} className="mb-6">
-                          <div className="bg-slate-100/80 px-4 py-2 flex items-center gap-2 border-y border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
-                            <FolderOpen size={16} className={categoryName === 'Sin Categorizar' ? 'text-amber-600' : 'text-altavik-700'} />
-                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{categoryName}</h3>
-                            <span className="text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold ml-auto">
-                              {categoryDocs.length} archivo{categoryDocs.length !== 1 ? 's' : ''}
-                            </span>
-                          </div>
-                          <table className="w-full text-left border-collapse table-fixed">
-                            <tbody className="divide-y divide-slate-50">
-                              {categoryDocs.map((doc) => (
-                                <tr key={doc.id} className="hover:bg-altavik-50/20 transition-colors group">
-                                  <td className="px-6 py-3 w-1/2">
-                                    <div className="flex items-center gap-3">
-                                      <FileText size={18} className="text-slate-400 shrink-0 group-hover:text-altavik-500 transition-colors" />
-                                      {isEditingDoc?.fullPath === doc.fullPath ? (
-                                        <div className="flex items-center gap-1 flex-1">
-                                          <input
-                                            autoFocus
-                                            className="text-sm font-medium border-altavik-500 border-2 rounded px-2 py-1 outline-none w-full bg-white shadow-inner"
-                                            value={newName}
-                                            onChange={(e) => setNewName(e.target.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name });
-                                              if (e.key === 'Escape') setIsEditingDoc(null);
-                                            }}
-                                          />
-                                          <button onClick={() => handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name })} className="text-altavik-600 p-1 hover:bg-altavik-100 rounded shrink-0"><Save size={16} /></button>
-                                          <button onClick={() => setIsEditingDoc(null)} className="text-slate-400 p-1 hover:bg-slate-200 rounded shrink-0"><X size={16} /></button>
-                                        </div>
-                                      ) : (
-                                        <span className="text-sm font-medium text-slate-700 truncate block" title={doc.name}>{doc.name}</span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-3 text-xs font-medium text-slate-400 w-24 hidden sm:table-cell">
-                                    {doc.metadata?.size ? (doc.metadata.size / 1024).toFixed(1) : 'N/A'} KB
-                                  </td>
-                                  <td className="px-4 py-3 text-xs text-slate-400 w-32 hidden md:table-cell">
-                                    {new Date(doc.updated_at).toLocaleDateString()}
-                                  </td>
-                                  <td className="px-6 py-3 text-right">
-                                    <div className="flex justify-end items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {/* Selector de reubicación */}
-                                      <select
-                                        value={doc.category}
-                                        onChange={(e) => handleMove(doc, e.target.value)}
-                                        className="text-xs bg-white border border-slate-200 rounded px-1.5 py-1 text-slate-600 outline-none hover:border-altavik-400 hover:text-altavik-700 cursor-pointer mr-2 max-w-[120px] truncate"
-                                        title="Mover a otra categoría"
-                                      >
-                                        <option value="Sin Categorizar">Mover a...</option>
-                                        {DOCUMENT_CATEGORIES.map(c => (
-                                          <option key={c} value={c}>{c}</option>
-                                        ))}
-                                      </select>
-
-                                      <button
-                                        onClick={() => handlePreview(doc.fullPath)}
-                                        className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-100 rounded-md"
-                                        title="Previsualizar"
-                                      >
-                                        <Eye size={16} />
-                                      </button>
-                                      <button
-                                        onClick={() => { setIsEditingDoc({ fullPath: doc.fullPath, category: doc.category }); setNewName(doc.name); }}
-                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-md"
-                                        title="Renombrar Archivo"
-                                      >
-                                        <Edit3 size={16} />
-                                      </button>
-                                      <button
-                                        onClick={() => handleDelete(doc)}
-                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-md"
-                                        title="Borrar Archivo"
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      );
-                    })}
+                    <table className="w-full text-left border-collapse table-fixed">
+                      <thead className="bg-slate-100/80 sticky top-0 z-10 backdrop-blur-sm">
+                        <tr>
+                          <th className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest w-1/2">Archivo</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest w-24 hidden sm:table-cell">Tamaño</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 hidden md:table-cell">Fecha</th>
+                          <th className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {searchedDocs.map((doc) => (
+                          <tr key={doc.id} className="hover:bg-altavik-50/20 transition-colors group">
+                            <td className="px-6 py-3">
+                              <div className="flex items-center gap-3">
+                                <FileText size={18} className="text-slate-400 shrink-0 group-hover:text-altavik-500 transition-colors" />
+                                {isEditingDoc?.fullPath === doc.fullPath ? (
+                                  <div className="flex items-center gap-1 flex-1">
+                                    <input
+                                      autoFocus
+                                      className="text-sm font-medium border-altavik-500 border-2 rounded px-2 py-1 outline-none w-full bg-white shadow-inner"
+                                      value={newName}
+                                      onChange={(e) => setNewName(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name });
+                                        if (e.key === 'Escape') setIsEditingDoc(null);
+                                      }}
+                                    />
+                                    <button onClick={() => handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name })} className="text-altavik-600 p-1 hover:bg-altavik-100 rounded shrink-0"><Save size={16} /></button>
+                                    <button onClick={() => setIsEditingDoc(null)} className="text-slate-400 p-1 hover:bg-slate-200 rounded shrink-0"><X size={16} /></button>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm font-medium text-slate-700 truncate block" title={doc.name}>{doc.name}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-xs font-medium text-slate-400 hidden sm:table-cell">
+                              {doc.metadata?.size ? (doc.metadata.size / 1024).toFixed(1) : 'N/A'} KB
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-400 hidden md:table-cell">
+                              {new Date(doc.updated_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-3 text-right">
+                              <div className="flex justify-end items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handlePreview(doc.fullPath)}
+                                  className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-100 rounded-md"
+                                  title="Previsualizar"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  onClick={() => { setIsEditingDoc({ fullPath: doc.fullPath, category: doc.category }); setNewName(doc.name); }}
+                                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-md"
+                                  title="Renombrar Archivo"
+                                >
+                                  <Edit3 size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(doc)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-md"
+                                  title="Borrar Archivo"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

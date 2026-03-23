@@ -49,6 +49,38 @@ export default function EmailComposerModal({
   );
 
   const [selectedDocs, setSelectedDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
+  const [customDocs, setCustomDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploadingFile(true);
+    
+    try {
+       const uploadedFiles: { name: string; url: string; category?: string }[] = [];
+       for (const file of Array.from(e.target.files)) {
+          const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const filePath = `leads/${leadId}/${Date.now()}_${cleanName}`;
+          
+          const { error } = await supabase.storage.from('documents').upload(filePath, file, { upsert: true });
+          if (error) throw error;
+          
+          const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+          
+          const newDoc = { name: file.name, url: publicUrlData.publicUrl, category: 'Personalizados' };
+          uploadedFiles.push(newDoc);
+       }
+       
+       setCustomDocs(prev => [...prev, ...uploadedFiles]);
+       setSelectedDocs(prev => [...prev, ...uploadedFiles]); // Auto-seleccionar
+    } catch (err: any) {
+       console.error("Error al subir archivo", err);
+       showAlert({ title: 'Error de subida', message: err?.message || 'No se pudo adjuntar el archivo temporal.' });
+    } finally {
+       setUploadingFile(false);
+       if (e.target) e.target.value = '';
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -110,20 +142,34 @@ export default function EmailComposerModal({
         const signatureHtml = getSignatureHtml();
 
         const htmlDocs = selectedDocs.length > 0
-          ? `<br><br><strong>Documentos adjuntos:</strong><br>` +
-          selectedDocs.map(d =>
-            `<a href="${d.url}" style="color: #10b981; font-weight: bold; text-decoration: underline;">${d.name}</a>`
-          ).join('<br>')
+          ? `
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin-top: 32px; border: 1px solid #e2e8f0; border-left: 4px solid #1d4ed8;">
+              <h3 style="margin-top: 0; margin-bottom: 16px; color: #475569; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
+                Documentos Adjuntos
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${selectedDocs.map(d => `
+                  <a href="${d.url}" style="display: block; padding: 12px 16px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #1d4ed8; font-weight: 600; text-decoration: none; font-size: 14px;">
+                    <span style="margin-right: 8px;">📄</span> ${d.name}
+                  </a>
+                `).join('')}
+              </div>
+            </div>`
           : '';
 
         // Construimos el cuerpo HTML incluyendo la firma al final
         const htmlFullMessage = `
-          <div style="font-family: sans-serif; line-height: 1.5; color: #334155;">
-            ${message.replace(/\n/g, '<br>')}
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0; padding: 10px 0; color: #1e293b;">
+            <div style="font-size: 15px; line-height: 1.7; color: #334155;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
             ${htmlDocs}
-            <br><br>
-            <div style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <div style="margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px;">
               ${signatureHtml}
+            </div>
+            <div style="margin-top: 30px; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+              Este mensaje y cualquier documento adjunto son confidenciales y están dirigidos exclusivamente a su destinatario.<br>
+              <strong>Residencial ALTAVIK</strong>
             </div>
           </div>
         `;
@@ -137,7 +183,13 @@ export default function EmailComposerModal({
         });
 
         if (error || data?.error) {
-          const msg = data?.error || error?.message || 'Error desconocido';
+          let msg = data?.error || error?.message || 'Error desconocido';
+          try {
+             if (error && (error as any).context && typeof (error as any).context.json === 'function') {
+                const errData = await (error as any).context.json();
+                msg = errData.error || msg;
+             }
+          } catch(e) {}
           throw new Error(msg);
         }
 
@@ -180,7 +232,7 @@ export default function EmailComposerModal({
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
+      <div className="bg-white w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
 
         {/* HEADER */}
         <div className="bg-altavik-600 px-6 py-4 flex items-center justify-between">
@@ -226,52 +278,83 @@ export default function EmailComposerModal({
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mensaje personalizado</label>
               <textarea
-                rows={4}
+                rows={10}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-none transition-all"
+                className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-y transition-all"
               />
             </div>
           </div>
 
-          {/* DOCUMENTOS */}
           <div>
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Documentación a enviar</label>
-            <div className="space-y-3">
-              {['Documentos Olivo', 'Documentos Arce', 'Parcelas', 'Renders-Fotos', 'Sin Categoría'].map(cat => {
-                const catDocs = availableDocs.filter(d => (d.category || 'Sin Categoría') === cat);
-                if (catDocs.length === 0) return null;
-
-                return (
-                  <div key={cat} className="border border-slate-200 rounded-lg overflow-hidden">
-                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-wider">{cat}</h4>
-                    </div>
-                    <div className="grid grid-cols-2 gap-px bg-slate-100">
-                      {catDocs.map((doc, idx) => {
-                        const isSelected = selectedDocs.find(d => d.url === doc.url);
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => toggleDoc(doc)}
-                            className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
-                              isSelected
-                                ? 'bg-altavik-50 text-altavik-700'
-                                : 'bg-white text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            <Paperclip size={13} className={isSelected ? 'text-altavik-500 shrink-0' : 'text-slate-300 shrink-0'} />
-                            <span className="text-xs font-semibold truncate" title={doc.name}>{doc.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Documentación a enviar</label>
+              <div className="relative">
+                <input type="file" multiple id="customFile" className="hidden" onChange={handleFileUpload} />
+                <label htmlFor="customFile" className="text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-altavik-200 hover:bg-altavik-50 px-3 py-1.5 rounded-md transition-all">
+                  {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo suelto
+                </label>
+              </div>
             </div>
+            
+            {customDocs.length > 0 && (
+              <div className="border border-altavik-200 rounded-lg overflow-hidden mb-3">
+                <div className="bg-altavik-50 px-4 py-2 border-b border-altavik-200 flex justify-between items-center">
+                  <h4 className="text-[10px] font-black text-altavik-700 uppercase tracking-wider">Archivos Locales (Sueltos)</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-px bg-slate-100">
+                  {customDocs.map((doc, idx) => {
+                    const isSelected = selectedDocs.find(d => d.url === doc.url);
+                    return (
+                      <button
+                        key={`custom-${idx}`}
+                        type="button"
+                        onClick={() => toggleDoc(doc)}
+                        className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
+                          isSelected
+                            ? 'bg-altavik-50 text-altavik-700'
+                            : 'bg-white text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Paperclip size={13} className={isSelected ? 'text-altavik-500 shrink-0' : 'text-slate-300 shrink-0'} />
+                        <span className="text-xs font-semibold truncate" title={doc.name}>{doc.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Repositorio de Archivos</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-px bg-slate-100">
+                {availableDocs.map((doc, idx) => {
+                  const isSelected = selectedDocs.find(d => d.url === doc.url);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => toggleDoc(doc)}
+                      className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
+                        isSelected
+                          ? 'bg-altavik-50 text-altavik-700'
+                          : 'bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Paperclip size={13} className={isSelected ? 'text-altavik-500 shrink-0' : 'text-slate-300 shrink-0'} />
+                      <span className="text-xs font-semibold truncate" title={doc.name}>{doc.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {availableDocs.length === 0 && (
+              <p className="text-center py-4 text-xs text-slate-400 italic">No hay documentos disponibles en el servidor.</p>
+            )}
           </div>
+
 
           {/* FOOTER */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">

@@ -73,7 +73,7 @@ serve(async (req) => {
 
             // Enviar este lote de la DB a Resend (en sub-lotes de 100)
             const resendBatch = leads.map(lead => ({
-                from: 'Mirapinos CRM <info@terravallpromociones.com>',
+                from: 'Residencial Altavik <info@terravallpromociones.com>',
                 to: [lead.email],
                 subject: newsletter.subject,
                 html: newsletter.html_content.replace('{{name}}', lead.name || 'Cliente'),

@@ -177,214 +177,230 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
         {/* Body (Scrollable) */}
         <div className="p-6 overflow-y-auto flex-1 bg-white">
           <form id="property-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* 1. Nº ORDEN */}
-              <div className="col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nº Orden</label>
-                <div className="relative mt-1.5">
-                  <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="flex flex-col gap-4">
+              
+              {/* Row 1: 4 items */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* 1. Nº ORDEN */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nº Orden</label>
+                  <div className="relative mt-1.5">
+                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      name="n_orden"
+                      required
+                      value={formData.n_orden}
+                      onChange={handleChange}
+                      placeholder="Ej: 01"
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. PORTAL */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Portal</label>
                   <input
-                    name="n_orden"
-                    required
-                    value={formData.n_orden}
+                    name="portal"
+                    value={formData.portal}
                     onChange={handleChange}
-                    placeholder="Ej: 01"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all"
+                    placeholder="Ej: 1"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 3. PLANTA */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Planta</label>
+                  <input
+                    name="planta"
+                    required
+                    value={formData.planta}
+                    onChange={handleChange}
+                    placeholder="Ej: BAJA"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 4. LETRA */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Letra</label>
+                  <input
+                    name="letra"
+                    value={formData.letra}
+                    onChange={handleChange}
+                    placeholder="Ej: A"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
                   />
                 </div>
               </div>
 
-              {/* 2. PLANTA */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Planta</label>
-                <input
-                  name="planta"
-                  required
-                  value={formData.planta}
-                  onChange={handleChange}
-                  placeholder="Ej: BAJA"
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 3. PORTAL */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Portal</label>
-                <input
-                  name="portal"
-                  value={formData.portal}
-                  onChange={handleChange}
-                  placeholder="Ej: 1"
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 4. LETRA */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Letra</label>
-                <input
-                  name="letra"
-                  value={formData.letra}
-                  onChange={handleChange}
-                  placeholder="Ej: A"
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 5. ORIENTACIÓN */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Orientación</label>
-                <input
-                  name="orientacion"
-                  value={formData.orientacion}
-                  onChange={handleChange}
-                  placeholder="Ej: Norte"
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 6. DORMITORIOS */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dormitorio</label>
-                <input
-                  name="dormitorios"
-                  type="number"
-                  required
-                  value={formData.dormitorios}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 7. BAÑOS */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Baños</label>
-                <input
-                  name="banos"
-                  type="number"
-                  required
-                  value={formData.banos}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 8. SUP ÚTIL */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Útil (m²)</label>
-                <input
-                  name="sup_util"
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.sup_util}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 9. SUP CONSTRUIDA */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Const. (m²)</label>
-                <input
-                  name="sup_construida"
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.sup_construida}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 10. SUP TERRAZAS */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Terrazas (m²)</label>
-                <input
-                  name="sup_terrazas"
-                  type="number"
-                  step="0.01"
-                  value={formData.sup_terrazas}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 11. SUP PORCHE */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sup. Porche (m²)</label>
-                <input
-                  name="sup_porche"
-                  type="number"
-                  step="0.01"
-                  value={formData.sup_porche}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                />
-              </div>
-
-              {/* 12. GARAJE */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Garaje</label>
-                <select
-                  name="garaje"
-                  value={formData.garaje}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                >
-                  <option value="SÍ">SÍ</option>
-                  <option value="NO">NO</option>
-                </select>
-              </div>
-
-              {/* 13. TRASTERO */}
-              <div className="md:col-span-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Trastero</label>
-                <select
-                  name="trastero"
-                  value={formData.trastero}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700"
-                >
-                  <option value="SÍ">SÍ</option>
-                  <option value="NO">NO</option>
-                </select>
-              </div>
-
-              {/* 14. PRECIO */}
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Precio (€)</label>
-                <div className="relative mt-1.5">
-                  <Euro className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              {/* Row 2: 3 items */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 5. ORIENTACIÓN */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Orientación</label>
                   <input
-                    name="precio"
+                    name="orientacion"
+                    value={formData.orientacion}
+                    onChange={handleChange}
+                    placeholder="Ej: Norte"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 6. DORMITORIOS */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dormitorio</label>
+                  <input
+                    name="dormitorios"
                     type="number"
                     required
-                    value={formData.precio}
+                    value={formData.dormitorios}
                     onChange={handleChange}
-                    placeholder="0.00"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 transition-all font-bold"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 7. BAÑOS */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Baños</label>
+                  <input
+                    name="banos"
+                    type="number"
+                    required
+                    value={formData.banos}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
                   />
                 </div>
               </div>
 
-              {/* 15. ESTADO VIVIENDA */}
-              <div className="md:col-span-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado de la Vivienda</label>
-                <select
-                  name="estado_vivienda"
-                  value={formData.estado_vivienda}
-                  onChange={handleChange}
-                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 appearance-none cursor-pointer"
-                >
-                  <option value="DISPONIBLE">DISPONIBLE</option>
-                  <option value="NO DISPONIBLE">NO DISPONIBLE</option>
-                  <option value="BLOQUEADA">BLOQUEADA</option>
-                  <option value="RESERVADA">RESERVADA</option>
-                  <option value="CONTRATO CV">CONTRATO CV</option>
-                  <option value="ESCRITURADA">ESCRITURADA</option>
-                </select>
+              {/* Row 3: 4 items */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* 8. SUP ÚTIL */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sup. Útil (m²)</label>
+                  <input
+                    name="sup_util"
+                    type="number"
+                    step="0.01"
+                    required
+                    value={formData.sup_util}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 9. SUP CONSTRUIDA */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sup. Const. (m²)</label>
+                  <input
+                    name="sup_construida"
+                    type="number"
+                    step="0.01"
+                    required
+                    value={formData.sup_construida}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 10. SUP TERRAZAS */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sup. Terrazas (m²)</label>
+                  <input
+                    name="sup_terrazas"
+                    type="number"
+                    step="0.01"
+                    value={formData.sup_terrazas}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+
+                {/* 11. SUP PORCHE */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sup. Porche (m²)</label>
+                  <input
+                    name="sup_porche"
+                    type="number"
+                    step="0.01"
+                    value={formData.sup_porche}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: 2 items */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 12. GARAJE */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Garaje</label>
+                  <select
+                    name="garaje"
+                    value={formData.garaje}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  >
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                  </select>
+                </div>
+
+                {/* 13. TRASTERO */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trastero</label>
+                  <select
+                    name="trastero"
+                    value={formData.trastero}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-sm font-medium text-slate-700 text-center"
+                  >
+                    <option value="SÍ">SÍ</option>
+                    <option value="NO">NO</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 5: 2 items */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 15. ESTADO VIVIENDA */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado de la Vivienda</label>
+                  <select
+                    name="estado_vivienda"
+                    value={formData.estado_vivienda}
+                    onChange={handleChange}
+                    className="w-full mt-1.5 px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-lg font-bold text-slate-700 text-center appearance-none cursor-pointer h-full"
+                  >
+                    <option value="DISPONIBLE">DISPONIBLE</option>
+                    <option value="NO DISPONIBLE">NO DISPONIBLE</option>
+                    <option value="BLOQUEADA">BLOQUEADA</option>
+                    <option value="RESERVADA">RESERVADA</option>
+                    <option value="CONTRATO CV">CONTRATO CV</option>
+                    <option value="ESCRITURADA">ESCRITURADA</option>
+                  </select>
+                </div>
+
+                {/* 14. PRECIO */}
+                <div>
+                  <label className="block text-center text-[10px] font-bold text-altavik-600 uppercase tracking-widest">Precio (€)</label>
+                  <div className="relative mt-1.5 h-full">
+                    <Euro className="absolute left-4 top-1/2 -translate-y-1/2 text-altavik-500" size={24} />
+                    <input
+                      name="precio"
+                      type="number"
+                      required
+                      value={formData.precio}
+                      onChange={handleChange}
+                      placeholder="0.00"
+                      className="w-full pl-12 pr-4 py-4 bg-altavik-50 border-2 border-altavik-300 rounded-xl focus:ring-4 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none text-2xl font-black text-altavik-800 transition-all text-center tracking-tight shadow-sm h-full"
+                    />
+                  </div>
+                </div>
               </div>
 
             </div>
