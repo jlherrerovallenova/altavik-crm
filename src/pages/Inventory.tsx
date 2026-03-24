@@ -361,12 +361,11 @@ export default function Inventory() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Inventario de Viviendas</h1>
-          <p className="text-slate-500 mt-1 font-medium">Gestión profesional del catálogo de activos.</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventario de Viviendas</h1>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3 w-full md:w-auto">
           <button

@@ -120,12 +120,11 @@ export default function Agenda() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <p className="text-altavik-600 font-bold uppercase tracking-[0.3em] text-[10px] mb-2">Organización</p>
-          <h1 className="text-3xl font-display font-bold text-slate-900">Agenda Global</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agenda Global</h1>
         </div>
         <div className="flex gap-3">
           <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden p-1">

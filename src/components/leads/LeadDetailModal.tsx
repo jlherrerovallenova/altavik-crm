@@ -22,9 +22,7 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }
   contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-900/40 text-purple-200 border border-purple-700/50', label: 'Contactado' },
   qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-altavik-200 border border-altavik-700/50', label: 'Cualificado' },
   visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-900/40 text-cyan-200 border border-cyan-700/50',       label: 'Visitando' },
-  proposal:    { dot: 'bg-amber-400',   pill: 'bg-amber-900/40 text-amber-200 border border-amber-700/50',   label: 'Propuesta' },
-  negotiation: { dot: 'bg-orange-400',  pill: 'bg-orange-900/40 text-orange-200 border border-orange-700/50', label: 'Negociación' },
-  closed:      { dot: 'bg-slate-400',   pill: 'bg-slate-700/50 text-slate-300 border border-slate-600/50',   label: 'Cerrado' },
+  closed:      { dot: 'bg-slate-400',   pill: 'bg-slate-700/50 text-slate-300 border border-slate-600/50',   label: 'Venta Cerrada' },
   lost:        { dot: 'bg-red-400',     pill: 'bg-red-900/40 text-red-200 border border-red-700/50',         label: 'Perdido' },
 };
 
@@ -58,8 +56,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     type: 'Llamada',
     title: '',
     date: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    comentario: ''
   });
+  // Edición inline del comentario de una tarea existente
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [commentDraft, setCommentDraft] = useState('');
 
   const [formData, setFormData] = useState({
     name: lead.name || '',
@@ -97,6 +99,17 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const saveComment = async (taskId: number) => {
+    const { error } = await (supabase as any)
+      .from('agenda')
+      .update({ comentario: commentDraft || null })
+      .eq('id', taskId);
+    if (!error) {
+      setEditingCommentId(null);
+      fetchTasks();
+    }
+  };
+
   const saveTask = async (overrides?: any) => {
     const taskTitle = overrides?.title || newTask.title;
     const taskType = overrides?.type || newTask.type;
@@ -116,7 +129,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       due_date: finalDate,
       lead_id: lead.id,
       user_id: session.user.id,
-      completed: isCompleted
+      completed: isCompleted,
+      comentario: newTask.comentario || null
     };
 
     setLoading(true);
@@ -127,7 +141,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           .update({
             title: taskData.title,
             type: taskData.type,
-            due_date: finalDate
+            due_date: finalDate,
+            comentario: taskData.comentario
           })
           .eq('id', editingTaskId);
         if (error) throw error;
@@ -154,7 +169,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
         type: 'Llamada', 
         title: '', 
         date: new Date().toISOString().slice(0, 10), 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        comentario: ''
       });
       fetchTasks();
 
@@ -185,7 +201,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       type: task.type,
       title: task.title,
       date: dateObj.toISOString().slice(0, 10),
-      time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+      time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      comentario: task.comentario || ''
     });
   };
 
@@ -193,6 +210,53 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const newStatus = !task.completed;
     setTasks(tasks.map(t => t.id === task.id ? { ...t, completed: newStatus } : t));
     await (supabase as any).from('agenda').update({ completed: newStatus }).eq('id', task.id);
+  };
+
+  /** Calcula el siguiente slot dentro del horario comercial (10-14h y 17-20h) */
+  const getNextCommercialSlot = (): Date => {
+    const now = new Date();
+    const totalMin = now.getHours() * 60 + now.getMinutes();
+
+    if (totalMin >= 10 * 60 && totalMin < 14 * 60 - 30) {
+      return new Date(now.getTime() + 30 * 60 * 1000);
+    }
+    if (totalMin >= 17 * 60 && totalMin < 20 * 60 - 30) {
+      return new Date(now.getTime() + 30 * 60 * 1000);
+    }
+    if (totalMin < 10 * 60) {
+      const slot = new Date(now); slot.setHours(10, 0, 0, 0); return slot;
+    }
+    if (totalMin >= 14 * 60 && totalMin < 17 * 60) {
+      const slot = new Date(now); slot.setHours(17, 0, 0, 0); return slot;
+    }
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    if (tomorrow.getDay() === 6) tomorrow.setDate(tomorrow.getDate() + 2);
+    if (tomorrow.getDay() === 0) tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  };
+
+  const handleCallResult = async (task: AgendaItem, attended: boolean) => {
+    const comentarioText = attended ? 'Llamada atendida ✅' : 'No atendida ❌ — reintento programado';
+    await (supabase as any)
+      .from('agenda')
+      .update({ completed: true, comentario: comentarioText })
+      .eq('id', task.id);
+
+    if (!attended && session?.user.id) {
+      const nextSlot = getNextCommercialSlot();
+      await (supabase as any).from('agenda').insert([{
+        title: task.title,
+        type: 'Llamada',
+        due_date: nextSlot.toISOString(),
+        lead_id: task.lead_id,
+        user_id: session.user.id,
+        completed: false,
+        comentario: null
+      }]);
+    }
+    fetchTasks();
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -343,9 +407,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           <option value="contacted">Contactado</option>
                           <option value="qualified">Cualificado</option>
                           <option value="visiting">Visitando</option>
-                          <option value="proposal">Propuesta</option>
-                          <option value="negotiation">Negociación</option>
-                          <option value="closed">Cerrado</option>
+                          <option value="closed">Venta Cerrada</option>
                           <option value="lost">Perdido</option>
                         </select>
                       </div>
@@ -472,7 +534,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                             type: 'Llamada', 
                             title: '', 
                             date: new Date().toISOString().slice(0, 10), 
-                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+                            comentario: ''
                           });
                         }}
                         className="bg-slate-100 px-3 rounded-lg hover:bg-slate-200 transition-colors text-slate-500"
@@ -500,39 +563,99 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   )}
                   {tasks.map((task) => {
                     const dateObj = new Date(task.due_date);
+                    const isEditingComment = editingCommentId === task.id;
                     return (
-                      <div key={task.id} className={`group flex items-center justify-between p-2.5 rounded-lg border transition-all ${task.completed ? 'bg-slate-50 border-transparent opacity-50' : 'bg-white border-slate-200 hover:border-altavik-200 shadow-sm'}`}>
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => toggleTaskStatus(task)} className={`transition-transform hover:scale-110 ${task.completed ? 'text-altavik-500' : 'text-slate-300 hover:text-altavik-500'}`}>
-                            {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                          </button>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{task.type}</span>
-                              <p className={`text-sm font-bold ${task.completed ? 'text-altavik-600 opacity-70' : 'text-slate-800'}`}>{task.title}</p>
+                      <div key={task.id} className={`group rounded-lg border transition-all ${task.completed ? 'bg-slate-50 border-transparent opacity-60' : 'bg-white border-slate-200 hover:border-altavik-200 shadow-sm'}`}>
+                        <div className="flex items-center justify-between p-2.5">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <button onClick={() => toggleTaskStatus(task)} className={`shrink-0 transition-transform hover:scale-110 ${task.completed ? 'text-altavik-500' : 'text-slate-300 hover:text-altavik-500'}`}>
+                              {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">{task.type}</span>
+                                <p className={`text-sm font-bold truncate ${task.completed ? 'text-altavik-600 opacity-70' : 'text-slate-800'}`}>{task.title}</p>
+                              </div>
+                              <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                                <Clock size={10} /> {dateObj.toLocaleDateString()} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
                             </div>
-                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                              <Clock size={10} /> {dateObj.toLocaleDateString()} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                          </div>
+
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+                            <button
+                              onClick={() => {
+                                setEditingCommentId(isEditingComment ? null : task.id);
+                                setCommentDraft(task.comentario || '');
+                              }}
+                              className={`p-1.5 rounded transition-colors text-xs font-bold ${ isEditingComment ? 'bg-amber-100 text-amber-600' : 'hover:bg-slate-100 text-slate-400 hover:text-amber-600'}`}
+                              title="Añadir comentario"
+                            >
+                              💬
+                            </button>
+                            <button
+                              onClick={() => startEditingTask(task)}
+                              className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"
+                              title="Editar"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"
+                              title="Borrar"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </div>
 
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => startEditingTask(task)}
-                            className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            onClick={() => deleteTask(task.id)}
-                            className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"
-                            title="Borrar"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                        {/* Botones ATENDIDA / NO ATENDIDA — solo Llamadas pendientes */}
+                        {task.type === 'Llamada' && !task.completed && (
+                          <div className="px-2.5 pb-2 flex gap-1.5">
+                            <button
+                              onClick={() => handleCallResult(task, true)}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[10px] font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors active:scale-95"
+                            >
+                              ✅ Atendida
+                            </button>
+                            <button
+                              onClick={() => handleCallResult(task, false)}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors active:scale-95"
+                            >
+                              ❌ No atendida
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Área de comentario */}
+                        {(isEditingComment || task.comentario) && (
+                          <div className="px-2.5 pb-2.5">
+                            {isEditingComment ? (
+                              <div className="flex gap-1.5 items-end">
+                                <textarea
+                                  autoFocus
+                                  value={commentDraft}
+                                  onChange={(e) => setCommentDraft(e.target.value)}
+                                  placeholder="Escribe el resultado de esta acción..."
+                                  rows={2}
+                                  className="flex-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] p-2 outline-none focus:border-amber-400 text-slate-700 placeholder-slate-400 resize-none"
+                                />
+                                <button
+                                  onClick={() => saveComment(task.id)}
+                                  className="p-2 bg-amber-500 hover:bg-amber-400 text-white rounded-lg transition-colors shrink-0"
+                                  title="Guardar comentario"
+                                >
+                                  <Save size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 italic leading-relaxed">
+                                💬 {task.comentario}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )
                   })}

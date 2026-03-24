@@ -150,6 +150,7 @@ export interface Database {
           due_date: string
           completed: boolean
           user_id: string | null
+          comentario: string | null
         }
         Insert: {
           id?: number
@@ -160,6 +161,7 @@ export interface Database {
           due_date: string
           completed?: boolean
           user_id?: string | null
+          comentario?: string | null
         }
         Update: {
           id?: number
@@ -170,6 +172,7 @@ export interface Database {
           due_date?: string
           completed?: boolean
           user_id?: string | null
+          comentario?: string | null
         }
       }
       newsletters: {

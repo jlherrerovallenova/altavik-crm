@@ -229,7 +229,7 @@ export default function Dashboard() {
       {/* CABECERA CON CTAs RÁPIDOS */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Panel de Control</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Panel de Control</h1>
           <p className="text-slate-500">Hola {session?.user.email?.split('@')[0]}, resumen de actividad.</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">

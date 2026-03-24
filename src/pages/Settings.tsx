@@ -234,11 +234,9 @@ const Settings: React.FC = () => {
   );
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      {/* Encabezado Principal */}
-      <div className="flex items-center gap-2 mb-6">
-        <SettingsIcon className="text-altavik-600" size={24} />
-        <h1 className="text-xl font-bold text-slate-800">Configuración del Sistema</h1>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">

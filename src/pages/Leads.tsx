@@ -39,9 +39,7 @@ const STATUS_LABELS: Record<string, string> = {
   contacted: 'Contactado',
   qualified: 'Cualificado',
   visiting: 'Visitando',
-  proposal: 'Propuesta',
-  negotiation: 'Negociación',
-  closed: 'Cerrado',
+  closed: 'Venta Cerrada',
   lost: 'Perdido',
 };
 
@@ -50,8 +48,6 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; border: string 
   contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-50 text-purple-700 border border-purple-200', border: 'border-l-purple-400' },
   qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-50 text-altavik-700 border border-emerald-200', border: 'border-l-altavik-400' },
   visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-50 text-cyan-700 border border-cyan-200',       border: 'border-l-cyan-400' },
-  proposal:    { dot: 'bg-amber-400',   pill: 'bg-amber-50 text-amber-700 border border-amber-200',   border: 'border-l-amber-400' },
-  negotiation: { dot: 'bg-orange-400',  pill: 'bg-orange-50 text-orange-700 border border-orange-200', border: 'border-l-orange-400' },
   closed:      { dot: 'bg-slate-600',   pill: 'bg-slate-800 text-slate-100 border border-slate-700',  border: 'border-l-slate-600' },
   lost:        { dot: 'bg-red-400',     pill: 'bg-red-50 text-red-700 border border-red-200',         border: 'border-l-red-400' },
 };
@@ -194,7 +190,7 @@ export default function Leads() {
       <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-display font-bold text-slate-900 tracking-tight">Mis Clientes</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Clientes</h1>
             <p className="text-slate-500 text-xs font-medium">
               {totalLeads} prospectos {hasActiveFilters && `(filtrados)`}
             </p>
@@ -253,9 +249,7 @@ export default function Leads() {
                 <option value="contacted">Contactados</option>
                 <option value="qualified">Cualificados</option>
                 <option value="visiting">Visitando</option>
-                <option value="proposal">Propuesta</option>
-                <option value="negotiation">Negociación</option>
-                <option value="closed">Cerrados</option>
+                <option value="closed">Venta Cerrada</option>
                 <option value="lost">Perdidos</option>
               </select>
             </div>

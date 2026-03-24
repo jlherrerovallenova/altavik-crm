@@ -121,9 +121,7 @@ export default function Stats() {
     contacted: 'Contactado',
     qualified: 'Cualificado',
     visiting: 'Visitando',
-    proposal: 'Propuesta',
-    negotiation: 'Negociación',
-    closed: 'Ganado',
+    closed: 'Venta Cerrada',
     lost: 'Perdido'
   };
 
