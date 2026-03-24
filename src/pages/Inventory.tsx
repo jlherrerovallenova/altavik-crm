@@ -27,6 +27,7 @@ import ImportInventoryModal from '../components/inventory/ImportInventoryModal';
 import UploadFichasModal from '../components/inventory/UploadFichasModal';
 import { AppNotification } from '../components/AppNotification';
 import { useDialog } from '../context/DialogContext';
+import PaymentFormModal from '../components/inventory/PaymentFormModal';
 
 interface Property {
   id: string;
@@ -77,6 +78,10 @@ export default function Inventory() {
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Nuevo estado para el modal de forma de pago premium
+  const [selectedPropertyForPayment, setSelectedPropertyForPayment] = useState<Property | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProperties();
@@ -176,321 +181,18 @@ export default function Inventory() {
   // Extraer valores únicos para los selectores de filtros
   const uniquePortals = Array.from(new Set(properties.map(p => p.portal).filter(Boolean))).sort();
   const uniqueDormitorios = Array.from(new Set(properties.map(p => p.dormitorios?.toString()).filter(Boolean))).sort();
-  const uniqueOrientations = Array.from(new Set(properties.map(p => p.orientacion).filter(Boolean))).sort();
-  const handleGeneratePaymentForm = async (property: Property) => {
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const getBase64Image = (url: string): Promise<{ data: string, width: number, height: number } | null> => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'Anonymous';
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.fillStyle = '#FFFFFF';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(img, 0, 0);
-              resolve({
-                data: canvas.toDataURL('image/jpeg', 0.95),
-                width: img.width,
-                height: img.height
-              });
-            } else resolve(null);
-          };
-          img.onerror = () => resolve(null);
-          img.src = url;
-        });
-      };
-
-      const logoAltavik = await getBase64Image('/logo-altavik.png');
-      const logoTerravall = await getBase64Image('/logo-terravall.png');
-      const logoHabitarum = await getBase64Image('/logo_habitarum.png');
-
-      const margin = 12;
-      const pageWidth = 210;
-      const contentWidth = pageWidth - (margin * 2);
-      const blueColor = [107, 148, 185]; // Altavik Blue
-      
-      const formatCurrency = (num: number) => {
-        const parts = num.toFixed(2).split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        if (parts[1] === '00') {
-          return parts[0] + ' \u20AC';
-        }
-        return parts.join(',') + ' \u20AC';
-      };
-
-      // --- CONFIGURACIÓN DE COLUMNAS PARA EVITAR SOLAPE Y ALINEAR A LA DERECHA ---
-      const colL = margin + 10;     // Etiquetas izquierda
-      const colVR1 = margin + 69;   // Valores 1 (Derecha) - (+4mm / 15px)
-      const colM = margin + 87;     // Etiquetas centro (IVA) - Ajustada
-      const colVR2 = margin + 127;  // Valores 2 (Derecha) - (+4mm / 15px)
-      const colR = margin + 137;    // Etiquetas TOTAL - Ajustada
-      const colQ = margin + 43.5;    // Columna para cantidades (24, 0, etc) - (+4mm / 15px)
-      const rightBorder = margin + contentWidth - 8; // Valores TOTAL (Derecha) - (Revertido a original)
-
-      // --- ESTRUCTURA GENERAL ---
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(margin, margin, contentWidth, 272, 3, 3, 'D');
-
-      // Logo Altavik Central Superior (Ajustado proporcionalmente)
-      if (logoAltavik) {
-        const maxWidth = 50;
-        const ratio = logoAltavik.height / logoAltavik.width;
-        const finalHeight = maxWidth * ratio;
-        doc.addImage(logoAltavik.data, 'JPEG', (pageWidth / 2) - (maxWidth/2), margin + 4.5, maxWidth, finalHeight);
-      }
-
-      // --- SECCIÓN CLIENTE / VIVIENDA ---
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      // Bajado de margin+28 a margin+38
-      doc.roundedRect(margin + 5, margin + 38, contentWidth - 10, 9, 3, 3, 'D');
-      
-      // Cabecera de bloque Vivienda Invertida
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.roundedRect(margin + 5, margin + 38, contentWidth - 10, 15, 3, 3, 'F');
-      
-      doc.setFontSize(13);
-      doc.setTextColor(255);
-      doc.setFont('helvetica', 'bold');
-      const headerText = `FORMA DE PAGO DE LA VIVIENDA ${property.planta} ${property.letra} PORTAL ${property.portal}`.toUpperCase();
-      // Centrado horizontal y vertical en el banner azul
-      doc.text(headerText, pageWidth / 2, margin + 47.5, { align: 'center' });
-
-
-      // --- IMPORTES PRINCIPALES ---
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.roundedRect(margin + 5, margin + 58, contentWidth - 10, 16, 3, 3, 'D');
-      const basePrice = property.precio;
-      const iva = basePrice * 0.1;
-      const totalIVAIncluded = basePrice + iva;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
-      
-      // Ajuste de Y para centrado vertical en la caja de 16mm (58 a 74). Medio visual: 67
-      const labelY = margin + 67;
-      
-      doc.text('IMPORTE', colL, labelY);
-      doc.text(formatCurrency(basePrice), colVR1, labelY, { align: 'right' });
-
-      doc.text('IVA 10%', colM, labelY);
-      doc.text(formatCurrency(iva), colVR2, labelY, { align: 'right' });
-
-      doc.setFontSize(9);
-      // Centramos el bloque de 2 líneas respecto al eje Y = 67
-      doc.text('TOTAL IVA\nINCLUIDO', colR, margin + 65.2);
-      
-      doc.setFontSize(12);
-      // El valor del total se alinea con el mismo eje horizontal que los otros valores
-      doc.text(formatCurrency(totalIVAIncluded), rightBorder, labelY, { align: 'right' });
-
-      // --- RESERVA ---
-      // Bloque RESERVA Invertido
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 78, contentWidth - 10, 10, 'F');
-      doc.setTextColor(255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      // Numeración 1
-      doc.text('1.', margin + 10, margin + 84.5);
-      const reservaText = `RESERVA: ${formatCurrency(6000)}`;
-      doc.text(reservaText, pageWidth / 2, margin + 84.5, { align: 'center' });
-
-      // --- 10% FIRMA CONTRATO ---
-      const total10Percent = totalIVAIncluded * 0.1;
-      const firmaContrato = total10Percent - 6000;
-
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 94, contentWidth - 10, 22, 'D');
-      
-      // Cabecera invertida
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 94, contentWidth - 10, 9, 'F');
-      doc.setFontSize(11);
-      doc.setTextColor(255);
-      // Numeración 2
-      doc.text('2.', margin + 10, margin + 99.5);
-      doc.text('10% A LA FIRMA DE CONTRATO DE COMPRAVENTA - 6.000\u20AC RESERVA', pageWidth / 2, margin + 99.5, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setTextColor(120);
-      doc.text('IMPORTE', colL, margin + 110.5);
-      doc.text(formatCurrency(total10Percent / 1.1), colVR1, margin + 110.5, { align: 'right' });
-      doc.text('IVA 10%', colM, margin + 110.5);
-      doc.text(formatCurrency(total10Percent - (total10Percent / 1.1)), colVR2, margin + 110.5, { align: 'right' });
-      doc.text('TOTAL', colR, margin + 110.5);
-      doc.text(formatCurrency(firmaContrato), rightBorder, margin + 110.5, { align: 'right' });
-      doc.setFontSize(9);
-      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.text('(1)', margin + contentWidth - 2.7, margin + 110.5, { align: 'center' });
-      doc.setTextColor(120);
-      doc.setFontSize(10);
-
-      // --- 10% CUOTAS ---
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 122, contentWidth - 10, 32, 'D');
-      // Cabecera invertida
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 122, contentWidth - 10, 9, 'F');
-      doc.setFontSize(11);
-      doc.setTextColor(255);
-      // Numeración 3
-      doc.text('3.', margin + 10, margin + 127.5);
-      doc.text('10% EN CUOTAS MENSUALES', pageWidth / 2, margin + 127.5, { align: 'center' });
-
-      doc.setFontSize(10);
-      const cuotaMensual = total10Percent / 24;
-      
-      doc.setTextColor(120);
-      doc.text('CUOTA MENSUAL', colL, margin + 138);
-      doc.text('24', colQ, margin + 138);
-      doc.text(formatCurrency(cuotaMensual / 1.1), colVR1, margin + 138, { align: 'right' });
-      doc.text('IVA 10%', colM, margin + 138);
-      doc.text(formatCurrency(cuotaMensual - (cuotaMensual / 1.1)), colVR2, margin + 138, { align: 'right' });
-      doc.text('TOTAL', colR, margin + 138);
-      doc.text(formatCurrency(cuotaMensual), rightBorder, margin + 138, { align: 'right' });
-
-      doc.text('VENCIDAS', colL, margin + 144);
-      doc.text('0', colQ, margin + 144);
-      doc.text(formatCurrency(0), colVR1, margin + 144, { align: 'right' });
-      doc.text('IVA 10%', colM, margin + 144);
-      doc.text(formatCurrency(0), colVR2, margin + 144, { align: 'right' });
-      doc.text('TOTAL', colR, margin + 144);
-      doc.text(formatCurrency(0), rightBorder, margin + 144, { align: 'right' });
-      doc.setFontSize(9);
-      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.text('(2)', margin + contentWidth - 2.7, margin + 144, { align: 'center' });
-      doc.setTextColor(120);
-      doc.setFontSize(10);
-
-      doc.text('PENDIENTES', colL, margin + 150);
-      doc.text('24', colQ, margin + 150);
-      doc.text(formatCurrency(total10Percent / 1.1), colVR1, margin + 150, { align: 'right' });
-      doc.text('IVA 10%', colM, margin + 150);
-      doc.text(formatCurrency(total10Percent - (total10Percent / 1.1)), colVR2, margin + 150, { align: 'right' });
-      doc.text('TOTAL', colR, margin + 150);
-      doc.text(formatCurrency(total10Percent), rightBorder, margin + 150, { align: 'right' });
-
-      // --- 80% ESCRITURA ---
-      const total80Percent = totalIVAIncluded * 0.8;
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 160, contentWidth - 10, 18, 'D');
-      // Cabecera invertida
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 160, contentWidth - 10, 9, 'F');
-      doc.setFontSize(11);
-      doc.setTextColor(255);
-      // Numeración 4
-      doc.text('4.', margin + 10, margin + 165.5);
-      doc.text('80% EN ESCRITURA DE COMPRAVENTA', pageWidth / 2, margin + 165.5, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setTextColor(120);
-      doc.text('IMPORTE', colL, margin + 174.5);
-      doc.text(formatCurrency(total80Percent / 1.1), colVR1, margin + 174.5, { align: 'right' });
-      doc.text('IVA 10%', colM, margin + 174.5);
-      doc.text(formatCurrency(total80Percent - (total80Percent / 1.1)), colVR2, margin + 174.5, { align: 'right' });
-      doc.text('TOTAL', colR, margin + 174.5);
-      doc.text(formatCurrency(total80Percent), rightBorder, margin + 174.4, { align: 'right' });
-
-      // --- PAGO A LA FIRMA DEL CONTRATO (RESUMEN) ---
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 184, contentWidth - 10, 42, 'D');
-      // Cabecera invertida
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 184, contentWidth - 10, 13, 'F');
-      doc.setFontSize(12);
-      doc.setTextColor(255);
-      doc.text('PAGO A LA FIRMA DEL CONTRATO', pageWidth / 2, margin + 191.5, { align: 'center' });
-      doc.setFontSize(8);
-      doc.text('(10%)+CUOTAS VENCIDAS+MEJORAS', pageWidth / 2, margin + 195.5, { align: 'center' });
-
-      doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.setLineWidth(0.3);
-      doc.line(margin + 5 + (contentWidth - 10) / 3, margin + 197, margin + 5 + (contentWidth - 10) / 3, margin + 215);
-      doc.line(margin + 5 + 2 * (contentWidth - 10) / 3, margin + 197, margin + 5 + 2 * (contentWidth - 10) / 3, margin + 215);
-
-      doc.setFontSize(9);
-      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.text('10% COMPRAVENTA (1)', margin + 5 + (contentWidth - 10) / 6, margin + 202.5, { align: 'center' });
-      doc.text('CUOTAS VENCIDAS (2)', margin + 5 + (contentWidth - 10) / 2, margin + 202.5, { align: 'center' });
-      doc.text('MEJORAS', margin + 5 + 5 * (contentWidth - 10) / 6, margin + 202.5, { align: 'center' });
-
-      doc.setFontSize(12);
-      doc.setTextColor(120);
-      doc.setFont('helvetica', 'bold');
-      doc.text(formatCurrency(firmaContrato), margin + 5 + (contentWidth - 10) / 6, margin + 209.5, { align: 'center' });
-      doc.text(formatCurrency(0), margin + 5 + (contentWidth - 10) / 2, margin + 209.5, { align: 'center' });
-      doc.text('-', margin + 5 + 5 * (contentWidth - 10) / 6, margin + 209.5, { align: 'center' });
-
-      doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.rect(margin + 5, margin + 215, contentWidth - 10, 10, 'F');
-      doc.setTextColor(255);
-      doc.setFontSize(13);
-      doc.text('TOTAL A INGRESAR', margin + 50, margin + 221, { align: 'center' });
-      doc.text(formatCurrency(firmaContrato), margin + 5 + (contentWidth - 10) / 2, margin + 221, { align: 'center' });
-      doc.text('-', margin + 5 + 5 * (contentWidth - 10) / 6, margin + 221, { align: 'center' });
-
-      doc.setTextColor(120);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('CONTRATO + CUOTAS', margin + 5 + (contentWidth - 10) / 2, margin + 230, { align: 'center' });
-      doc.text('MEJORAS', margin + 5 + 5 * (contentWidth - 10) / 6, margin + 230, { align: 'center' });
-
-      // --- LOGOS FINALES Y FECHA ---
-      doc.setFontSize(11);
-      doc.setTextColor(120);
-      doc.setFont('helvetica', 'bold');
-      doc.text('PROMUEVE:', margin + 15, 258);
-      doc.text('COMERCIALIZA:', margin + 90, 258);
-
-      // Logo Habitarum en zona inferior izquierda (PROMUEVE) (Ajustado proporcionalmente)
-      if (logoHabitarum) {
-        const maxWidth = 35;
-        const ratio = logoHabitarum.height / logoHabitarum.width;
-        const finalHeight = maxWidth * ratio;
-        doc.addImage(logoHabitarum.data, 'JPEG', margin + 40, 252, maxWidth, finalHeight);
-      }
-
-      // Logo Terravall en zona inferior derecha (COMERCIALIZA) (Ajustado proporcionalmente)
-      if (logoTerravall) {
-        const maxWidth = 45;
-        const ratio = logoTerravall.height / logoTerravall.width;
-        const finalHeight = maxWidth * ratio;
-        doc.addImage(logoTerravall.data, 'JPEG', margin + 120, 252, maxWidth, finalHeight);
-      }
-
-      doc.setTextColor(140);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Este documento es meramente informativo y no reviste carácter contractual.', margin + 10, 276.5);
-      doc.text('Desde la firma del contrato de compraventa las cantidades entregadas serán avaladas hasta la entrega de la vivienda.', margin + 10, 279.5);
-
-      // Fecha en el pie, alineada a la derecha y a la altura de la última línea del disclaimer
-      doc.setFontSize(9);
-      doc.setTextColor(140);
-      doc.setFont('helvetica', 'normal');
-      const dateText = `FECHA: ${new Date().toLocaleDateString('es-ES')}`;
-      doc.text(dateText, rightBorder, 279.5, { align: 'right' });
-
-      const pdfUrl = doc.output('bloburl');
-      window.open(pdfUrl, '_blank');
-    } catch (error) {
-      console.error('Error generating payment form:', error);
-      await showAlert({ title: 'Error', message: 'No se pudo generar la forma de pago.' });
-    }
-  };
+  const uniquePlantas = Array.from(new Set(properties.map(p => p.planta).filter(Boolean))).sort();
+  const orientationOrder = ['N', 'N/S', 'S', 'S/E', 'E', 'E/O', 'O'];
+  const uniqueOrientations = Array.from(new Set(properties.map(p => p.orientacion).filter(Boolean)))
+    .sort((a, b) => {
+      const ai = orientationOrder.indexOf(a);
+      const bi = orientationOrder.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  // La función handleGeneratePaymentForm ha sido movida al componente especializado PaymentFormModal
 
   const handleExportPDF = async () => {
     if (filteredProperties.length === 0) return;
@@ -759,13 +461,14 @@ export default function Inventory() {
         </div>
 
         <div className="relative w-full md:w-32">
-          <input
-            type="text"
-            placeholder="Altura..."
+          <select
             value={plantaFilter}
             onChange={(e) => setPlantaFilter(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none text-slate-700 font-medium font-bold text-sm text-center"
-          />
+            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
+          >
+            <option value="">Altura</option>
+            {uniquePlantas.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
         </div>
 
         <div className="relative w-full md:w-32">
@@ -879,9 +582,12 @@ export default function Inventory() {
                           </a>
                         )}
                         <button
-                          onClick={() => handleGeneratePaymentForm(property)}
+                          onClick={() => {
+                            setSelectedPropertyForPayment(property);
+                            setIsPaymentModalOpen(true);
+                          }}
                           className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all"
-                          title="Forma de Pago"
+                          title="Forma de Pago Premium"
                         >
                           <Euro size={18} />
                         </button>
@@ -1031,6 +737,17 @@ export default function Inventory() {
           onSuccess={() => {
             fetchProperties();
           }}
+        />
+      )}
+
+      {isPaymentModalOpen && selectedPropertyForPayment && (
+        <PaymentFormModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => {
+            setIsPaymentModalOpen(false);
+            setSelectedPropertyForPayment(null);
+          }}
+          property={selectedPropertyForPayment}
         />
       )}
 

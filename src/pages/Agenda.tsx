@@ -10,6 +10,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Smartphone,
   Loader2,
   Trash2,
   User
@@ -38,6 +39,13 @@ export default function Agenda() {
 
   useEffect(() => {
     fetchAgenda();
+
+    // Check for "create=true" to open the New Task modal
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('create') === 'true') {
+      setIsCreateModalOpen(true);
+      // Clean up the URL without navigating if possible, or just let it be
+    }
   }, [page, filterStatus]);
 
   const fetchAgenda = async () => {
@@ -105,6 +113,9 @@ export default function Agenda() {
     const t = type.toLowerCase();
     if (t.includes('llamada')) return <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Clock size={18} /></div>;
     if (t.includes('visita')) return <div className="p-2 bg-altavik-50 text-altavik-600 rounded-lg"><CalendarIcon size={18} /></div>;
+    if (t.includes('whatsapp')) return <div className="p-2 bg-green-50 text-green-600 rounded-lg"><Smartphone size={18} /></div>;
+    if (t.includes('email')) return <div className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Clock size={18} /></div>;
+    if (t.includes('reunión')) return <div className="p-2 bg-purple-50 text-purple-600 rounded-lg"><User size={18} /></div>;
     return <div className="p-2 bg-slate-50 text-slate-500 rounded-lg"><AlertCircle size={18} /></div>;
   };
 

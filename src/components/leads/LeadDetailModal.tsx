@@ -20,7 +20,7 @@ type AgendaItem = Database['public']['Tables']['agenda']['Row'];
 const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }> = {
   new:         { dot: 'bg-blue-400',    pill: 'bg-blue-900/40 text-blue-200 border border-blue-700/50',     label: 'Nuevo' },
   contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-900/40 text-purple-200 border border-purple-700/50', label: 'Contactado' },
-  qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-emerald-200 border border-altavik-700/50', label: 'Cualificado' },
+  qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-altavik-200 border border-altavik-700/50', label: 'Cualificado' },
   visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-900/40 text-cyan-200 border border-cyan-700/50',       label: 'Visitando' },
   proposal:    { dot: 'bg-amber-400',   pill: 'bg-amber-900/40 text-amber-200 border border-amber-700/50',   label: 'Propuesta' },
   negotiation: { dot: 'bg-orange-400',  pill: 'bg-orange-900/40 text-orange-200 border border-orange-700/50', label: 'Negociación' },
@@ -58,7 +58,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     type: 'Llamada',
     title: '',
     date: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-    time: '10:00'
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
   });
 
   const [formData, setFormData] = useState({
@@ -97,26 +97,31 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const saveTask = async () => {
-    if (!newTask.title || !session?.user.id) return;
+  const saveTask = async (overrides?: any) => {
+    const taskTitle = overrides?.title || newTask.title;
+    const taskType = overrides?.type || newTask.type;
+    const taskDate = overrides?.date || newTask.date;
+    const taskTime = overrides?.time || newTask.time;
+    const isCompleted = overrides?.completed !== undefined ? overrides.completed : false;
+
+    if (!taskTitle || !session?.user.id) return;
 
     // Combinar fecha y hora para crear un ISO String
-    const dateTimeString = `${newTask.date}T${newTask.time}:00`;
+    const dateTimeString = `${taskDate}T${taskTime}:00`;
     const finalDate = new Date(dateTimeString).toISOString();
 
     const taskData = {
-      title: newTask.title,
-      type: newTask.type,
+      title: taskTitle,
+      type: taskType,
       due_date: finalDate,
-      lead_id: lead.id,          // Vinculación clave con el cliente
-      user_id: session.user.id,  // Vinculación clave con el usuario
-      completed: false
+      lead_id: lead.id,
+      user_id: session.user.id,
+      completed: isCompleted
     };
 
     setLoading(true);
     try {
       if (editingTaskId) {
-        // Editar
         const { error } = await (supabase as any)
           .from('agenda')
           .update({
@@ -128,7 +133,6 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
         if (error) throw error;
         setEditingTaskId(null);
       } else {
-        // En lugar de Google Calendar directo aquí, lo mantenemos igual por ahora
         const { error } = await (supabase as any).from('agenda').insert([taskData]);
         if (error) throw error;
 
@@ -146,7 +150,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
         window.open(googleCalUrl.toString(), '_blank');
       }
 
-      setNewTask({ type: 'Llamada', title: '', date: new Date().toISOString().slice(0, 10), time: '10:00' });
+      setNewTask({ 
+        type: 'Llamada', 
+        title: '', 
+        date: new Date().toISOString().slice(0, 10), 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+      });
       fetchTasks();
 
     } catch (error) {
@@ -459,7 +468,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <button
                         onClick={() => {
                           setEditingTaskId(null);
-                          setNewTask({ type: 'Llamada', title: '', date: new Date().toISOString().slice(0, 10), time: '10:00' });
+                          setNewTask({ 
+                            type: 'Llamada', 
+                            title: '', 
+                            date: new Date().toISOString().slice(0, 10), 
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                          });
                         }}
                         className="bg-slate-100 px-3 rounded-lg hover:bg-slate-200 transition-colors text-slate-500"
                         title="Cancelar edición"
@@ -468,7 +482,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </button>
                     )}
                     <button
-                      onClick={saveTask}
+                      onClick={() => saveTask()}
                       className={`${editingTaskId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-altavik-600 hover:bg-altavik-500'} px-4 text-white rounded-lg transition-colors shadow-sm active:scale-95`}
                     >
                       {editingTaskId ? <Save size={18} /> : <Plus size={18} />}
@@ -487,15 +501,18 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   {tasks.map((task) => {
                     const dateObj = new Date(task.due_date);
                     return (
-                      <div key={task.id} className={`group flex items-center justify-between p-2.5 rounded-lg border transition-all ${task.completed ? 'bg-slate-50 border-transparent opacity-50' : 'bg-white border-slate-200 hover:border-emerald-200 shadow-sm'}`}>
+                      <div key={task.id} className={`group flex items-center justify-between p-2.5 rounded-lg border transition-all ${task.completed ? 'bg-slate-50 border-transparent opacity-50' : 'bg-white border-slate-200 hover:border-altavik-200 shadow-sm'}`}>
                         <div className="flex items-center gap-3">
                           <button onClick={() => toggleTaskStatus(task)} className={`transition-transform hover:scale-110 ${task.completed ? 'text-altavik-500' : 'text-slate-300 hover:text-altavik-500'}`}>
                             {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                           </button>
-                          <div>
-                            <p className={`text-sm font-medium ${task.completed ? 'text-altavik-600 opacity-70' : 'text-slate-800'}`}>{task.title}</p>
-                            <p className="text-xs text-slate-500 font-medium uppercase flex items-center gap-1">
-                              {task.type} • {dateObj.toLocaleDateString()} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{task.type}</span>
+                              <p className={`text-sm font-bold ${task.completed ? 'text-altavik-600 opacity-70' : 'text-slate-800'}`}>{task.title}</p>
+                            </div>
+                            <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                              <Clock size={10} /> {dateObj.toLocaleDateString()} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
                         </div>

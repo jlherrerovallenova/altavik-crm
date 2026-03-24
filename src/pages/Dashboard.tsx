@@ -475,7 +475,7 @@ export default function Dashboard() {
                   onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)}
                   className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs border border-slate-200 group-hover:bg-white group-hover:border-emerald-200 transition-colors">
+                  <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs border border-slate-200 group-hover:bg-white group-hover:border-altavik-200 transition-colors">
                     {lead.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="overflow-hidden">
@@ -524,7 +524,7 @@ function StatCard({ title, value, change, isPositive, icon, trendIcon = true, on
   return (
     <div
       onClick={onClick}
-      className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200 flex flex-col justify-between ${onClick ? 'cursor-pointer hover:shadow-md hover:border-emerald-200 hover:-translate-y-0.5' : ''
+      className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200 flex flex-col justify-between ${onClick ? 'cursor-pointer hover:shadow-md hover:border-altavik-200 hover:-translate-y-0.5' : ''
         }`}
     >
       <div className="flex justify-between items-start mb-2">
