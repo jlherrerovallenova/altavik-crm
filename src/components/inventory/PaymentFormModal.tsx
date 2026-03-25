@@ -48,6 +48,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
   const tenPercent = totalWithIVA * 0.1;
   const firmaContrato = tenPercent - reserva;
   const monthlyQuotaTotal = totalWithIVA * 0.1;
+  const monthlyAmount = monthlyQuotaTotal / 24;
   const eightyPercent = totalWithIVA * 0.8;
 
   const formatCurrency = (num: number) => {
@@ -255,7 +256,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
       currentY += 4; // Espacio hasta el inicio del punto 2
       // 2, 3, 4 con desglose
       drawStep(2, 'Firma de Contrato', 'Firma de la Compraventa (10% - reserva)', '', firmaContrato);
-      drawStep(3, 'Aplazamiento 10%', '24 cuotas mensuales', '24 MESES', monthlyQuotaTotal);
+      drawStep(3, 'Aplazamiento 10%', `24 cuotas mensuales de ${formatCurrency(monthlyAmount)}`, '24 MESES', monthlyQuotaTotal);
       drawStep(4, 'Entrega de Llaves', 'Desembolso final y escrituración', 'ENTREGA', eightyPercent);
 
       // --- RESUMEN FINAL ---
@@ -411,7 +412,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                 {[
                   { icon: Home, title: "1. Reserva", date: "Inmediato", amount: reserva, desc: "Bloqueo de la unidad" },
                   { icon: FileText, title: "2. Firma Contrato", date: "-", amount: firmaContrato, desc: "A la firma de la compraventa" },
-                  { icon: Calendar, title: "3. Cuotas Mensuales", date: "24 mensualidades", amount: monthlyQuotaTotal, desc: "Aplazamiento del 10%" },
+                  { icon: Calendar, title: "3. Cuotas Mensuales", date: "24 mensualidades", amount: monthlyQuotaTotal, desc: `24 cuotas de ${formatCurrency(monthlyAmount)}` },
                   { icon: BadgeCheck, title: "4. Escrituración", date: "Entrega de llaves", amount: eightyPercent, desc: "Mediante préstamo hipotecario" }
                 ].map((step, idx) => (
                   <div key={idx} className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">

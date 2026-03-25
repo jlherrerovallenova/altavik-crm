@@ -365,85 +365,85 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                 </button>
 
                 <form onSubmit={handleUpdate} className="space-y-4 flex-1 overflow-y-auto pr-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Bloque 1 */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
-                        <input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" required />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
-                        <input name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
-                        <div className="relative">
-                          <Compass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                          <select
-                            name="source"
-                            value={formData.source}
-                            onChange={handleChange}
-                            className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all appearance-none cursor-pointer"
-                          >
-                            <option value="Idealista">Idealista</option>
-                            <option value="Web">Web</option>
-                            <option value="Instagram">Instagram</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Referido">Referido</option>
-                            <option value="Llamada">Llamada</option>
-                            <option value="Otro">Otro</option>
-                          </select>
-                        </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    {/* Fila 1 */}
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
+                      <input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" required />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="600..." className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
                       </div>
                     </div>
 
-                    {/* Bloque 2 */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-                        <select name="status" value={formData.status} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 cursor-pointer transition-all appearance-none">
-                          <option value="new">Nuevo</option>
-                          <option value="contacted">Contactado</option>
-                          <option value="qualified">Cualificado</option>
-                          <option value="visiting">Visitando</option>
-                          <option value="closed">Venta Cerrada</option>
-                          <option value="lost">Perdido</option>
+                    {/* Fila 2 */}
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
+                      <input name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
+                      <div className="mt-1 px-4 py-2.3 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100 h-[42px]">
+                         <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={formData.is_subscribed}
+                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+                          />
+                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-altavik-500"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Fila 3 */}
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
+                      <div className="relative">
+                        <Compass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                        <select
+                          name="source"
+                          value={formData.source}
+                          onChange={handleChange}
+                          className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="Idealista">Idealista</option>
+                          <option value="Web">Web</option>
+                          <option value="Instagram">Instagram</option>
+                          <option value="Facebook">Facebook</option>
+                          <option value="Referido">Referido</option>
+                          <option value="Llamada">Llamada</option>
+                          <option value="Otro">Otro</option>
                         </select>
                       </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
-                        <div className="mt-1 px-4 py-2 bg-slate-50 rounded-lg flex items-center justify-between border border-transparent">
-                           <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              className="sr-only peer"
-                              checked={formData.is_subscribed}
-                              onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
-                            />
-                            <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-altavik-500"></div>
-                          </label>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                          <input name="phone" value={formData.phone} onChange={handleChange} placeholder="600..." className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
-                        <div className="relative">
-                          <input
-                            type="date"
-                            name="created_at_date"
-                            value={formData.created_at_date}
-                            onChange={handleChange}
-                            className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all"
-                          />
-                        </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
+                      <select name="status" value={formData.status} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 cursor-pointer transition-all appearance-none">
+                        <option value="new">Nuevo</option>
+                        <option value="contacted">Contactado</option>
+                        <option value="qualified">Cualificado</option>
+                        <option value="visiting">Visitando</option>
+                        <option value="closed">Venta Cerrada</option>
+                        <option value="lost">Perdido</option>
+                      </select>
+                    </div>
+
+                    {/* Fila 4 */}
+                    <div className="md:col-start-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="created_at_date"
+                          value={formData.created_at_date}
+                          onChange={handleChange}
+                          className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all"
+                        />
                       </div>
                     </div>
                   </div>
