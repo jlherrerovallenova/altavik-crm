@@ -18,7 +18,9 @@ import {
   FolderLock,
   KeyRound,
   CheckCircle2,
-  Mail
+  Mail,
+  Home,
+  Plus
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +28,10 @@ import { useDialog } from '../context/DialogContext';
 import { useDocuments } from '../hooks/useDocuments';
 import type { SystemDocument } from '../hooks/useDocuments';
 import { useQueryClient } from '@tanstack/react-query';
+import CreatePropertyModal from '../components/inventory/CreatePropertyModal';
+import ImportInventoryModal from '../components/inventory/ImportInventoryModal';
+import UploadFichasModal from '../components/inventory/UploadFichasModal';
+import { AppNotification } from '../components/AppNotification';
 
 const Settings: React.FC = () => {
   const { profile, refreshProfile } = useAuth();
@@ -33,7 +39,7 @@ const Settings: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Estados de Navegación y UI
-  const [activeTab, setActiveTab] = useState<'profile' | 'documents' | 'integrations'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'documents' | 'integrations' | 'inventory'>('profile');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -55,6 +61,17 @@ const Settings: React.FC = () => {
   // Renombrado
   const [isEditingDoc, setIsEditingDoc] = useState<{ fullPath: string; category: string } | null>(null);
   const [newName, setNewName] = useState('');
+  
+  // Estados para Viviendas
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isFichasModalOpen, setIsFichasModalOpen] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ show: false, title: '', message: '', type: 'success' });
 
   // Estados de Formulario de Perfil
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -271,6 +288,16 @@ const Settings: React.FC = () => {
           >
             <SettingsIcon size={16} />
             <span className="font-medium">Integraciones</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm transition-all ${activeTab === 'inventory'
+              ? 'bg-altavik-600 text-white shadow-sm'
+              : 'hover:bg-slate-100 text-slate-600'
+              }`}
+          >
+            <Home size={16} />
+            <span className="font-medium">Viviendas</span>
           </button>
         </div>
 
@@ -543,8 +570,119 @@ const Settings: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* VISTA: VIVIENDAS (GESTIÓN) */}
+          {activeTab === 'inventory' && (
+            <div className="p-8 space-y-8 animate-in fade-in duration-300">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-bold text-slate-800">Gestión de Catálogo de Viviendas</h2>
+                <p className="text-sm text-slate-500 mt-1">Administra las propiedades, importa datos de Excel o sube las fichas técnicas en PDF.</p>
+              </div>
+
+              <div className="flex flex-col gap-4 max-w-4xl">
+                {/* Card: Añadir Propiedad */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-colors group flex flex-col sm:flex-row items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-altavik-100 text-altavik-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Plus size={24} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-bold text-slate-800 text-sm">Nueva Propiedad</h3>
+                    <p className="text-xs text-slate-500">Añade una vivienda manualmente al inventario completando todos sus datos.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="w-full sm:w-48 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-altavik-600 hover:text-white hover:border-altavik-600 transition-all shadow-sm shrink-0"
+                  >
+                    Añadir Propiedad
+                  </button>
+                </div>
+
+                {/* Card: Importar Excel */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-colors group flex flex-col sm:flex-row items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Upload size={24} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-bold text-slate-800 text-sm">Importar Datos</h3>
+                    <p className="text-xs text-slate-500">Carga masivamente viviendas desde un archivo Excel o CSV (Num. Orden, Portal...).</p>
+                  </div>
+                  <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="w-full sm:w-48 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm shrink-0"
+                  >
+                    Importar Excel
+                  </button>
+                </div>
+
+                {/* Card: Subir Fichas PDF */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-colors group flex flex-col sm:flex-row items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <FileText size={24} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-bold text-slate-800 text-sm">Subir Fichas</h3>
+                    <p className="text-xs text-slate-500">Sube los documentos PDF de las fichas comerciales. Se vincularán por Nº de Orden.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsFichasModalOpen(true)}
+                    className="w-full sm:w-48 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all shadow-sm shrink-0"
+                  >
+                    Subir PDF
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-altavik-50 p-4 rounded-xl border border-altavik-100 flex items-start gap-3">
+                <div className="p-1 bg-white rounded-full text-altavik-600 shadow-sm shrink-0">
+                  <CheckCircle2 size={16} />
+                </div>
+                <p className="text-xs text-altavik-800 leading-relaxed">
+                  <strong>Recordatorio:</strong> Al subir fichas PDF, asegúrate de que el nombre del archivo comience con el Nº de Orden correspondiente (ej: "1_orden.pdf") para que el sistema las vincule automáticamente.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Modals Viviendas */}
+      {isModalOpen && (
+        <CreatePropertyModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            setNotification({ show: true, type: 'success', title: 'Completado', message: 'Vivienda guardada con éxito.' });
+          }}
+        />
+      )}
+
+      {isImportModalOpen && (
+        <ImportInventoryModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={() => {
+            setNotification({ show: true, type: 'success', title: 'Importación Finalizada', message: 'El catálogo se ha actualizado correctamente.' });
+          }}
+        />
+      )}
+
+      {isFichasModalOpen && (
+        <UploadFichasModal
+          isOpen={isFichasModalOpen}
+          onClose={() => setIsFichasModalOpen(false)}
+          onSuccess={() => {}}
+        />
+      )}
+
+      {notification.show && (
+        <AppNotification
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification({ ...notification, show: false })}
+        />
+      )}
 
       {/* MODAL DE VISTA PREVIA */}
       {previewUrl && (

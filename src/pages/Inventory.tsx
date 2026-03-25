@@ -16,6 +16,8 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Euro,
   PencilRuler
 } from 'lucide-react';
@@ -83,6 +85,12 @@ export default function Inventory() {
   const [selectedPropertyForPayment, setSelectedPropertyForPayment] = useState<Property | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
+  // Estado para ordenación
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Property | ''; direction: 'asc' | 'desc' | '' }>({
+    key: '',
+    direction: ''
+  });
+
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -139,6 +147,14 @@ export default function Inventory() {
     }
   };
 
+  const handleSort = (key: keyof Property) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
   const resetFilters = () => {
     setSearchTerm('');
     setStateFilter('');
@@ -166,6 +182,19 @@ export default function Inventory() {
     const matchesOrientacion = orientacionFilter === '' || p.orientacion === orientacionFilter;
     
     return matchesSearch && matchesState && matchesPortal && matchesDormitorios && matchesPlanta && matchesOrientacion;
+  }).sort((a, b) => {
+    if (sortConfig.key === 'precio') {
+      const valA = a.precio || 0;
+      const valB = b.precio || 0;
+      return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    }
+    // Si no hay ordenación por precio, mantenemos el orden por n_orden (comportamiento original)
+    const valA = a.n_orden || '';
+    const valB = b.n_orden || '';
+    const numA = parseInt(valA) || 0;
+    const numB = parseInt(valB) || 0;
+    if (numA !== numB) return numA - numB;
+    return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
   });
 
   // Reset page to 1 when filters change
@@ -377,33 +406,6 @@ export default function Inventory() {
             {isExporting ? <Loader2 className="animate-spin text-altavik-600" size={20} /> : <FileText size={20} className="text-altavik-600" />}
             {isExporting ? 'Generando...' : 'Exportar PDF'}
           </button>
-          
-          <button
-            onClick={() => setIsFichasModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-altavik-50 text-altavik-600 font-bold rounded-2xl border border-altavik-100 hover:bg-altavik-100 transition-all active:scale-95 shadow-sm"
-          >
-            <FileText size={20} />
-            <span>SUBIR FICHAS</span>
-          </button>
-
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
-            title="Importar Excel/CSV"
-          >
-            <Upload size={18} className="text-altavik-600" />
-            Importar
-          </button>
-          <button
-            onClick={() => {
-              setEditingProperty(null);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center justify-center gap-2 bg-altavik-600 hover:bg-altavik-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg transition-all active:scale-95"
-          >
-            <Plus size={20} />
-            Añadir Propiedad
-          </button>
         </div>
       </div>
 
@@ -509,7 +511,22 @@ export default function Inventory() {
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Útil/Const.</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Orientación</th>
-                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Precio</th>
+                  <th 
+                    className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => handleSort('precio')}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      Precio
+                      {sortConfig.key === 'precio' ? (
+                        sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-altavik-600" /> : <ChevronDown size={14} className="text-altavik-600" />
+                      ) : (
+                        <div className="flex flex-col opacity-20">
+                          <ChevronUp size={10} />
+                          <ChevronDown size={10} className="-mt-1" />
+                        </div>
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Acciones</th>
                 </tr>
               </thead>
@@ -518,18 +535,18 @@ export default function Inventory() {
                   <tr key={property.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-4 py-5">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-lg">
+                        <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-base">
                           {property.n_orden}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center font-bold text-slate-700 text-lg">
+                      <div className="text-center font-bold text-slate-700 text-base">
                         {property.portal}
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center font-bold text-slate-700 text-lg whitespace-nowrap">
+                      <div className="text-center font-bold text-slate-700 text-base whitespace-nowrap">
                         {property.planta} - {property.letra}
                       </div>
                     </td>
@@ -537,18 +554,21 @@ export default function Inventory() {
                       <div className="flex items-center justify-center gap-3 text-slate-500">
                         <div className="flex items-center gap-1">
                           <BedDouble size={18} className="text-slate-400" />
-                          <span className="font-bold text-base">{property.dormitorios}</span>
+                          <span className="font-bold text-sm">{property.dormitorios}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Bath size={18} className="text-slate-400" />
-                          <span className="font-bold text-base">{property.banos}</span>
+                          <span className="font-bold text-sm">{property.banos}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-5 text-center">
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700 text-sm">{property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                        <span className="text-[11px] text-slate-400 font-medium">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="font-bold text-slate-700 text-sm">
+                          {((property.sup_terrazas || 0) + (property.sup_porche || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium leading-tight">Terraza: {property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[10px] text-slate-400 font-medium leading-tight">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                       </div>
                     </td>
                     <td className="px-4 py-5 text-center">
@@ -558,7 +578,7 @@ export default function Inventory() {
                       </div>
                     </td>
                     <td className="px-4 py-5">
-                      <div className="text-center text-base font-medium text-slate-600">
+                      <div className="text-center text-sm font-medium text-slate-600">
                         {property.orientacion || '-'}
                       </div>
                     </td>
