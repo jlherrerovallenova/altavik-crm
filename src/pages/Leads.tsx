@@ -18,7 +18,11 @@ import {
   Upload,
   ArrowUp,
   ArrowDown,
-  ArrowUpDown
+  ArrowUpDown,
+  Globe,
+  Smartphone,
+  Users,
+  HelpCircle
 } from 'lucide-react';
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
@@ -62,6 +66,63 @@ const getStatusBadge = (status: Lead['status']) => {
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
       {label}
     </span>
+  );
+};
+
+const SourceIcon = ({ source }: { source: string | null }) => {
+  const s = source?.trim() || 'Directo';
+  
+  if (s === 'Idealista') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title="Idealista">
+        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/5 overflow-hidden">
+          <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Idealista</span>
+      </div>
+    );
+  }
+
+  if (s === 'Web' || s === 'Google') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
+        <div className="w-5 h-5 bg-blue-50 flex items-center justify-center rounded border border-blue-100 shadow-sm">
+          <Globe size={11} className="text-blue-600" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Web</span>
+      </div>
+    );
+  }
+
+  if (s === 'Redes Sociales') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title="Redes Sociales">
+        <div className="w-5 h-5 bg-purple-50 flex items-center justify-center rounded border border-purple-100 shadow-sm">
+          <Smartphone size={11} className="text-purple-600" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Social</span>
+      </div>
+    );
+  }
+
+  if (s === 'Referido') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title="Referido">
+        <div className="w-5 h-5 bg-emerald-50 flex items-center justify-center rounded border border-emerald-100 shadow-sm">
+          <Users size={11} className="text-emerald-600" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Amigo</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
+      <div className="w-5 h-5 bg-slate-50 flex items-center justify-center rounded border border-slate-200 shadow-sm">
+        <HelpCircle size={11} className="text-slate-500" />
+      </div>
+      <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Otros</span>
+    </div>
   );
 };
 
@@ -265,10 +326,8 @@ export default function Leads() {
                 <option value="Idealista">Idealista</option>
                 <option value="Web">Web</option>
                 <option value="Google">Google</option>
-                <option value="Instagram">Instagram</option>
-                <option value="Facebook">Facebook</option>
+                <option value="Redes Sociales">Redes Sociales</option>
                 <option value="Referido">Referido</option>
-                <option value="Llamada">Llamada</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>
@@ -312,22 +371,24 @@ export default function Leads() {
           <div className="flex-1">
             <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 hidden md:grid">
               <div
-                className={`col-span-4 flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
+                className={`col-span-3 flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('name')}
               >
                 Cliente
                 {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div className="col-span-2">Estado</div>
-              <div className="col-span-3">Contacto</div>
-              <div className="col-span-1">Origen</div>
+              <div className="col-span-2 text-center">Teléfono</div>
+              <div className="col-span-2 text-center">Email</div>
+              <div className="col-span-1 text-center">Origen</div>
+              <div className="col-span-2 text-center">Estado</div>
               <div
-                className={`col-span-2 flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
+                className={`col-span-1 flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('created_at')}
               >
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
+              <div className="col-span-1 text-center">Acciones</div>
             </div>
 
             {leads.map((lead) => {
@@ -338,7 +399,7 @@ export default function Leads() {
                   onClick={() => setSelectedLead(lead)}
                   className={`grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} hover:bg-slate-50/80 transition-all duration-150`}
                 >
-                  <div className="md:col-span-4 flex items-center gap-3.5">
+                  <div className="md:col-span-3 flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-700 flex items-center justify-center font-bold text-sm border border-altavik-100 shrink-0">
                       {lead.name?.substring(0, 2).toUpperCase() || 'CL'}
                     </div>
@@ -347,17 +408,7 @@ export default function Leads() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2">
-                    {getStatusBadge(lead.status)}
-                  </div>
-
-                  <div className="md:col-span-3 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
-                      <div className="w-5 h-5 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
-                        <Mail size={11} className="text-blue-400" />
-                      </div>
-                      <span className="truncate">{lead.email || <span className="text-slate-300 italic">Sin email</span>}</span>
-                    </div>
+                  <div className="md:col-span-2 flex justify-center">
                     <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
                       <div className="w-5 h-5 rounded-md bg-altavik-50 flex items-center justify-center shrink-0">
                         <Phone size={11} className="text-altavik-400" />
@@ -366,19 +417,30 @@ export default function Leads() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-1">
-                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-2.5 py-1 truncate block text-center">
-                      {lead.source || 'Directo'}
-                    </span>
+                  <div className="md:col-span-2 flex justify-center">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
+                      <div className="w-5 h-5 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+                        <Mail size={11} className="text-blue-400" />
+                      </div>
+                      <span className="truncate">{lead.email || <span className="text-slate-300 italic">Sin email</span>}</span>
+                    </div>
                   </div>
 
-                  <div className="md:col-span-2 text-right md:text-left">
+                  <div className="md:col-span-1 flex justify-center">
+                    <SourceIcon source={lead.source} />
+                  </div>
+
+                  <div className="md:col-span-2 flex justify-center">
+                    {getStatusBadge(lead.status)}
+                  </div>
+
+                  <div className="md:col-span-1 flex justify-center">
                     <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
                       {new Date(lead.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
 
-                  <div className="md:col-span-0 md:hidden lg:flex hidden items-center justify-end gap-1 absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="md:col-span-1 flex items-center justify-center gap-1 transition-opacity">
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle size={15} /></button>
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail size={15} /></button>
                     <ChevronRight size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />

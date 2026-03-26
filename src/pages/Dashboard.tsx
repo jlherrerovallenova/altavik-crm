@@ -210,7 +210,7 @@ export default function Dashboard() {
   const getSourceIcon = (sourceName: string) => {
     const lower = sourceName.toLowerCase();
     if (lower.includes('web') || lower.includes('google')) return <Globe className="text-blue-600" size={16} />;
-    if (lower.includes('insta') || lower.includes('facebook')) return <Smartphone className="text-purple-600" size={16} />;
+    if (lower.includes('insta') || lower.includes('facebook') || lower.includes('redes') || lower.includes('social')) return <Smartphone className="text-purple-600" size={16} />;
     if (lower.includes('referido') || lower.includes('amigo')) return <Users className="text-altavik-600" size={16} />;
     return <HelpCircle className="text-slate-400" size={16} />;
   };

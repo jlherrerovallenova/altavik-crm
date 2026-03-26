@@ -413,10 +413,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         >
                           <option value="Idealista">Idealista</option>
                           <option value="Web">Web</option>
-                          <option value="Instagram">Instagram</option>
-                          <option value="Facebook">Facebook</option>
+                          <option value="Redes Sociales">Redes Sociales</option>
                           <option value="Referido">Referido</option>
-                          <option value="Llamada">Llamada</option>
                           <option value="Otro">Otro</option>
                         </select>
                       </div>

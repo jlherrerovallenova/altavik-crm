@@ -82,15 +82,24 @@ export default function ExportLeadsModal({ isOpen, onClose }: Props) {
 
     // 4. Mapear datos a filas
     const tableRows: any[] = [];
+    const STATUS_LABELS: Record<string, string> = {
+      new: 'NUEVO',
+      contacted: 'CONTACTADO',
+      qualified: 'CUALIFICADO',
+      visiting: 'VISITANDO',
+      closed: 'VENTA CERRADA',
+      lost: 'PERDIDO',
+    };
 
     data.forEach(lead => {
+      const statusLabel = STATUS_LABELS[lead.status] || (lead.status?.toUpperCase() || 'NUEVO');
       const leadData = [
         lead.name || 'Sin nombre',
         lead.email || '',
         lead.phone || '',
 
         lead.source || 'Desconocido', // Importante: Clasificación visible
-        lead.status?.toUpperCase() || 'NUEVO',
+        statusLabel,
         new Date(lead.created_at).toLocaleDateString('es-ES'),
       ];
       tableRows.push(leadData);
