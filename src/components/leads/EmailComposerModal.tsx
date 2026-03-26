@@ -43,9 +43,14 @@ export default function EmailComposerModal({
   const [method, setMethod] = useState<'email' | 'whatsapp'>('email');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const [subject, setSubject] = useState(`Documentación ALTAVIK para ${leadName}`);
+  const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    return hour < 14 ? 'Buenos días' : 'Buenas tardes';
+  };
+
   const [message, setMessage] = useState(
-    `Hola ${leadName},\n\nSegún acordamos, adjunto la documentación sobre ALTAVIK.\n\nQuedo a tu disposición para cualquier duda.`
+    `${getGreeting()}, ${leadName}.\n\nLo primero quisiera agradecer su visita y el interés por la promoción.\n\nSegún acordamos, adjunto la documentación sobre la promoción RESIDENCIAL ALTAVIK.\n\nQuedo a tu disposición para cualquier duda.\n\nAtentamente\n\n_________________`
   );
 
   const [selectedDocs, setSelectedDocs] = useState<{ name: string; url: string; category?: string }[]>([]);

@@ -588,7 +588,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                                 setEditingCommentId(isEditingComment ? null : task.id);
                                 setCommentDraft(task.comentario || '');
                               }}
-                              className={`p-1.5 rounded transition-colors text-xs font-bold ${ isEditingComment ? 'bg-amber-100 text-amber-600' : 'hover:bg-slate-100 text-slate-400 hover:text-amber-600'}`}
+                              className={`p-1.5 rounded transition-colors text-xs font-bold ${ isEditingComment ? 'bg-altavik-100 text-altavik-600' : 'hover:bg-slate-100 text-slate-400 hover:text-altavik-600'}`}
                               title="Añadir comentario"
                             >
                               💬
@@ -639,18 +639,18 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                                   onChange={(e) => setCommentDraft(e.target.value)}
                                   placeholder="Escribe el resultado de esta acción..."
                                   rows={2}
-                                  className="flex-1 bg-amber-50 border border-amber-200 rounded-lg text-[11px] p-2 outline-none focus:border-amber-400 text-slate-700 placeholder-slate-400 resize-none"
+                                  className="flex-1 bg-altavik-50/50 border border-altavik-100 rounded-lg text-[11px] p-2 outline-none focus:border-altavik-500 text-slate-700 placeholder-slate-400 resize-none"
                                 />
                                 <button
                                   onClick={() => saveComment(task.id)}
-                                  className="p-2 bg-amber-500 hover:bg-amber-400 text-white rounded-lg transition-colors shrink-0"
+                                  className="p-2 bg-altavik-600 hover:bg-altavik-500 text-white rounded-lg transition-colors shrink-0 shadow-sm"
                                   title="Guardar comentario"
                                 >
                                   <Save size={14} />
                                 </button>
                               </div>
                             ) : (
-                              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 italic leading-relaxed">
+                              <p className="text-[11px] text-altavik-700 bg-altavik-50/30 border border-altavik-100/50 rounded-lg px-2.5 py-1.5 italic leading-relaxed">
                                 💬 {task.comentario}
                               </p>
                             )}

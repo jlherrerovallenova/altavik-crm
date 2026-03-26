@@ -33,19 +33,27 @@ export default function Agenda() {
 
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('pending');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed' | 'today' | 'overdue'>('pending');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { showConfirm, showAlert } = useDialog();
 
   useEffect(() => {
-    fetchAgenda();
+    // Check for query parameters (?filter=today, ?filter=overdue, etc.)
+    const searchParams = new URLSearchParams(window.location.search);
+    const filterParam = searchParams.get('filter') as any;
+    
+    if (filterParam && ['all', 'pending', 'completed', 'today', 'overdue'].includes(filterParam)) {
+      setFilterStatus(filterParam);
+    }
 
     // Check for "create=true" to open the New Task modal
-    const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.get('create') === 'true') {
       setIsCreateModalOpen(true);
-      // Clean up the URL without navigating if possible, or just let it be
     }
+  }, [window.location.search]); // React to URL changes
+
+  useEffect(() => {
+    fetchAgenda();
   }, [page, filterStatus]);
 
   const fetchAgenda = async () => {
@@ -58,11 +66,32 @@ export default function Agenda() {
       // Consulta a 'agenda' trayendo el nombre del cliente relacionado
       let query = supabase
         .from('agenda')
-        .select('*, leads(name)', { count: 'exact' })
-        .order('due_date', { ascending: true });
+        .select('*, leads(name)', { count: 'exact' });
 
-      if (filterStatus === 'pending') query = query.eq('completed', false);
-      if (filterStatus === 'completed') query = query.eq('completed', true);
+      // Aplicar filtros inteligentes
+      if (filterStatus === 'pending') {
+        query = query.eq('completed', false).order('due_date', { ascending: true });
+      } else if (filterStatus === 'completed') {
+        query = query.eq('completed', true).order('due_date', { ascending: false });
+      } else if (filterStatus === 'today') {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+        query = query
+          .eq('completed', false)
+          .gte('due_date', startOfDay)
+          .lte('due_date', endOfDay)
+          .order('due_date', { ascending: true });
+      } else if (filterStatus === 'overdue') {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        query = query
+          .eq('completed', false)
+          .lt('due_date', startOfDay)
+          .order('due_date', { ascending: true });
+      } else {
+        query = query.order('due_date', { ascending: true });
+      }
 
       const { data, count, error } = await query.range(from, to);
 
@@ -127,24 +156,31 @@ export default function Agenda() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agenda Global</h1>
         </div>
         <div className="flex gap-3">
-          <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden p-1">
+          <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden p-1 gap-1">
+            <button
+              onClick={() => { setFilterStatus('today'); setPage(1); }}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              Hoy
+            </button>
+            <button
+              onClick={() => { setFilterStatus('overdue'); setPage(1); }}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'overdue' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              Vencidas
+            </button>
+            <div className="w-px h-4 bg-slate-200 my-auto mx-1"></div>
             <button
               onClick={() => { setFilterStatus('pending'); setPage(1); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'pending' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'pending' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Pendientes
             </button>
             <button
               onClick={() => { setFilterStatus('completed'); setPage(1); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'completed' ? 'bg-altavik-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'completed' ? 'bg-altavik-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Completadas
-            </button>
-            <button
-              onClick={() => { setFilterStatus('all'); setPage(1); }}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'all' ? 'bg-slate-100 text-slate-700' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              Todas
             </button>
           </div>
 

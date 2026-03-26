@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { PDFDocument } from 'pdf-lib';
 
 interface Property {
   id: string;
@@ -43,6 +44,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
 
   const basePrice = property.precio;
   const iva = basePrice * 0.1;
+  const ajd = basePrice * 0.015;
   const totalWithIVA = basePrice + iva;
   const reserva = 6000;
   const tenPercent = totalWithIVA * 0.1;
@@ -84,7 +86,6 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
             canvas.height = img.height;
             const ctx = canvas.getContext('2d');
             if (ctx) {
-              // No rellenamos con blanco para mantener la transparencia si el logo la tiene
               ctx.drawImage(img, 0, 0);
               resolve({
                 data: canvas.toDataURL('image/png', 1.0),
@@ -98,26 +99,41 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
         });
       };
 
-      // --- FONDO DE PÁGINA BLANCO (PARA INTEGRAR LOGOS) ---
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, 210, 297, 'F');
+      const logoAltavik = await getBase64Image('/logo-altavik.png');
 
-      // --- LOGO Y CABECERA ---
-      try {
-        const logoAltavik = await getBase64Image('/logo-altavik.png');
+      const drawHeader = (isSecondPage = false) => {
+        // Fondo blanco
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, 210, 45, 'F');
+
         if (logoAltavik) {
           const maxWidth = 45;
           const ratio = logoAltavik.height / logoAltavik.width;
           const finalHeight = maxWidth * ratio;
-          doc.addImage(logoAltavik.data, 'JPEG', 15, 10, maxWidth, finalHeight);
+          doc.addImage(logoAltavik.data, 'PNG', 15, 10, maxWidth, finalHeight);
         }
-      } catch (e) {}
 
-      // Título a la derecha
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
-      doc.text('FORMA DE PAGO', 195, 36.5, { align: 'right' });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+        doc.text('FORMA DE PAGO', 195, 30, { align: 'right' });
+        
+        if (isSecondPage) {
+          doc.setFontSize(10);
+          doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+          doc.text('PLANO DE VIVIENDA SELECCIONADA', 195, 36, { align: 'right' });
+        }
+      };
+
+      const drawFooter = () => {
+        doc.setFontSize(7);
+        doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+        doc.text('Este documento tiene carácter meramente informativo y podrá ser modificado según condiciones comerciales. Altavik Residencial.', 15, 290);
+        doc.text(`Generado el ${new Date().toLocaleDateString('es-ES')}`, 195, 290, { align: 'right' });
+      };
+
+      // --- PÁGINA 1: DETALLE ECONÓMICO ---
+      drawHeader();
 
       // --- HERO SECTION: PROPIEDAD ---
       doc.setFillColor(248, 250, 252);
@@ -155,27 +171,22 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
       doc.setLineWidth(0.2);
       doc.setDrawColor(blueColor[0], blueColor[1], blueColor[2]);
 
-      // ICONO m2 (Centrado)
+      // ICONO m2
       doc.roundedRect(centerX - 2, 60.5, 4, 4, 0.5, 0.5);
       doc.line(centerX, 60.5, centerX, 64.5);
       doc.line(centerX - 2, 62.5, centerX + 2, 62.5);
       doc.text(`${property.sup_util.toFixed(2)} m\u00B2 \u00DAtiles`, 118, 64);
 
-      // ICONO Dormitorios (Centrado)
+      // ICONO Dormitorios
       doc.roundedRect(centerX - 1.5, 68, 3, 4.5, 0.4, 0.4);
       doc.line(centerX - 1.5, 69.2, centerX + 1.5, 69.2);
       doc.roundedRect(centerX - 1.1, 68.3, 2.2, 0.6, 0.2, 0.2);
       doc.text(`${property.dormitorios} Dormitorios`, 118, 72);
 
-      // ICONO Baños (Centrado)
-      doc.setLineWidth(0.2);
+      // ICONO Baños
       doc.line(centerX - 2.5, 78.5, centerX - 2.5, 77.5);
       doc.line(centerX - 2.5, 77.5, centerX + 0.5, 77.5);
       doc.roundedRect(centerX, 77.5, 2.5, 0.8, 0.2, 0.2);
-      doc.setLineWidth(0.1);
-      doc.line(centerX + 0.5, 78.8, centerX + 0.5, 80);
-      doc.line(centerX + 1.2, 78.8, centerX + 1.2, 80);
-      doc.line(centerX + 2, 78.8, centerX + 2, 80);
       doc.text(`${property.banos} Baños`, 118, 80);
 
       // --- SECCIÓN DE PRECIO ---
@@ -183,25 +194,37 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
       doc.roundedRect(15, 95, 180, 25, 4, 4, 'F');
       
       doc.setTextColor(255);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('IMPORTE TOTAL (10% INCLUIDO)', 25, 110);
       
+      // PRECIO BASE (Prioridad Alta)
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PRECIO BASE', 25, 106);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text(formatCurrency(totalWithIVA), 185, 111, { align: 'right' });
+      doc.text(formatCurrency(property.precio), 185, 106, { align: 'right' });
+      
+      // LÍNEA DIVISORA SUTIL
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.1);
+      doc.line(25, 109.5, 185, 109.5);
+      
+      // TOTAL (Prioridad Baja)
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+      doc.text('IMPORTE TOTAL (10% IVA INCLUIDO)', 25, 116);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(formatCurrency(totalWithIVA), 185, 116, { align: 'right' });
 
-      let currentY = 125; // Iniciamos a 125 para subir el punto 1
+      let currentY = 125;
 
       const drawStep = (idx: number, title: string, subtitle: string, date: string, amount: number, showBreakdown = true) => {
         const stepBase = amount / 1.1;
         const stepIva = amount - stepBase;
 
-        // Fondo de tarjeta
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(15, currentY, 180, 22, 3, 3, 'F');
         
-        // Círculo del número
         doc.setFillColor(lightBlue[0], lightBlue[1], lightBlue[2]);
         doc.circle(26, currentY + 11, 4.5, 'F');
         doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
@@ -209,7 +232,6 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
         doc.setFont('helvetica', 'bold');
         doc.text(idx.toString(), 26, currentY + 14, { align: 'center' });
 
-        // Título y Subtítulo
         doc.setTextColor(deepBlue[0], deepBlue[1], deepBlue[2]);
         doc.setFontSize(10);
         doc.text(title, 35, currentY + 8);
@@ -224,7 +246,6 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
           doc.text(date.toUpperCase(), 35, currentY + 17.5);
         }
 
-        // Cifras (Todo en NEGRITA)
         doc.setFont('helvetica', 'bold');
         if (showBreakdown) {
           doc.setFontSize(9);
@@ -240,11 +261,8 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
         currentY += 24; 
       };
 
-      // 1. Reserva (Subido de 135 a 125)
       drawStep(1, 'Reserva de Vivienda', 'Bloqueo inmediato de la unidad', 'INMEDIATO', reserva, false);
 
-      // Cabeceras centradas exactamente entre punto 1 y 2
-      // El punto 1 termina en 147. El punto 2 empezará en 156. Centro óptico = 153.
       currentY += 4; 
       doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
@@ -253,14 +271,12 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
       doc.text('IVA (10%)', 155, currentY, { align: 'right' });
       doc.text('TOTAL A PAGAR', 185, currentY, { align: 'right' });
 
-      currentY += 4; // Espacio hasta el inicio del punto 2
-      // 2, 3, 4 con desglose
+      currentY += 4; 
       drawStep(2, 'Firma de Contrato', 'Firma de la Compraventa (10% - reserva)', '', firmaContrato);
       drawStep(3, 'Aplazamiento 10%', `24 cuotas mensuales de ${formatCurrency(monthlyAmount)}`, '24 MESES', monthlyQuotaTotal);
       drawStep(4, 'Entrega de Llaves', 'Desembolso final y escrituración', 'ENTREGA', eightyPercent);
 
-      // --- RESUMEN FINAL ---
-      currentY -= 3; // Ajuste fino tras los saltos
+      currentY += 4; 
       doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
       doc.line(15, currentY, 195, currentY);
       
@@ -281,8 +297,11 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
       doc.text('IVA Aplicable (10%)', 15, currentY);
       doc.text(formatCurrency(iva), 195, currentY, { align: 'right' });
 
-      // --- LOGOS DE COLABORADORES ---
-      currentY += 12;
+      currentY += 6;
+      doc.text('IAJD (Tipo General 1,5%)', 15, currentY);
+      doc.text(formatCurrency(ajd), 195, currentY, { align: 'right' });
+
+      currentY += 10;
       try {
         const logoHabitarum = await getBase64Image('/logo_habitarum.png');
         const logoTerravall = await getBase64Image('/logo-terravall.png');
@@ -292,23 +311,90 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
         doc.setTextColor(softGray[0], softGray[1], softGray[2]);
 
         if (logoHabitarum) {
-          doc.addImage(logoHabitarum.data, 'PNG', 15, currentY, 25, 8);
-          doc.text('PROMUEVE', 27.5, currentY + 12, { align: 'center' });
+          doc.addImage(logoHabitarum.data, 'PNG', 69, currentY, 25, 8);
+          doc.text('PROMUEVE', 81.5, currentY + 12, { align: 'center' });
         }
         if (logoTerravall) {
-          doc.addImage(logoTerravall.data, 'PNG', 45, currentY, 32, 8);
-          doc.text('COMERCIALIZA', 61, currentY + 12, { align: 'center' });
+          doc.addImage(logoTerravall.data, 'PNG', 109, currentY, 32, 8);
+          doc.text('COMERCIALIZA', 125, currentY + 12, { align: 'center' });
         }
       } catch (e) {}
 
-      // --- FOOTER FIJO AL FINAL ---
-      doc.setFontSize(7);
-      doc.setTextColor(softGray[0], softGray[1], softGray[2]);
-      doc.text('Este documento tiene carácter meramente informativo y podrá ser modificado según condiciones comerciales. Altavik Residencial.', 15, 282);
-      doc.text(`Generado el ${new Date().toLocaleDateString('es-ES')} \u00B7 ALTAVIK ESTUDIO GESTIÓN INMOBILIARIA`, 15, 287);
+      drawFooter();
 
       const fileName = `Portal ${property.portal}_Planta ${property.planta}_Letra ${property.letra}_fecha ${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`;
-      doc.save(fileName);
+
+      // --- GENERAR PDF FINAL (CON O SIN FICHA) ---
+      try {
+        const firstPageBytes = doc.output('arraybuffer');
+        
+        if (property.ficha_url) {
+          const isPdf = property.ficha_url.toLowerCase().endsWith('.pdf');
+          
+          if (isPdf) {
+            // Caso PDF: Fusionamos páginas con pdf-lib
+            const mergedPdf = await PDFDocument.create();
+            
+            // 1. Añadir primera página de jsPDF
+            const firstPdf = await PDFDocument.load(firstPageBytes);
+            const [firstPage] = await mergedPdf.copyPages(firstPdf, [0]);
+            mergedPdf.addPage(firstPage);
+            
+            // 2. Cargar y añadir páginas de la ficha
+            const fichaResponse = await fetch(property.ficha_url);
+            const fichaBytes = await fichaResponse.arrayBuffer();
+            const fichaPdf = await PDFDocument.load(fichaBytes);
+            const fichaPages = await mergedPdf.copyPages(fichaPdf, fichaPdf.getPageIndices());
+            fichaPages.forEach((page) => mergedPdf.addPage(page));
+            
+            // 3. Guardar final
+            const mergedPdfBytes = await mergedPdf.save();
+            const blob = new Blob([mergedPdfBytes as any], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+          } else {
+            // Caso Imagen: Usamos la lógica anterior de jsPDF (más simple)
+            const fichaImg = await getBase64Image(property.ficha_url);
+            if (fichaImg) {
+              doc.addPage();
+              drawHeader(true);
+              
+              const margin = 15;
+              const availableWidth = 210 - (margin * 2);
+              const availableHeight = 297 - 45 - 20;
+              const imgRatio = fichaImg.width / fichaImg.height;
+              const containerRatio = availableWidth / availableHeight;
+              
+              let finalW, finalH;
+              if (imgRatio > containerRatio) {
+                finalW = availableWidth;
+                finalH = availableWidth / imgRatio;
+              } else {
+                finalH = availableHeight;
+                finalW = availableHeight * imgRatio;
+              }
+              
+              const xPos = margin + (availableWidth - finalW) / 2;
+              const yPos = 45 + (availableHeight - finalH) / 2;
+              
+              doc.addImage(fichaImg.data, 'PNG', xPos, yPos, finalW, finalH);
+              drawFooter();
+            }
+            doc.save(fileName);
+          }
+        } else {
+          // Sin ficha: Guardamos el documento original
+          doc.save(fileName);
+        }
+      } catch (e) {
+        console.error("Error fusionando PDFs:", e);
+        // Fallback: al menos guardamos la primera página
+        doc.save(fileName);
+      }
     };
 
   return (
@@ -368,17 +454,33 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-slate-200 text-right">
-                  <span className="text-slate-400 text-sm font-medium block mb-1">IMPORTE TOTAL (10% INCLUIDO)</span>
-                  <div className="text-3xl font-black text-altavik-600">
-                    {formatCurrency(totalWithIVA)}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <div className="flex justify-between items-end mb-4">
+                    <span className="text-slate-400 text-sm font-black uppercase">Precio Base</span>
+                    <div className="text-3xl font-black text-altavik-600">
+                      {formatCurrency(property.precio)}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-end p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span className="text-slate-500 text-xs font-bold uppercase">Importe Total</span>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 font-bold block leading-none mb-1">10% IVA INCLUIDO</span>
+                      <div className="text-lg font-bold text-slate-700">
+                        {formatCurrency(totalWithIVA)}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <CheckCircle2 size={20} className="text-altavik-500" />
-                  <span className="text-slate-600 font-medium text-sm">Entrega prevista: 2Q 2028.</span>
+                {/* Fila AJD */}
+                <div className="mt-4 p-4 rounded-2xl bg-white/50 border border-altavik-100 flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                     <div className="w-8 h-8 rounded-lg bg-altavik-100 text-altavik-600 flex items-center justify-center font-bold text-[10px]">AJD</div>
+                     <span className="text-xs font-bold text-slate-700">Impuesto AJD (1,5%)</span>
+                   </div>
+                   <div className="text-sm font-black text-slate-800">{formatCurrency(ajd)}</div>
                 </div>
+
               </div>
 
               <div className="space-y-3">
@@ -389,8 +491,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                 <div className="space-y-2">
                   {[
                     "Cantidades avaladas por entidad bancaria.",
-                    "Personalización de acabados disponible.",
-                    "Entrega prevista: Q4 2026."
+                    "Personalización de acabados disponible."
                   ].map((text, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-slate-600 text-xs font-medium">
                       <CheckCircle2 size={16} className="text-altavik-500 mt-0.5" />
@@ -456,19 +557,21 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
 
         {/* Footer Actions */}
         <div className="px-8 py-5 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
-          <button 
-            onClick={onClose}
-            className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all text-sm"
-          >
-            Cerrar Preview
-          </button>
-          <button 
-            onClick={handleGeneratePDF}
-            className="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-xl shadow-slate-200 hover:bg-slate-800 hover:shadow-altavik-100 active:scale-95 transition-all flex items-center gap-2 text-sm"
-          >
-            <Download size={18} />
-            <span>Generar Documento PDF</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onClose}
+              className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all text-sm"
+            >
+              Cerrar Preview
+            </button>
+            <button 
+              onClick={handleGeneratePDF}
+              className="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-xl shadow-slate-200 hover:bg-slate-800 hover:shadow-altavik-100 active:scale-95 transition-all flex items-center gap-2 text-sm"
+            >
+              <Download size={18} />
+              <span>Generar Documento PDF</span>
+            </button>
+          </div>
         </div>
 
       </div>

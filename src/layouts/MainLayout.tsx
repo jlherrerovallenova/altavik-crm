@@ -232,11 +232,15 @@ export default function MainLayout() {
 
                   <div className="p-3 space-y-2">
                     {/* Tareas de hoy */}
-                    <div className={`flex items-center gap-3 p-3 rounded-lg ${todayCount > 0 ? 'bg-blue-50 border border-blue-100' : 'bg-slate-50'}`}>
+                    <Link 
+                      to="/agenda?filter=today"
+                      onClick={() => setShowBellPopover(false)}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer hover:brightness-95 active:scale-[0.98] ${todayCount > 0 ? 'bg-blue-50 border border-blue-100' : 'bg-slate-50'}`}
+                    >
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${todayCount > 0 ? 'bg-blue-500' : 'bg-slate-200'}`}>
                         <Clock size={17} className={todayCount > 0 ? 'text-white' : 'text-slate-400'} />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 text-left">
                         <p className={`text-xs font-bold ${todayCount > 0 ? 'text-blue-800' : 'text-slate-500'}`}>Tareas para hoy</p>
                         <p className={`text-[11px] ${todayCount > 0 ? 'text-blue-600' : 'text-slate-400'}`}>
                           {todayCount === 0 ? 'Sin tareas pendientes' : `${todayCount} tarea${todayCount !== 1 ? 's' : ''} pendiente${todayCount !== 1 ? 's' : ''}`}
@@ -245,14 +249,18 @@ export default function MainLayout() {
                       {todayCount > 0 && (
                         <span className="text-lg font-black text-blue-600">{todayCount}</span>
                       )}
-                    </div>
+                    </Link>
 
                     {/* Tareas vencidas */}
-                    <div className={`flex items-center gap-3 p-3 rounded-lg ${overdueCount > 0 ? 'bg-red-50 border border-red-100' : 'bg-slate-50'}`}>
+                    <Link 
+                      to="/agenda?filter=overdue"
+                      onClick={() => setShowBellPopover(false)}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer hover:brightness-95 active:scale-[0.98] ${overdueCount > 0 ? 'bg-red-50 border border-red-100' : 'bg-slate-50'}`}
+                    >
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${overdueCount > 0 ? 'bg-red-500' : 'bg-slate-200'}`}>
                         <AlertTriangle size={17} className={overdueCount > 0 ? 'text-white' : 'text-slate-400'} />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 text-left">
                         <p className={`text-xs font-bold ${overdueCount > 0 ? 'text-red-800' : 'text-slate-500'}`}>Tareas vencidas</p>
                         <p className={`text-[11px] ${overdueCount > 0 ? 'text-red-600' : 'text-slate-400'}`}>
                           {overdueCount === 0 ? 'Todo al día' : `${overdueCount} tarea${overdueCount !== 1 ? 's' : ''} sin completar`}
@@ -261,7 +269,7 @@ export default function MainLayout() {
                       {overdueCount > 0 && (
                         <span className="text-lg font-black text-red-600">{overdueCount}</span>
                       )}
-                    </div>
+                    </Link>
                   </div>
 
                   <div className="px-3 pb-3">

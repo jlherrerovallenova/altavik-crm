@@ -334,20 +334,21 @@ export default function Inventory() {
       headStyles: { 
         fillColor: [107, 148, 185], // Altavik-500
         textColor: 255, 
-        fontSize: 11,
+        fontSize: 8.5,
         fontStyle: 'bold',
         halign: 'center'
       },
       styles: { 
         fontSize: 10,
         cellPadding: 4,
-        valign: 'middle'
+        valign: 'middle',
+        halign: 'center'
       },
       columnStyles: {
-        0: { fontStyle: 'bold', halign: 'center', cellWidth: 15 },
+        0: { fontStyle: 'bold', cellWidth: 12 },
         1: { fontStyle: 'bold', cellWidth: 35 },
-        7: { fontStyle: 'bold', halign: 'right', textColor: [15, 23, 42] },
-        8: { halign: 'center' }
+        7: { fontStyle: 'bold', textColor: [15, 23, 42] },
+        8: { cellWidth: 30 }
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
@@ -394,7 +395,13 @@ export default function Inventory() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventario de Viviendas</h1>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Inventario de Viviendas</h1>
+          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+              {filteredProperties.length}
+            </span> 
+            unidades encontradas
+          </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3 w-full md:w-auto">
           <button
@@ -411,12 +418,15 @@ export default function Inventory() {
 
       {/* Buscador y Filtros */}
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1 w-full group">
+        <div className="relative flex-[3_3_0%] w-full group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" size={20} />
           <input
             type="text"
+            autoComplete="off"
+            id="main-inventory-search"
+            spellCheck="false"
             placeholder="Buscar por Nº orden, planta o letra..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none transition-all font-medium text-slate-700"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none font-medium text-slate-700"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
