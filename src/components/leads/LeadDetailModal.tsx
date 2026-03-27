@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
-  CheckCircle2, Circle, Plus, Pencil, RotateCcw
+  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useDialog } from '../../context/DialogContext';
 import EmailComposerModal from './EmailComposerModal';
 import { useDocuments } from '../../hooks/useDocuments';
+import SaleTab from './SaleTab';
 import type { Database } from '../../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -38,6 +39,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const { session } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'ficha' | 'venta'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
@@ -302,6 +304,13 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     });
   };
 
+  // Función para actualizar el lead desde SaleTab
+  const handleLeadUpdate = async (updates: Partial<Lead>) => {
+    updateMutation.mutate({ id: lead.id, updates }, {
+      onSuccess: () => onUpdate(),
+    });
+  };
+
   // URLs rápidas
   const cleanPhone = formData.phone.replace(/\D/g, '');
   const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}` : '#';
@@ -351,8 +360,38 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
             </button>
           </div>
 
+          {/* TABS */}
+          <div className="flex border-b border-slate-200 bg-white">
+            <button
+              onClick={() => setActiveTab('ficha')}
+              className={`flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${
+                activeTab === 'ficha'
+                  ? 'border-altavik-600 text-altavik-600'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <Mail size={14} /> Ficha y Agenda
+            </button>
+            <button
+              onClick={() => setActiveTab('venta')}
+              className={`flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${
+                activeTab === 'venta'
+                  ? 'border-amber-500 text-amber-600'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <ShoppingCart size={14} /> Gestión de Compra
+              {lead.sale_status && (
+                <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold rounded-full uppercase">{lead.sale_status}</span>
+              )}
+            </button>
+          </div>
+
           {/* CONTENIDO PRINCIPAL */}
           <div className="flex-1 overflow-y-auto p-6 bg-white">
+            {activeTab === 'venta' ? (
+              <SaleTab lead={lead} onLeadUpdate={handleLeadUpdate} />
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
 
               {/* COLUMNA IZQUIERDA: FORMULARIO */}
@@ -661,6 +700,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
               </div>
 
             </div>
+            )}
           </div>
         </div>
       </div>
