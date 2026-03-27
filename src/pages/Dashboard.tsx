@@ -15,7 +15,9 @@ import {
   Circle,
   AlertCircle,
   Search,
-  Plus
+  Plus,
+  Home,
+  Phone
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -209,9 +211,11 @@ export default function Dashboard() {
   // --- HELPERS DE UI ---
   const getSourceIcon = (sourceName: string) => {
     const lower = sourceName.toLowerCase();
+    if (lower.includes('idealista')) return <Home className="text-orange-500" size={16} />;
     if (lower.includes('web') || lower.includes('google')) return <Globe className="text-blue-600" size={16} />;
     if (lower.includes('insta') || lower.includes('facebook') || lower.includes('redes') || lower.includes('social')) return <Smartphone className="text-purple-600" size={16} />;
     if (lower.includes('referido') || lower.includes('amigo')) return <Users className="text-altavik-600" size={16} />;
+    if (lower.includes('llamada') || lower.includes('tel')) return <Phone className="text-green-600" size={16} />;
     return <HelpCircle className="text-slate-400" size={16} />;
   };
 

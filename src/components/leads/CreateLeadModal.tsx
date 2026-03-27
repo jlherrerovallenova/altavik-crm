@@ -1,6 +1,6 @@
 // src/components/leads/CreateLeadModal.tsx
 import { useState } from 'react';
-import { X, Loader2, AlertCircle } from 'lucide-react';
+import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -21,8 +21,11 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
     name: '',
     email: '',
     phone: '',
-    source: 'Web'
+    source: 'Idealista',
+    notes: ''
   });
+  const [pasteText, setPasteText] = useState('');
+  const [showPaste, setShowPaste] = useState(false);
 
   if (!isOpen) return null;
 
@@ -51,6 +54,105 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
       return false;
     }
   };
+  
+  const handlePasteParse = () => {
+    if (!pasteText.trim()) return;
+
+    // 1. Buscamos el Email (es lo más fiable)
+    const emailMatch = pasteText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+    const email = emailMatch ? emailMatch[1].trim() : null;
+
+    // 2. Buscamos el Teléfono (9-15 dígitos, permitiendo espacios/guiones)
+    const phoneMatch = pasteText.match(/(?:\+?34\s?)?[6789][0-9\s-]{8,13}/);
+    let phone = phoneMatch ? phoneMatch[0].trim().replace(/\s/g, '') : null;
+
+    // 3. Buscamos el Nombre (Heurística: línea anterior al email o teléfono, o tras "Contactado por")
+    let name = '';
+    const lines = pasteText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    // Función para ver si una línea es un teléfono
+    const isPhone = (line: string) => /(?:\+?34\s?)?[6789][0-9\s-]{8,13}/.test(line);
+
+    // Intentamos buscar por palabras clave primero
+    const nameKeywordMatch = pasteText.match(/(?:Nombre|Te ha contactado|Contactado por|de)\s*[:\s-]*\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ.\s]{3,40})/i);
+    
+    if (nameKeywordMatch && nameKeywordMatch[1]) {
+      name = nameKeywordMatch[1].trim();
+    } else {
+      // Si no hay palabras clave, buscamos la línea que NO sea el email ni el teléfono
+      const emailLineIndex = lines.findIndex(l => email && l.includes(email));
+      const phoneLineIndex = lines.findIndex(l => phone && l.replace(/\s/g, '').includes(phone));
+      
+      // Buscamos un índice que no sea parte de los datos
+      const dataIndices = [emailLineIndex, phoneLineIndex].filter(idx => idx !== -1);
+      const minDataIndex = dataIndices.length > 0 ? Math.min(...dataIndices) : -1;
+      
+      if (minDataIndex > 0) {
+        // Probamos la línea justo encima del primer dato encontrado
+        const candidate = lines[minDataIndex - 1];
+        if (candidate.length > 3 && candidate.length < 40 && !candidate.includes('@') && !isPhone(candidate)) {
+          name = candidate;
+        }
+      }
+
+      // Si aún no hay nombre, probamos las primeras líneas fuera del bloque de contacto
+      if (!name) {
+        for (const line of lines.slice(0, 5)) {
+          const lower = line.toLowerCase();
+          if (
+            line.length > 3 && 
+            line.length < 40 && 
+            !lower.includes('idealista') && 
+            !lower.includes('hola') && 
+            !lower.includes('@') &&
+            !isPhone(line)
+          ) {
+            name = line;
+            break;
+          }
+        }
+      }
+    }
+
+    // 4. Buscamos el MENSAJE (Notas)
+    // El mensaje suele empezar tras un saludo o después de los datos de contacto
+    let message = '';
+    const messageMatch = pasteText.match(/(?:Mensaje|Comentario|Consulta):\s*([\s\S]+?)(?:\d{2}\/\d{2}\/\d{4}|Atentamente|Un saludo|$)/i);
+    
+    if (messageMatch) {
+      message = messageMatch[1].trim();
+    } else {
+      // Si no hay etiqueta, buscamos bloques de texto después del email/teléfono
+      const emailLineIndex = lines.findIndex(l => email && l.includes(email));
+      const phoneLineIndex = lines.findIndex(l => phone && l.replace(/\s/g, '').includes(phone));
+      const lastDataIndex = Math.max(emailLineIndex, phoneLineIndex);
+      
+      if (lastDataIndex !== -1 && lastDataIndex < lines.length - 1) {
+        const potentialMessage = lines.slice(lastDataIndex + 1).join('\n');
+        if (potentialMessage.length > 10) {
+          message = potentialMessage.trim();
+        }
+      }
+    }
+
+    // Limpieza final
+    if (name) {
+      name = name.replace(/^de:\s*/i, '').replace(/\.$/, '').trim();
+      if (name.toLowerCase().includes('altavik') || name.toLowerCase().includes('terraval')) {
+        name = '';
+      }
+    }
+
+    const newFormData = { ...formData };
+    if (name) newFormData.name = name;
+    if (email) newFormData.email = email;
+    if (phone) newFormData.phone = phone;
+    if (message) newFormData.notes = message;
+
+    setFormData(newFormData);
+    setShowPaste(false);
+    setPasteText('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +179,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
         name: formData.name,
         email: formData.email || null,
         phone: formData.phone || null,
+        notes: formData.notes || null,
         source: formData.source,
         status: 'new',
         assigned_to: profile?.id || null
@@ -84,7 +187,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
 
       createMutation.mutate(payload, {
         onSuccess: () => {
-          setFormData({ name: '', email: '', phone: '', source: 'Web' });
+          setFormData({ name: '', email: '', phone: '', source: 'Idealista', notes: '' });
           onSuccess();
           onClose();
         },
@@ -110,7 +213,43 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+        <div className="p-8 space-y-6">
+          {/* Quick Paste Area */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 overflow-hidden">
+             <button 
+              type="button"
+              onClick={() => setShowPaste(!showPaste)}
+              className="flex items-center justify-between w-full text-slate-600 hover:text-altavik-700 transition-colors"
+             >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center">
+                    <Sparkles size={16} />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider">Pegado Rápido (Idealista)</span>
+                </div>
+                <ClipboardPaste size={16} className={showPaste ? 'text-altavik-600' : 'text-slate-400'} />
+             </button>
+
+             {showPaste && (
+               <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <textarea 
+                    className="w-full h-32 p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all resize-none"
+                    placeholder="Pega aquí el contenido del correo de Idealista..."
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePasteParse}
+                    className="w-full py-2.5 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all shadow-sm"
+                  >
+                    Extraer Datos del Contacto
+                  </button>
+               </div>
+             )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
           {errorMsg && (
             <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center gap-2 animate-in slide-in-from-top-2">
               <AlertCircle size={18} className="shrink-0" />
@@ -168,6 +307,16 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </select>
           </div>
 
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Notas Internas / Mensaje</label>
+            <textarea
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700 h-24 resize-none"
+              placeholder="Ej. Interesado en piso de 3 habitaciones..."
+              value={formData.notes}
+              onChange={e => setFormData({ ...formData, notes: e.target.value })}
+            />
+          </div>
+
           <div className="pt-4 flex gap-3">
             <button
               type="button"
@@ -185,6 +334,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

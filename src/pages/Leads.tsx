@@ -19,6 +19,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Home,
   Globe,
   Smartphone,
   Users,
@@ -56,8 +57,6 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; border: string 
   lost:        { dot: 'bg-red-400',     pill: 'bg-red-50 text-red-700 border border-red-200',         border: 'border-l-red-400' },
 };
 
-// getAvatarColor is no longer used
-
 const getStatusBadge = (status: Lead['status']) => {
   const cfg = STATUS_CONFIG[status || 'new'] || STATUS_CONFIG['new'];
   const label = STATUS_LABELS[status || 'new'] || 'Nuevo';
@@ -71,8 +70,9 @@ const getStatusBadge = (status: Lead['status']) => {
 
 const SourceIcon = ({ source }: { source: string | null }) => {
   const s = source?.trim() || 'Directo';
+  const lower = s.toLowerCase();
   
-  if (s === 'Idealista') {
+  if (lower.includes('idealista')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Idealista">
         <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/5 overflow-hidden">
@@ -83,7 +83,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     );
   }
 
-  if (s === 'Web' || s === 'Google') {
+  if (lower.includes('web') || lower.includes('google')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
         <div className="w-5 h-5 bg-blue-50 flex items-center justify-center rounded border border-blue-100 shadow-sm">
@@ -94,7 +94,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     );
   }
 
-  if (s === 'Redes Sociales') {
+  if (lower.includes('insta') || lower.includes('facebook') || lower.includes('redes')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Redes Sociales">
         <div className="w-5 h-5 bg-purple-50 flex items-center justify-center rounded border border-purple-100 shadow-sm">
@@ -105,13 +105,24 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     );
   }
 
-  if (s === 'Referido') {
+  if (lower.includes('referido') || lower.includes('amigo')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Referido">
         <div className="w-5 h-5 bg-emerald-50 flex items-center justify-center rounded border border-emerald-100 shadow-sm">
           <Users size={11} className="text-emerald-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Amigo</span>
+      </div>
+    );
+  }
+
+  if (lower.includes('llamada') || lower.includes('tel')) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title="Llamada">
+        <div className="w-5 h-5 bg-green-50 flex items-center justify-center rounded border border-green-100 shadow-sm">
+          <Phone size={11} className="text-green-600" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Llamada</span>
       </div>
     );
   }
@@ -328,6 +339,7 @@ export default function Leads() {
                 <option value="Google">Google</option>
                 <option value="Redes Sociales">Redes Sociales</option>
                 <option value="Referido">Referido</option>
+                <option value="Llamada">Llamada</option>
                 <option value="Otro">Otro</option>
               </select>
             </div>

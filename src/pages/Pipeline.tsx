@@ -6,6 +6,8 @@ import {
   Globe,
   Smartphone,
   Users,
+  Home,
+  Phone,
   HelpCircle
 } from 'lucide-react';
 import { useLeads, useUpdateLead } from '../hooks/useLeads';
@@ -82,10 +84,12 @@ export default function Pipeline() {
   const getSourceIcon = (sourceName: string | null) => {
     if (!sourceName) return <HelpCircle size={12} />;
     const lower = sourceName.toLowerCase();
-    if (lower.includes('web') || lower.includes('google')) return <Globe size={12} />;
-    if (lower.includes('insta') || lower.includes('facebook')) return <Smartphone size={12} />;
-    if (lower.includes('referido') || lower.includes('amigo')) return <Users size={12} />;
-    return <HelpCircle size={12} />;
+    if (lower.includes('idealista')) return <Home size={12} className="text-orange-500" />;
+    if (lower.includes('web') || lower.includes('google')) return <Globe size={12} className="text-blue-500" />;
+    if (lower.includes('insta') || lower.includes('facebook')) return <Smartphone size={12} className="text-pink-500" />;
+    if (lower.includes('referido') || lower.includes('amigo')) return <Users size={12} className="text-purple-500" />;
+    if (lower.includes('llamada') || lower.includes('tel')) return <Phone size={12} className="text-green-500" />;
+    return <HelpCircle size={12} className="text-slate-400" />;
   };
 
   if (loading && !data) {
