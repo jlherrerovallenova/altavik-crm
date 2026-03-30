@@ -1,19 +1,15 @@
 // src/pages/Inventory.tsx
 import React, { useState, useEffect } from 'react';
 import {
-  Plus,
   Search,
   Edit2,
-  Trash2,
   Loader2,
   Home,
   BedDouble,
   Bath,
-  AlertTriangle,
   Filter,
   RotateCcw,
   FileText,
-  Upload,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -76,9 +72,6 @@ export default function Inventory() {
   }>({ show: false, title: '', message: '', type: 'success' });
   const { showAlert } = useDialog();
 
-  // Estados para el nuevo modal de confirmación de borrado
-  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
   // Nuevo estado para el modal de forma de pago premium
@@ -122,28 +115,6 @@ export default function Inventory() {
       console.error('Error fetching inventory:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!propertyToDelete) return;
-
-    try {
-      setIsDeleting(true);
-      const { error } = await supabase
-        .from('inventory')
-        .delete()
-        .eq('id', propertyToDelete.id);
-
-      if (error) throw error;
-
-      setProperties(prev => prev.filter(p => p.id !== propertyToDelete.id));
-      setPropertyToDelete(null);
-    } catch (error) {
-      console.error('Error deleting property:', error);
-      await showAlert({ title: 'Error', message: 'Error al intentar eliminar el registro.' });
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -391,115 +362,117 @@ export default function Inventory() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Inventario de Viviendas</h1>
-          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-              {filteredProperties.length}
-            </span> 
-            unidades encontradas
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 w-full md:w-auto">
-          <button
-            onClick={handleExportPDF}
-            disabled={loading || isExporting || filteredProperties.length === 0}
-            className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-3 rounded-2xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 min-w-[150px]"
-            title="Descargar Listado PDF"
-          >
-            {isExporting ? <Loader2 className="animate-spin text-altavik-600" size={20} /> : <FileText size={20} className="text-altavik-600" />}
-            {isExporting ? 'Generando...' : 'Exportar PDF'}
-          </button>
-        </div>
-      </div>
-
-      {/* Buscador y Filtros */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-[3_3_0%] w-full group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" size={20} />
-          <input
-            type="text"
-            autoComplete="off"
-            id="main-inventory-search"
-            spellCheck="false"
-            placeholder="Buscar por Nº orden, planta o letra..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none font-medium text-slate-700"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventario de Viviendas</h1>
+            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+                {filteredProperties.length}
+              </span> 
+              unidades encontradas
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-3 w-full md:w-auto">
+            <button
+              onClick={handleExportPDF}
+              disabled={loading || isExporting || filteredProperties.length === 0}
+              className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Descargar Listado PDF"
+            >
+              {isExporting ? <Loader2 className="animate-spin" size={18} /> : <FileText size={18} />}
+              <span className="inline">{isExporting ? 'Generando...' : 'Exportar PDF'}</span>
+            </button>
+          </div>
         </div>
 
-        <div className="relative w-full md:w-48">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <select
-            value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
-            className="w-full pl-12 pr-8 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm"
-          >
-            <option value="">Estado</option>
-            <option value="DISPONIBLE">DISPONIBLE</option>
-            <option value="NO DISPONIBLE">NO DISPONIBLE</option>
-            <option value="BLOQUEADA">BLOQUEADA</option>
-            <option value="RESERVADA">RESERVADA</option>
-            <option value="CONTRATO CV">CONTRATO CV</option>
-            <option value="ESCRITURADA">ESCRITURADA</option>
-          </select>
-        </div>
+        <div className="flex flex-col lg:flex-row gap-3 items-center bg-white p-3 rounded-xl border border-slate-200">
+          <div className="relative flex-1 w-full group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" size={18} />
+            <input
+              type="text"
+              autoComplete="off"
+              id="main-inventory-search"
+              spellCheck="false"
+              placeholder="Buscar por Nº orden, planta o letra..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 transition-all outline-none shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-        <div className="relative w-full md:w-32">
-          <select
-            value={portalFilter}
-            onChange={(e) => setPortalFilter(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
-          >
-            <option value="">Portal</option>
-            {uniquePortals.map(p => <option key={p} value={p}>Portal {p}</option>)}
-          </select>
-        </div>
+          <div className="flex w-full lg:w-auto gap-3 flex-wrap sm:flex-nowrap">
+            <div className="relative flex-1 sm:w-32 lg:w-40 min-w-[120px]">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                className="w-full pl-9 pr-6 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700"
+              >
+                <option value="">Estado</option>
+                <option value="DISPONIBLE">DISPONIBLE</option>
+                <option value="NO DISPONIBLE">NO DISPONIBLE</option>
+                <option value="BLOQUEADA">BLOQUEADA</option>
+                <option value="RESERVADA">RESERVADA</option>
+                <option value="CONTRATO CV">CONTRATO CV</option>
+                <option value="ESCRITURADA">ESCRITURADA</option>
+              </select>
+            </div>
 
-        <div className="relative w-full md:w-32">
-          <select
-            value={dormitoriosFilter}
-            onChange={(e) => setDormitoriosFilter(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
-          >
-            <option value="">Dorm.</option>
-            {uniqueDormitorios.map(d => <option key={d} value={d}>{d} Dorm.</option>)}
-          </select>
-        </div>
+            <div className="relative flex-1 sm:w-24 lg:w-28 min-w-[90px]">
+              <select
+                value={portalFilter}
+                onChange={(e) => setPortalFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700 font-medium text-center"
+              >
+                <option value="">Portal</option>
+                {uniquePortals.map(p => <option key={p} value={p}>Portal {p}</option>)}
+              </select>
+            </div>
 
-        <div className="relative w-full md:w-32">
-          <select
-            value={plantaFilter}
-            onChange={(e) => setPlantaFilter(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
-          >
-            <option value="">Altura</option>
-            {uniquePlantas.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
+            <div className="relative flex-1 sm:w-24 lg:w-28 min-w-[90px]">
+              <select
+                value={dormitoriosFilter}
+                onChange={(e) => setDormitoriosFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700 font-medium text-center"
+              >
+                <option value="">Dorm.</option>
+                {uniqueDormitorios.map(d => <option key={d} value={d}>{d} Dorm.</option>)}
+              </select>
+            </div>
 
-        <div className="relative w-full md:w-32">
-          <select
-            value={orientacionFilter}
-            onChange={(e) => setOrientacionFilter(e.target.value)}
-            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer text-slate-700 font-medium font-bold text-sm text-center"
-          >
-            <option value="">Orient.</option>
-            {uniqueOrientations.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-        </div>
+            <div className="relative flex-1 sm:w-24 lg:w-28 min-w-[90px]">
+              <select
+                value={plantaFilter}
+                onChange={(e) => setPlantaFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700 font-medium text-center"
+              >
+                <option value="">Altura</option>
+                {uniquePlantas.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
 
-        <button
-          onClick={resetFilters}
-          className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-          title="Limpiar Filtros"
-        >
-          <RotateCcw size={20} />
-        </button>
+            <div className="relative flex-1 sm:w-28 lg:w-32 min-w-[100px]">
+              <select
+                value={orientacionFilter}
+                onChange={(e) => setOrientacionFilter(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700 font-medium text-center"
+              >
+                <option value="">Orient.</option>
+                {uniqueOrientations.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+
+            <button
+              onClick={resetFilters}
+              className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0"
+              title="Limpiar Filtros"
+            >
+              <RotateCcw size={18} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Tabla */}
@@ -631,13 +604,6 @@ export default function Inventory() {
                         >
                           <Edit2 size={18} />
                         </button>
-                        <button
-                          onClick={() => setPropertyToDelete(property)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                          title="Borrar"
-                        >
-                          <Trash2 size={18} />
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -699,39 +665,7 @@ export default function Inventory() {
         )}
       </div>
 
-      {/* Modal de Confirmación de Borrado Profesional */}
-      {propertyToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle size={40} />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">¿Eliminar vivienda?</h3>
-              <p className="text-slate-500 font-medium mb-8">
-                Estás a punto de borrar la vivienda <span className="text-slate-900 font-bold">{propertyToDelete.n_orden}</span> (Planta {propertyToDelete.planta}). Esta acción no se puede deshacer.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setPropertyToDelete(null)}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-4 bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-100 hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  {isDeleting ? <Loader2 className="animate-spin" size={20} /> : 'Sí, eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Modals Viviendas */}
       {isModalOpen && (
         <CreatePropertyModal
           isOpen={isModalOpen}

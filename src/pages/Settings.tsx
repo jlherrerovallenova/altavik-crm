@@ -73,6 +73,10 @@ const Settings: React.FC = () => {
     type: 'success' | 'error' | 'info';
   }>({ show: false, title: '', message: '', type: 'success' });
 
+  const [properties, setProperties] = useState<any[]>([]);
+  const [propertyToDeleteSettings, setPropertyToDeleteSettings] = useState<string>('');
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+
   // Estados de Formulario de Perfil
   const [fullName, setFullName] = useState(profile?.full_name || '');
 
@@ -83,6 +87,22 @@ const Settings: React.FC = () => {
     }
     fetchIntegrations();
   }, [profile]);
+
+  useEffect(() => {
+    if (activeTab === 'inventory') {
+      const fetchPropertiesList = async () => {
+        try {
+          const { data, error } = await supabase.from('inventory').select('id, n_orden, portal, planta, letra');
+          if (error) throw error;
+          const sorted = (data || []).sort((a: any, b: any) => (parseInt(a.n_orden) || 0) - (parseInt(b.n_orden) || 0));
+          setProperties(sorted);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchPropertiesList();
+    }
+  }, [activeTab]);
 
   const fetchIntegrations = async () => {
     try {
@@ -213,6 +233,55 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleDeleteSingleProperty = async () => {
+    if (!propertyToDeleteSettings) return;
+
+    const property = properties.find(p => p.id === propertyToDeleteSettings);
+    
+    const confirmed = await showConfirm({
+      title: 'Eliminar Vivienda',
+      message: `¿Estás seguro de que deseas eliminar la vivienda Nº ${property?.n_orden}?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) return;
+
+    setIsDeletingSingle(true);
+    try {
+      // Validar si tiene leads asociados
+      const { data: leads, error: leadsErr } = await supabase.from('leads').select('id').eq('property_id', propertyToDeleteSettings).limit(1);
+      if (leadsErr) throw leadsErr;
+      if (leads && leads.length > 0) {
+        await showAlert({ title: 'Operación denegada', message: 'No se puede borrar esta vivienda porque tiene contactos/leads asociados.' });
+        setIsDeletingSingle(false);
+        return;
+      }
+
+      // Validar si tiene ventas asociadas
+      const { data: sales, error: salesErr } = await supabase.from('sales').select('id').eq('property_id', propertyToDeleteSettings).limit(1);
+      if (salesErr) throw salesErr;
+      if (sales && sales.length > 0) {
+        await showAlert({ title: 'Operación denegada', message: 'No se puede borrar esta vivienda porque ya tiene una venta o reserva.' });
+        setIsDeletingSingle(false);
+        return;
+      }
+
+      const { error } = await supabase.from('inventory').delete().eq('id', propertyToDeleteSettings);
+      if (error) throw error;
+      
+      await showAlert({ title: 'Éxito', message: 'Vivienda eliminada correctamente.' });
+      setPropertyToDeleteSettings('');
+      // Refrescar lista local
+      setProperties(prev => prev.filter(p => p.id !== propertyToDeleteSettings));
+    } catch (error) {
+      console.error('Error al intentar borrar vivienda:', error);
+      await showAlert({ title: 'Error', message: 'Hubo un error al intentar borrar la vivienda.' });
+    } finally {
+      setIsDeletingSingle(false);
+    }
+  };
+
 
   const handlePreview = async (fullPath: string) => {
     try {
@@ -251,9 +320,22 @@ const Settings: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
+            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1 -ml-1">
+              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100 opacity-0 select-none pointer-events-none w-0 overflow-hidden p-0 m-0">
+                0
+              </span> 
+              <span className="ml-1">Panel central de administración y ajustes globales.</span>
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
+             {/* Espacio reservado para igualar coords */}
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -629,6 +711,39 @@ const Settings: React.FC = () => {
                   >
                     Subir PDF
                   </button>
+                </div>
+
+                {/* Card: Borrar Vivienda de 1 en 1 */}
+                <div className="bg-red-50 p-5 rounded-2xl border border-red-200 transition-colors group flex flex-col gap-4">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-12 h-12 rounded-xl bg-red-100/80 text-red-600 flex items-center justify-center shrink-0">
+                      <Trash2 size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-800 text-sm">Eliminar Vivienda Específica</h3>
+                      <p className="text-xs text-red-600/80 mt-0.5">Te permite borrar individualmente una vivienda siempre que antes no haya tenido ninguna acción asociada (compras, reservas, leads...)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full pl-0 sm:pl-[60px]">
+                    <select
+                      value={propertyToDeleteSettings}
+                      onChange={(e) => setPropertyToDeleteSettings(e.target.value)}
+                      className="flex-1 w-full p-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 font-medium text-slate-700 text-sm"
+                    >
+                      <option value="">-- Selecciona una vivienda para borrar --</option>
+                      {properties.map(p => (
+                        <option key={p.id} value={p.id}>Nº {p.n_orden} - Portal {p.portal} {p.planta} {p.letra}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleDeleteSingleProperty}
+                      disabled={!propertyToDeleteSettings || isDeletingSingle}
+                      className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-bold rounded-xl shadow-sm shadow-red-100 hover:bg-red-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isDeletingSingle ? <Loader2 size={18} className="animate-spin" /> : 'Borrar'}
+                    </button>
+                  </div>
                 </div>
               </div>
 

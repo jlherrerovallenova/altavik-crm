@@ -262,8 +262,11 @@ export default function Leads() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Clientes</h1>
-            <p className="text-slate-500 text-xs font-medium">
-              {totalLeads} prospectos {hasActiveFilters && `(filtrados)`}
+            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+                {totalLeads}
+              </span> 
+              prospectos {hasActiveFilters && `(filtrados)`}
             </p>
           </div>
 
@@ -380,26 +383,26 @@ export default function Leads() {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 hidden md:grid">
+            <div className="grid md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 hidden md:grid">
               <div
-                className={`col-span-3 flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
+                className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('name')}
               >
                 Cliente
                 {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div className="col-span-2 text-center">Teléfono</div>
-              <div className="col-span-2 text-center">Email</div>
-              <div className="col-span-1 text-center">Origen</div>
-              <div className="col-span-2 text-center">Estado</div>
+              <div className="text-left">Teléfono</div>
+              <div className="text-left">Email</div>
+              <div className="text-left">Origen</div>
+              <div className="text-center">Estado</div>
               <div
-                className={`col-span-1 flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
+                className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('created_at')}
               >
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div className="col-span-1 text-center">Acciones</div>
+              <div className="text-center">Acciones</div>
             </div>
 
             {leads.map((lead) => {
@@ -408,9 +411,9 @@ export default function Leads() {
                 <div
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
-                  className={`grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} hover:bg-slate-50/80 transition-all duration-150`}
+                  className={`grid grid-cols-1 md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} hover:bg-slate-50/80 transition-all duration-150`}
                 >
-                  <div className="md:col-span-3 flex items-center gap-3.5">
+                  <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-700 flex items-center justify-center font-bold text-sm border border-altavik-100 shrink-0">
                       {lead.name?.substring(0, 2).toUpperCase() || 'CL'}
                     </div>
@@ -419,7 +422,7 @@ export default function Leads() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 flex justify-center">
+                  <div className="flex justify-start items-center">
                     <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
                       <div className="w-5 h-5 rounded-md bg-altavik-50 flex items-center justify-center shrink-0">
                         <Phone size={11} className="text-altavik-400" />
@@ -428,7 +431,7 @@ export default function Leads() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 flex justify-center">
+                  <div className="flex justify-start items-center">
                     <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
                       <div className="w-5 h-5 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
                         <Mail size={11} className="text-blue-400" />
@@ -437,21 +440,21 @@ export default function Leads() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-1 flex justify-center">
+                  <div className="flex justify-start items-center">
                     <SourceIcon source={lead.source} />
                   </div>
 
-                  <div className="md:col-span-2 flex justify-center">
+                  <div className="flex justify-center items-center">
                     {getStatusBadge(lead.status)}
                   </div>
 
-                  <div className="md:col-span-1 flex justify-center">
+                  <div className="flex justify-center items-center">
                     <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
                       {new Date(lead.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
 
-                  <div className="md:col-span-1 flex items-center justify-center gap-1 transition-opacity">
+                  <div className="flex items-center justify-center gap-1 transition-opacity">
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle size={15} /></button>
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail size={15} /></button>
                     <ChevronRight size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />

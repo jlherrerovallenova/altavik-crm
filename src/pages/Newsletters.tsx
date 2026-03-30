@@ -105,19 +105,29 @@ export default function Newsletters() {
     }
 
     return (
-        <div className="animate-in fade-in duration-500">
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Campañas de Email</h1>
-                    <p className="text-slate-500 text-sm mt-1">Crea y envía newsletters a tus clientes suscritos.</p>
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+            <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Campañas de Email</h1>
+                        <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+                            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+                                {newsletters.length}
+                            </span> 
+                            campañas creadas
+                        </p>
+                    </div>
+                    
+                    <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
+                        <button
+                            onClick={handleCreate}
+                            className="bg-slate-900 text-white font-bold px-5 py-3 rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 active:scale-95 text-sm h-full"
+                        >
+                            <Plus size={18} />
+                            <span>Nueva Campaña</span>
+                        </button>
+                    </div>
                 </div>
-                <button
-                    onClick={handleCreate}
-                    className="bg-altavik-600 hover:bg-altavik-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm shadow-altavik-900/20 transition-all flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    <span>Nueva Campaña</span>
-                </button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
