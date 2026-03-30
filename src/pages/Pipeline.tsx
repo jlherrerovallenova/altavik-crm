@@ -6,7 +6,6 @@ import {
   Globe,
   Smartphone,
   Users,
-  Home,
   Phone,
   HelpCircle
 } from 'lucide-react';
@@ -84,7 +83,13 @@ export default function Pipeline() {
   const getSourceIcon = (sourceName: string | null) => {
     if (!sourceName) return <HelpCircle size={12} />;
     const lower = sourceName.toLowerCase();
-    if (lower.includes('idealista')) return <Home size={12} className="text-orange-500" />;
+    if (lower.includes('idealista')) {
+      return (
+        <div className="w-3.5 h-3.5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden shrink-0">
+          <span className="text-[7px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+        </div>
+      );
+    }
     if (lower.includes('web') || lower.includes('google')) return <Globe size={12} className="text-blue-500" />;
     if (lower.includes('insta') || lower.includes('facebook')) return <Smartphone size={12} className="text-pink-500" />;
     if (lower.includes('referido') || lower.includes('amigo')) return <Users size={12} className="text-purple-500" />;

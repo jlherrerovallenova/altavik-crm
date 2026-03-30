@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Search,
   Plus,
-  Home,
   Phone
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +25,7 @@ import type { Database } from '../types/supabase';
 
 // --- TIPOS ---
 type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
-  leads?: { name: string } | null
+  leads?: { name: string, phone: string | null } | null
 };
 
 interface SourceStat {
@@ -104,7 +103,7 @@ export default function Dashboard() {
       // Traemos más de 20 por si hay muchas caducadas mezcladas con futuras
       const { data: agendaData, error: agendaError } = await supabase
         .from('agenda')
-        .select('*, leads(name)')
+        .select('*, leads(name, phone)')
         .eq('completed', false)
         .order('due_date', { ascending: true });
 
@@ -211,7 +210,13 @@ export default function Dashboard() {
   // --- HELPERS DE UI ---
   const getSourceIcon = (sourceName: string) => {
     const lower = sourceName.toLowerCase();
-    if (lower.includes('idealista')) return <Home className="text-orange-500" size={16} />;
+    if (lower.includes('idealista')) {
+      return (
+        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden">
+          <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+        </div>
+      );
+    }
     if (lower.includes('web') || lower.includes('google')) return <Globe className="text-blue-600" size={16} />;
     if (lower.includes('insta') || lower.includes('facebook') || lower.includes('redes') || lower.includes('social')) return <Smartphone className="text-purple-600" size={16} />;
     if (lower.includes('referido') || lower.includes('amigo')) return <Users className="text-altavik-600" size={16} />;
@@ -448,7 +453,32 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                      {task.type === 'Visita' && task.leads?.phone && (
+                        <button
+                          onClick={() => {
+                            const now = new Date();
+                            const hour = now.getHours();
+                            const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
+                            const taskDate = new Date(task.due_date);
+                            const day = taskDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            const time = taskDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                            const leadName = task.leads?.name || 'Cliente';
+                            const leadPhone = task.leads?.phone || '';
+                            
+                            const text = `${greeting}, ${leadName}.\n\nRecordatorio de la cita:\n*Día:* ${day}\n*Hora:* ${time}\n*Lugar:* Terravall. Plaza Mayor 8 1ºA.`;
+                            
+                            const cleanPhone = leadPhone.replace(/\D/g, '');
+                            const finalPhone = cleanPhone.startsWith('34') ? cleanPhone : `34${cleanPhone}`;
+                            
+                            window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
+                          }}
+                          title="Enviar recordatorio por WhatsApp"
+                          className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                        >
+                          <Smartphone size={16} />
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteTask(task.id)}
                         className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
-  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart
+  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -620,6 +620,29 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           </div>
 
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+                            {task.type === 'Visita' && formData.phone && (
+                              <button
+                                onClick={() => {
+                                  const now = new Date();
+                                  const hour = now.getHours();
+                                  const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
+                                  const taskDate = new Date(task.due_date);
+                                  const day = taskDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                  const time = taskDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                                  
+                                  const text = `${greeting}, ${formData.name}.\n\nRecordatorio de la cita:\n*Día:* ${day}\n*Hora:* ${time}\n*Lugar:* Terravall. Plaza Mayor 8 1ºA.`;
+                                  
+                                  const cleanPhone = formData.phone.replace(/\D/g, '');
+                                  const finalPhone = cleanPhone.startsWith('34') ? cleanPhone : `34${cleanPhone}`;
+                                  
+                                  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
+                                }}
+                                className="p-1.5 hover:bg-slate-100 rounded text-green-600 transition-colors"
+                                title="Enviar recordatorio por WhatsApp"
+                              >
+                                <Smartphone size={14} />
+                              </button>
+                            )}
                             <button
                               onClick={() => {
                                 setEditingCommentId(isEditingComment ? null : task.id);

@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scrollbar-gutter: stable;
+}
+
 :root {
   font-family: 'Outfit', system-ui, sans-serif;
   line-height: 1.5;

@@ -21,7 +21,7 @@ import type { Database } from '../types/supabase';
 
 // Tipo AgendaItem enriquecido con datos del cliente
 type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
-  leads?: { name: string } | null
+  leads?: { name: string, phone: string | null } | null
 };
 
 const ITEMS_PER_PAGE = 8;
@@ -66,7 +66,7 @@ export default function Agenda() {
       // Consulta a 'agenda' trayendo el nombre del cliente relacionado
       let query = supabase
         .from('agenda')
-        .select('*, leads(name)', { count: 'exact' });
+        .select('*, leads(name, phone)', { count: 'exact' });
 
       // Aplicar filtros inteligentes
       if (filterStatus === 'pending') {
@@ -243,8 +243,33 @@ export default function Agenda() {
                     </div>
                   </div>
 
-                  <div className="text-right flex items-center gap-4">
-                    <p className="text-sm font-bold text-slate-700">
+                   <div className="text-right flex items-center gap-4">
+                     {item.type === 'Visita' && item.leads?.phone && (
+                       <button
+                         onClick={() => {
+                           const now = new Date();
+                           const hour = now.getHours();
+                           const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
+                           const taskDate = new Date(item.due_date);
+                           const day = taskDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                           const time = taskDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                           const leadName = item.leads?.name || '';
+                           const leadPhone = item.leads?.phone || '';
+                           
+                           const text = `${greeting}, ${leadName}.\n\nRecordatorio de la cita:\n*Día:* ${day}\n*Hora:* ${time}\n*Lugar:* Terravall. Plaza Mayor 8 1ºA.`;
+                           
+                           const cleanPhone = leadPhone.replace(/\D/g, '');
+                           const finalPhone = cleanPhone.startsWith('34') ? cleanPhone : `34${cleanPhone}`;
+                           
+                           window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
+                         }}
+                         title="Enviar recordatorio por WhatsApp"
+                         className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                       >
+                         <Smartphone size={18} />
+                       </button>
+                     )}
+                     <p className="text-sm font-bold text-slate-700">
                       {dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                     </p>
                     <button

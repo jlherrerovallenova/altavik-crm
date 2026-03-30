@@ -19,7 +19,6 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  Home,
   Globe,
   Smartphone,
   Users,
@@ -75,7 +74,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
   if (lower.includes('idealista')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Idealista">
-        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/5 overflow-hidden">
+        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden">
           <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Idealista</span>
