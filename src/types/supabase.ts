@@ -63,6 +63,7 @@ export interface Database {
           joint_buyer_email: string | null
           joint_buyer_phone: string | null
           property_id: string | null
+          province: string | null
           sale_status: string | null
         }
         Insert: {
@@ -90,6 +91,7 @@ export interface Database {
           joint_buyer_email?: string | null
           joint_buyer_phone?: string | null
           property_id?: string | null
+          province?: string | null
           sale_status?: string | null
         }
         Update: {
@@ -117,6 +119,7 @@ export interface Database {
           joint_buyer_email?: string | null
           joint_buyer_phone?: string | null
           property_id?: string | null
+          province?: string | null
           sale_status?: string | null
         }
       }

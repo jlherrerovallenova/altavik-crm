@@ -61,6 +61,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     nationality: lead.nationality || 'Española',
     occupation: lead.occupation || '',
     property_id: lead.property_id || '',
+    province: lead.province || '',
     // Cotitular
     joint_buyer_name: lead.joint_buyer_name || '',
     joint_buyer_dni: lead.joint_buyer_dni || '',
@@ -77,9 +78,21 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
   async function fetchProperties() {
     const { data } = await supabase
       .from('inventory')
-      .select('*')
-      .order('n_orden');
-    if (data) setProperties(data);
+      .select('*');
+      
+    if (data) {
+      // Ordenar numéricamente por n_orden (1, 2, 3... en lugar de 1, 10, 11...)
+      const sorted = ((data as InventoryRow[]) || []).sort((a, b) => {
+        const valA = a.n_orden || '';
+        const valB = b.n_orden || '';
+        const numA = parseInt(valA) || 0;
+        const numB = parseInt(valB) || 0;
+        if (numA !== numB) return numA - numB;
+        // Si los números son iguales (o ambos 0), comparamos como string por si acaso (natural sort)
+        return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+      });
+      setProperties(sorted);
+    }
   }
 
   async function fetchSale() {
@@ -207,6 +220,9 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       localidad: personalForm.city || '_______________',
       codigoPostal: personalForm.postal_code || '_______________',
       nacionalidad: personalForm.nationality || 'Española',
+      provincia: personalForm.province || '_______________',
+      email: lead.email || '',
+      telefono: lead.phone || '',
       nombreCotitular: hasJointBuyer ? personalForm.joint_buyer_name || undefined : undefined,
       dniCotitular: hasJointBuyer ? personalForm.joint_buyer_dni || undefined : undefined,
       nOrden: selectedProperty.n_orden,
@@ -216,6 +232,9 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       dormitorios: selectedProperty.dormitorios,
       banos: selectedProperty.banos,
       supUtil: selectedProperty.sup_util,
+      supConst: selectedProperty.sup_construida || 0,
+      supTerrazas: selectedProperty.sup_terrazas || 0,
+      supPorche: selectedProperty.sup_porche || 0,
       garaje: selectedProperty.garaje || 'No incluido',
       trastero: selectedProperty.trastero || 'No incluido',
       precio: selectedProperty.precio,
@@ -233,12 +252,12 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           <User size={14} className="text-altavik-600" />
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-altavik-600">Datos del Comprador</h3>
         </div>
-        <div className="p-5 grid grid-cols-2 gap-4">
-          <div>
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-x-4 gap-y-3">
+          <div className="xl:col-span-1">
             <label className={labelCls}>DNI / NIE / Pasaporte</label>
             <input className={inputCls} value={personalForm.dni} onChange={e => setPersonalForm(f => ({...f, dni: e.target.value}))} placeholder="12345678A" />
           </div>
-          <div>
+          <div className="xl:col-span-2">
             <label className={labelCls}>Estado Civil</label>
             <select className={inputCls + ' cursor-pointer appearance-none'} value={personalForm.civil_status} onChange={e => setPersonalForm(f => ({...f, civil_status: e.target.value}))}>
               <option value="">Seleccionar...</option>
@@ -249,21 +268,26 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             <label className={labelCls}>Nacionalidad</label>
             <input className={inputCls} value={personalForm.nationality} onChange={e => setPersonalForm(f => ({...f, nationality: e.target.value}))} />
           </div>
-          <div>
+          <div className="xl:col-span-2">
             <label className={labelCls}>Profesión</label>
             <input className={inputCls} value={personalForm.occupation} onChange={e => setPersonalForm(f => ({...f, occupation: e.target.value}))} placeholder="Empleado/a por cuenta ajena" />
           </div>
-          <div className="col-span-2">
+
+          <div className="xl:col-span-3">
             <label className={labelCls}>Domicilio</label>
             <input className={inputCls} value={personalForm.address} onChange={e => setPersonalForm(f => ({...f, address: e.target.value}))} placeholder="Calle, número, piso..." />
           </div>
-          <div>
+          <div className="xl:col-span-1">
             <label className={labelCls}>Código Postal</label>
             <input className={inputCls} value={personalForm.postal_code} onChange={e => setPersonalForm(f => ({...f, postal_code: e.target.value}))} placeholder="03001" />
           </div>
-          <div>
+          <div className="xl:col-span-1">
             <label className={labelCls}>Localidad</label>
             <input className={inputCls} value={personalForm.city} onChange={e => setPersonalForm(f => ({...f, city: e.target.value}))} placeholder="Alicante" />
+          </div>
+          <div className="xl:col-span-1">
+            <label className={labelCls}>Provincia</label>
+            <input className={inputCls} value={personalForm.province} onChange={e => setPersonalForm(f => ({...f, province: e.target.value}))} placeholder="Alicante" />
           </div>
         </div>
       </section>

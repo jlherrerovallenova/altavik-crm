@@ -13,8 +13,11 @@ export interface DatosReserva {
   estadoCivil: string;
   domicilio: string;
   localidad: string;
+  provincia: string;
   codigoPostal: string;
   nacionalidad: string;
+  email: string;
+  telefono: string;
   // Cotitular (opcional)
   nombreCotitular?: string;
   dniCotitular?: string;
@@ -26,6 +29,9 @@ export interface DatosReserva {
   dormitorios: number;
   banos: number;
   supUtil: number;
+  supConst: number;
+  supTerrazas: number;
+  supPorche: number;
   garaje: string;
   trastero: string;
   precio: number;
@@ -40,19 +46,44 @@ function formatEur(n: number) {
 
 function numeroALetras(n: number): string {
   const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-  const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
   const especiales: Record<number, string> = {
     11: 'ONCE', 12: 'DOCE', 13: 'TRECE', 14: 'CATORCE', 15: 'QUINCE',
     16: 'DIECISÉIS', 17: 'DIECISIETE', 18: 'DIECIOCHO', 19: 'DIECINUEVE',
     21: 'VEINTIÚN', 22: 'VEINTIDÓS', 23: 'VEINTITRÉS', 24: 'VEINTICUATRO',
     25: 'VEINTICINCO', 26: 'VEINTISÉIS', 27: 'VEINTISIETE', 28: 'VEINTIOCHO', 29: 'VEINTINUEVE',
+    10: 'DIEZ', 20: 'VEINTE', 30: 'TREINTA', 40: 'CUARENTA', 50: 'CINCUENTA', 60: 'SESENTA', 70: 'SETENTA', 80: 'OCHENTA', 90: 'NOVENTA'
   };
-  if (n === 6000) return 'SEIS MIL';
-  if (n < 10) return unidades[n];
-  if (n in especiales) return especiales[n];
-  const d = Math.floor(n / 10);
-  const u = n % 10;
-  return u === 0 ? decenas[d] : `${decenas[d]} Y ${unidades[u]}`;
+  const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+  const convertir = (num: number): string => {
+    if (num === 0) return '';
+    if (num === 100) return 'CIEN';
+    if (num in especiales) return especiales[num];
+    if (num < 10) return unidades[num];
+    
+    if (num < 100) {
+      const d = Math.floor(num / 10);
+      const u = num % 10;
+      return `${especiales[d * 10]} Y ${unidades[u]}`;
+    }
+    
+    if (num < 1000) {
+      const c = Math.floor(num / 100);
+      const resto = num % 100;
+      return `${centenas[c]} ${convertir(resto)}`.trim();
+    }
+    
+    if (num < 1000000) {
+      const m = Math.floor(num / 1000);
+      const resto = num % 1000;
+      const milPrefix = m === 1 ? 'MIL' : `${convertir(m)} MIL`;
+      return `${milPrefix} ${convertir(resto)}`.trim();
+    }
+    
+    return String(num); // Fallback
+  };
+
+  return (convertir(Math.floor(n)) || 'CERO').toUpperCase();
 }
 
 /**
@@ -60,8 +91,8 @@ function numeroALetras(n: number): string {
  * y lo descarga automáticamente.
  */
 export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
-  // Cargar la plantilla desde public/
-  const response = await fetch('/plantilla_reserva.docx');
+  // Cargar la plantilla desde public/ con un parámetro para evitar caché
+  const response = await fetch(`/plantilla_reserva.docx?t=${Date.now()}`);
   const arrayBuffer = await response.arrayBuffer();
   const zip = new PizZip(arrayBuffer);
 
@@ -71,37 +102,63 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
   });
 
   const compradorLinea = datos.nombreCotitular
-    ? `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad}, de nacionalidad ${datos.nacionalidad}, y ${datos.nombreCotitular}, con DNI ${datos.dniCotitular}`
-    : `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad}, de nacionalidad ${datos.nacionalidad}`;
+    ? `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia}), de nacionalidad ${datos.nacionalidad}, y ${datos.nombreCotitular}, con DNI ${datos.dniCotitular}`
+    : `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia}), de nacionalidad ${datos.nacionalidad}`;
 
-  doc.render({
-    FECHA_RESERVA: datos.fechaReserva,
-    NOMBRE_COMPRADOR: datos.nombre,
-    DNI_COMPRADOR: datos.dni,
-    ESTADO_CIVIL: datos.estadoCivil,
-    DOMICILIO: datos.domicilio,
-    LOCALIDAD: datos.localidad,
-    CP: datos.codigoPostal,
-    NACIONALIDAD: datos.nacionalidad,
-    NOMBRE_COTITULAR: datos.nombreCotitular || '',
-    DNI_COTITULAR: datos.dniCotitular || '',
-    COMPRADOR_LINEA: compradorLinea,
-    N_ORDEN: datos.nOrden,
-    PORTAL: datos.portal,
-    PLANTA: datos.planta,
-    LETRA: datos.letra,
-    DORMITORIOS: datos.dormitorios,
-    BANOS: datos.banos,
-    SUP_UTIL: datos.supUtil.toFixed(2),
-    GARAJE: datos.garaje,
-    TRASTERO: datos.trastero,
-    PRECIO: formatEur(datos.precio),
-    IMPORTE_RESERVA: formatEur(datos.importeReserva),
-    IMPORTE_RESERVA_LETRAS: numeroALetras(datos.importeReserva),
-  });
+  try {
+    doc.setData({
+      FECHA_RESERVA: datos.fechaReserva,
+      NOMBRE_COMPRADOR: datos.nombre,
+      DNI_COMPRADOR: datos.dni,
+      ESTADO_CIVIL: datos.estadoCivil,
+      DOMICILIO: datos.domicilio,
+      LOCALIDAD: datos.localidad,
+      PROVINCIA: datos.provincia,
+      CP: datos.codigoPostal,
+      NACIONALIDAD: datos.nacionalidad,
+      EMAIL: datos.email,
+      TELEFONO: datos.telefono,
+      NOMBRE_COTITULAR: datos.nombreCotitular || '',
+      DNI_COTITULAR: datos.dniCotitular || '',
+      COMPRADOR_LINEA: compradorLinea,
+      N_ORDEN: datos.nOrden,
+      PORTAL: datos.portal,
+      PLANTA: datos.planta,
+      LETRA: datos.letra,
+      DORMITORIOS: datos.dormitorios,
+      BANOS: datos.banos,
+      SUP_UTIL: datos.supUtil.toFixed(2),
+      SUP_CONST: datos.supConst.toFixed(2),
+      SUP_TERRAZAS: datos.supTerrazas.toFixed(2),
+      SUP_PORCHE: datos.supPorche.toFixed(2),
+      GARAJE: datos.garaje,
+      TRASTERO: datos.trastero,
+      PRECIO: formatEur(datos.precio),
+      PRECIO_LETRAS: numeroALetras(datos.precio),
+      IMPORTE_RESERVA: formatEur(datos.importeReserva),
+      IMPORTE_RESERVA_LETRAS: numeroALetras(datos.importeReserva),
+      // Nuevas marcas solicitadas
+      IVA_10: formatEur(datos.precio * 0.10),
+      TOTAL_CON_IVA: formatEur(datos.precio * 1.10),
+      TOTAL_CON_IVA_LETRAS: numeroALetras(datos.precio * 1.10),
+      PAGO_CONTRATO: formatEur((datos.precio * 1.10 * 0.10) - datos.importeReserva),
+      PAGO_MENSUALIDADES: formatEur(datos.precio * 1.10 * 0.10),
+      CUOTA_MENSUAL: formatEur((datos.precio * 1.10 * 0.10) / 24),
+      PAGO_ESCRITURA: formatEur(datos.precio * 1.10 * 0.80),
+    });
 
-  const blob = doc.getZip().generate({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  saveAs(blob, `Reserva_${datos.nombre.replace(/\s+/g, '_')}_${datos.nOrden}.docx`);
+    doc.render();
+
+    const blob = doc.getZip().generate({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    saveAs(blob, `Reserva_${datos.nombre.replace(/\s+/g, '_')}_${datos.nOrden}.docx`);
+  } catch (error: any) {
+    console.error('Error generating DOCX:', error);
+    const errorMsg = error.properties?.explanation || error.message || 'Error desconocido';
+    alert(`Error al generar el documento: ${errorMsg}. Revisa que las etiquetas en el Word estén bien escritas (ej: {NOMBRE_COMPRADOR}).`);
+  }
 }
 
 /**
@@ -196,7 +253,7 @@ export async function generarReservaPdf(datos: DatosReserva): Promise<void> {
   addLine('DNI / NIE', datos.dni);
   addLine('Estado civil', datos.estadoCivil);
   addLine('Nacionalidad', datos.nacionalidad);
-  addLine('Domicilio', `${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad}`);
+  addLine('Domicilio', `${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`);
   if (datos.nombreCotitular) {
     addLine('Cotitular', datos.nombreCotitular);
     addLine('DNI Cotitular', datos.dniCotitular || '');

@@ -94,7 +94,16 @@ const Settings: React.FC = () => {
         try {
           const { data, error } = await supabase.from('inventory').select('id, n_orden, portal, planta, letra');
           if (error) throw error;
-          const sorted = (data || []).sort((a: any, b: any) => (parseInt(a.n_orden) || 0) - (parseInt(b.n_orden) || 0));
+          
+          // Ordenar numéricamente por n_orden (1, 2, 3... en lugar de 1, 10, 11...)
+          const sorted = (data || []).sort((a: any, b: any) => {
+            const valA = a.n_orden || '';
+            const valB = b.n_orden || '';
+            const numA = parseInt(valA) || 0;
+            const numB = parseInt(valB) || 0;
+            if (numA !== numB) return numA - numB;
+            return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
+          });
           setProperties(sorted);
         } catch (err) {
           console.error(err);

@@ -18,10 +18,14 @@ export function useInventory() {
 
             if (error) throw new Error(error.message);
             
-            // Ordenar numéricamente por n_orden
+            // Ordenar numéricamente por n_orden (1, 2, 3... en lugar de 1, 10, 11...)
             const sorted = ((data as PropertyInfo[]) || []).sort((a, b) => {
                 const valA = a.n_orden || '';
                 const valB = b.n_orden || '';
+                const numA = parseInt(valA) || 0;
+                const numB = parseInt(valB) || 0;
+                if (numA !== numB) return numA - numB;
+                // Si los números son iguales (o ambos 0), comparamos como string por si acaso (natural sort)
                 return valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' });
             });
             
