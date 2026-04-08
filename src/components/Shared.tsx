@@ -1,8 +1,15 @@
-// src/components/Shared.tsx
 import React from 'react';
-import { CheckCircle2, AlertCircle, X, Info } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, Info, ChevronDown, Check } from 'lucide-react';
+
+// Icono personalizado de Idealista
+export const IdealistaIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <div className={`aspect-square bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden ${className}`}>
+    <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+  </div>
+);
 
 // 1. Tarjeta de Estadísticas
+// (StatCard implementation remains same)
 export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any) {
   const colors = {
     primary: 'bg-blue-500',
@@ -104,3 +111,70 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
     </div>
   );
 };
+
+// 4. Custom Select con iconos
+export interface SelectOption {
+  id: string;
+  label: string;
+  icon?: any;
+  color?: string;
+  dotColor?: string;
+}
+
+interface CustomSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: SelectOption[];
+  placeholder?: string;
+  className?: string;
+  label?: string;
+}
+
+export function CustomSelect({ value, onChange, options, placeholder = 'Seleccionar...', className = '', label }: CustomSelectProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const selected = options.find(o => o.id === value);
+
+  return (
+    <div className={`relative ${className}`}>
+      {label && <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">{label}</label>}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700 flex items-center justify-between cursor-pointer"
+      >
+        <div className="flex items-center gap-3">
+          {selected?.icon && <selected.icon size={16} className={selected.color || 'text-slate-400'} />}
+          {selected?.dotColor && <span className={`w-2 h-2 rounded-full ${selected.dotColor}`} />}
+          <span>{selected?.label || placeholder}</span>
+        </div>
+        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
+          <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 py-1">
+            {options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => {
+                  onChange(option.id);
+                  setIsOpen(false);
+                }}
+                className={`w-full px-5 py-3 flex items-center justify-between text-sm hover:bg-slate-50 transition-colors ${value === option.id ? 'bg-altavik-50/50 text-altavik-700 font-bold' : 'text-slate-600'}`}
+              >
+                <div className="flex items-center gap-3">
+                  {option.icon && <option.icon size={16} className={option.color || 'text-slate-400'} />}
+                  {option.dotColor && <span className={`w-2 h-2 rounded-full ${option.dotColor}`} />}
+                  {option.label}
+                </div>
+                {value === option.id && <Check size={16} className="text-altavik-600" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
