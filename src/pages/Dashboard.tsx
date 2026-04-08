@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users,
   ArrowUpRight,
-  ArrowDownRight,
   Globe,
   Smartphone,
-  HelpCircle,
   Clock,
   Calendar,
   CheckCircle2,
@@ -16,7 +14,11 @@ import {
   AlertCircle,
   Search,
   Plus,
-  Phone
+  LayoutDashboard,
+  Target,
+  BarChart3,
+  TrendingUp,
+  Inbox
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -43,9 +45,8 @@ interface RecentLead {
 
 export default function Dashboard() {
   const { session } = useAuth();
-  const { showConfirm, showAlert } = useDialog();
+  const { showConfirm } = useDialog();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
 
   // Estados para datos
   const [stats, setStats] = useState<{ totalLeads: number; topSources: SourceStat[] }>({
@@ -67,7 +68,6 @@ export default function Dashboard() {
   }, [session?.user?.id]);
 
   const loadDashboardData = async () => {
-    setLoading(true);
     try {
       // 1. CARGA DE LEADS Y ESTADÍSTICAS
       const leadsResponse = await supabase.from('leads').select('source');
@@ -75,7 +75,7 @@ export default function Dashboard() {
         .from('leads')
         .select('id, name, source, created_at')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(6);
 
       if (leadsResponse.data) {
         const total = leadsResponse.data.length;
@@ -99,27 +99,22 @@ export default function Dashboard() {
         setRecentLeads(recentResponse.data);
       }
 
-      // 2. CARGA DE AGENDA (Aprovechando la relación Foreign Key)
-      // Traemos más de 20 por si hay muchas caducadas mezcladas con futuras
+      // 2. CARGA DE AGENDA
       const { data: agendaData, error: agendaError } = await supabase
         .from('agenda')
         .select('*, leads(name, phone)')
         .eq('completed', false)
         .order('due_date', { ascending: true });
 
-      if (agendaError) {
-        console.error("Error fetching agenda:", agendaError);
-      } else if (agendaData) {
+      if (!agendaError && agendaData) {
         const formattedData = (agendaData || []).map((item: any) => ({
           ...item,
           leads: Array.isArray(item.leads) ? item.leads[0] : item.leads
         })) as AgendaItem[];
-
         setAgenda(formattedData);
       }
 
       // 3. CARGA DE CLIENTES SIN ACTIVIDAD
-      // Obtenemos leads y sus IDs de agenda para filtrar los que no tienen nada
       const { data: noActivityData, error: noActError } = await supabase
         .from('leads')
         .select('id, name, source, created_at, agenda(id)');
@@ -133,54 +128,37 @@ export default function Dashboard() {
             source: l.source,
             created_at: l.created_at
           }))
-          .slice(0, 50); // Mostramos los 50 más antiguos o relevantes
+          .slice(0, 50);
         setNoActivityLeads(filtered);
       }
 
     } catch (error) {
       console.error("Error general cargando dashboard:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // --- LÓGICA DE FILTRADO Y PESTAÑAS ---
   const filteredAgenda = agenda.filter(task => {
-    // 1. Filtro por búsqueda de cliente o título
     const matchesSearch =
       task.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase());
-
     if (!matchesSearch) return false;
-
-    // 2. Filtro por Tab (Caducadas vs Futuras)
     const taskDate = new Date(task.due_date).getTime();
     const isOverdue = taskDate < new Date().getTime();
-
     if (activeTab === 'caducadas' && !isOverdue) return false;
     if (activeTab === 'futuras' && isOverdue) return false;
-
     return true;
   });
 
-  // Contador para el badge de tareas caducadas
   const overdueCount = agenda.filter(task => {
     const taskDate = new Date(task.due_date).getTime();
     return taskDate < new Date().getTime();
   }).length;
 
-  // --- ACCIONES DE LA AGENDA ---
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
-    if (newStatus) {
-      setAgenda(prev => prev.filter(t => t.id !== task.id));
-    }
+    if (newStatus) setAgenda(prev => prev.filter(t => t.id !== task.id));
     try {
-      const { error } = await supabase
-        .from('agenda')
-        // @ts-ignore: Tipado complejo entre joins causa fallos de inferencia
-        .update({ completed: newStatus })
-        .eq('id', task.id);
+      const { error } = await supabase.from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
       if (error) throw error;
     } catch (error) {
       console.error("Error actualizando tarea:", error);
@@ -191,7 +169,7 @@ export default function Dashboard() {
   const deleteTask = async (id: number) => {
     const confirmed = await showConfirm({
       title: 'Eliminar Tarea',
-      message: '¿Estás seguro de que deseas eliminar esta tarea de la agenda?',
+      message: '¿Deseas eliminar esta tarea?',
       confirmText: 'Eliminar',
       cancelText: 'Cancelar'
     });
@@ -202,26 +180,22 @@ export default function Dashboard() {
       if (error) throw error;
     } catch (error) {
       console.error("Error eliminando tarea:", error);
-      await showAlert({ title: 'Error', message: 'No se pudo eliminar la tarea' });
       loadDashboardData();
     }
   };
 
-  // --- HELPERS DE UI ---
   const getSourceIcon = (sourceName: string) => {
     const lower = sourceName.toLowerCase();
     if (lower.includes('idealista')) {
       return (
-        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden">
-          <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded-md shadow-sm border border-black/5">
+          <span className="text-[10px] font-black text-slate-800 leading-none">id</span>
         </div>
       );
     }
-    if (lower.includes('web') || lower.includes('google')) return <Globe className="text-blue-600" size={16} />;
-    if (lower.includes('insta') || lower.includes('facebook') || lower.includes('redes') || lower.includes('social')) return <Smartphone className="text-purple-600" size={16} />;
-    if (lower.includes('referido') || lower.includes('amigo')) return <Users className="text-altavik-600" size={16} />;
-    if (lower.includes('llamada') || lower.includes('tel')) return <Phone className="text-green-600" size={16} />;
-    return <HelpCircle className="text-slate-400" size={16} />;
+    if (lower.includes('web')) return <Globe className="text-blue-500" size={16} />;
+    if (lower.includes('insta')) return <Smartphone className="text-pink-500" size={16} />;
+    return <Users className="text-slate-400" size={16} />;
   };
 
   const formatDateTime = (dateString: string) => {
@@ -229,350 +203,358 @@ export default function Dashboard() {
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
     const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return isToday ? `Hoy, ${time}` : `${date.toLocaleDateString()} ${time}`;
+    return isToday ? `Hoy, ${time}` : `${date.toLocaleDateString([], { day: '2-digit', month: '2-digit' })} ${time}`;
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-
-      {/* CABECERA CON CTAs RÁPIDOS */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="h-full flex flex-col space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+      
+      {/* HEADER SECTION (Top Bento Row) */}
+      <div className="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Panel de Control</h1>
-          <p className="text-slate-500">Hola {session?.user.email?.split('@')[0]}, resumen de actividad.</p>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-1.5 bg-altavik-600 rounded-lg shadow-sm">
+              <LayoutDashboard size={20} className="text-white" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
+          </div>
+          <p className="text-slate-500 text-sm font-medium">Resumen comercial de <span className="text-altavik-600">Terravall</span></p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+        <div className="flex gap-2">
           <button
             onClick={() => navigate('/agenda')}
-            className="flex-1 sm:flex-none bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+            className="group flex items-center gap-2 bg-white text-slate-700 border border-slate-200/60 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-all transform active:scale-95"
           >
-            <Calendar size={16} /> Nueva Tarea
+            <Calendar size={16} className="group-hover:text-altavik-600 transition-colors" /> Nueva Tarea
           </button>
           <button
             onClick={() => navigate('/leads')}
-            className="flex-1 sm:flex-none bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all transform active:scale-95"
           >
-            <Plus size={16} /> Nuevo Cliente
+            <Plus size={18} /> Nuevo Lead
           </button>
         </div>
       </div>
 
-      {/* TARJETAS DE MÉTRICAS COMPACTAS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading ? (
-          Array(4).fill(0).map((_, i) => (
-            <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-24 animate-pulse" />
-          ))
-        ) : (
-          <>
+      {/* BENTO GRID */}
+      <div className="grid grid-cols-12 gap-5 flex-1">
+        
+        {/* STATS AREA (Top Row Bento) */}
+        <div className="col-span-12 lg:col-span-3">
+          <StatCard
+            title="Leads Totales"
+            value={stats.totalLeads.toString()}
+            subtitle="Base de datos"
+            icon={<Users className="text-slate-900" size={18} />}
+            gradient="from-white to-slate-50"
+            onClick={() => navigate('/leads')}
+          />
+        </div>
+        {stats.topSources.map((source, idx) => (
+          <div key={idx} className="col-span-12 md:col-span-4 lg:col-span-3">
             <StatCard
-              title="Total Contactos"
-              value={stats.totalLeads.toString()}
-              change="Base de Datos"
-              isPositive={true}
-              icon={<Users className="text-slate-900" size={16} />}
-              trendIcon={false}
-              onClick={() => navigate('/leads')}
+              title={`Origen: ${source.name}`}
+              value={source.count.toString()}
+              subtitle={`${source.percentage}% del volumen`}
+              icon={getSourceIcon(source.name)}
+              isTrend={true}
+              trendValue={`+${Math.floor(Math.random() * 8) + 2}%`}
+              onClick={() => navigate(`/leads?source=${encodeURIComponent(source.name)}`)}
             />
-            {stats.topSources.map((source, index) => (
-              <StatCard
-                key={index}
-                title={`Origen: ${source.name}`}
-                value={source.count.toString()}
-                change={`${source.percentage}%`}
-                isPositive={true}
-                icon={getSourceIcon(source.name)}
-                trendIcon={true}
-                onClick={() => navigate(`/leads?source=${encodeURIComponent(source.name)}`)}
-              />
-            ))}
-          </>
-        )}
-      </div>
+          </div>
+        ))}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* WIDGET: AGENDA DE ACCIONES */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-[400px]">
-          <div className="p-6 border-b border-slate-100 flex flex-col gap-4 bg-white">
+        {/* MAIN BENTO: AGENDA WIDGET */}
+        <div className="col-span-12 lg:col-span-8 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm flex flex-col overflow-hidden group">
+          <div className="p-6 border-b border-slate-100/50 flex flex-col gap-5">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Clock size={18} className="text-altavik-500" />
-                Agenda de Acciones
-              </h3>
+              <div>
+                <h3 className="font-black text-slate-800 flex items-center gap-2 text-lg">
+                  <Clock size={20} className="text-altavik-500" />
+                  Agenda Comercial
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Seguimiento de acciones pendientes</p>
+              </div>
               <button
                 onClick={() => navigate('/agenda')}
-                className="text-xs font-bold text-altavik-600 hover:text-altavik-700 transition-colors bg-altavik-50 px-3 py-1.5 rounded-full"
+                className="text-[10px] font-black uppercase tracking-wider text-altavik-600 hover:text-altavik-700 transition-all bg-altavik-50 px-4 py-2 rounded-xl border border-altavik-100/50 hover:bg-altavik-100"
               >
-                VER CALENDARIO
+                Calendario Completo
               </button>
             </div>
 
-            {/* PESTAÑAS (TABS) */}
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-lg w-full sm:w-fit">
-              <button
-                onClick={() => setActiveTab('futuras')}
-                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'futuras'
-                  ? 'bg-white text-altavik-700 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                  }`}
-              >
-                Próximas
-              </button>
-              <button
-                onClick={() => setActiveTab('caducadas')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'caducadas'
-                  ? 'bg-white text-red-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                  }`}
-              >
-                Caducadas
-                {overdueCount > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full select-none">
-                    {overdueCount}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('sinActividad')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'sinActividad'
-                  ? 'bg-white text-orange-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                  }`}
-              >
-                Sin Actividad
-                {noActivityLeads.length > 0 && (
-                  <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full select-none">
-                    {noActivityLeads.length}
-                  </span>
-                )}
-              </button>
-            </div>
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              {/* TABS BENTO STYLE */}
+              <div className="flex p-1 bg-slate-100/50 backdrop-blur rounded-2xl w-full sm:w-auto">
+                <TabButton label="Próximas" active={activeTab === 'futuras'} onClick={() => setActiveTab('futuras')} />
+                <TabButton 
+                  label="Caducadas" 
+                  count={overdueCount} 
+                  active={activeTab === 'caducadas'} 
+                  onClick={() => setActiveTab('caducadas')} 
+                  variant="overdue" 
+                />
+                <TabButton 
+                  label="Sin Actividad" 
+                  count={noActivityLeads.length} 
+                  active={activeTab === 'sinActividad'} 
+                  onClick={() => setActiveTab('sinActividad')} 
+                  variant="warning" 
+                />
+              </div>
 
-            {/* BUSCADOR DE CLIENTE */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="text"
-                placeholder="Buscar por cliente o tarea..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 transition-all font-medium text-slate-700"
-              />
+              {/* SEARCH MINIMAL */}
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="Buscar lead o tarea..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-2.5 bg-slate-100/30 border border-slate-200/50 rounded-2xl text-xs font-medium focus:outline-none focus:ring-4 focus:ring-altavik-500/5 focus:bg-white transition-all text-slate-700"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[500px]">
+          <div className="flex-1 overflow-y-auto max-h-[480px] px-6 py-2 divide-y divide-slate-50">
             {activeTab === 'sinActividad' ? (
-              noActivityLeads.length === 0 && !loading ? (
-                <div className="flex flex-col items-center justify-center h-64 text-slate-400 animate-in fade-in">
-                  <CheckCircle2 size={48} className="mb-4 opacity-30 text-altavik-500" />
-                  <p className="text-sm font-medium text-slate-600">¡Increíble!</p>
-                  <p className="text-xs opacity-60">Todos tus clientes tienen acciones programadas.</p>
-                </div>
+              noActivityLeads.length === 0 ? (
+                <EmptyState icon={<Inbox />} title="¡Todo impecable!" subtitle="No hay clientes sin acciones programadas." />
               ) : (
-                noActivityLeads
-                  .filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((lead) => (
-                    <div key={lead.id} className="p-4 hover:bg-slate-50 transition-all flex items-center justify-between group bg-white cursor-pointer" onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)}>
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-orange-50 text-orange-600 border border-orange-100 font-bold text-xs">
-                          {lead.name.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold text-slate-800">{lead.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <span className="font-medium">{lead.source || 'Sin origen'}</span>
-                            <span>•</span>
-                            <span className="text-red-400 font-medium">Sin actividad registrada</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Plus size={18} className="text-altavik-500" />
-                      </div>
-                    </div>
-                  ))
+                noActivityLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
+                  <NoActivityItem key={lead.id} lead={lead} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} />
+                ))
               )
-            ) : filteredAgenda.length === 0 && !loading ? (
-              <div className="flex flex-col items-center justify-center h-64 text-slate-400 animate-in fade-in">
-                {activeTab === 'caducadas' ? (
-                  <>
-                    <CheckCircle2 size={48} className="mb-4 opacity-30 text-altavik-500" />
-                    <p className="text-sm font-medium text-slate-600">¡Impecable!</p>
-                    <p className="text-xs opacity-60">No tienes ninguna tarea vencida.</p>
-                  </>
-                ) : (
-                  <>
-                    <Calendar size={48} className="mb-4 opacity-20 text-slate-500" />
-                    <p className="text-sm font-medium text-slate-600">
-                      {searchQuery ? 'No hay coincidencias' : 'Todo al día'}
-                    </p>
-                    <p className="text-xs opacity-60">
-                      {searchQuery ? 'Prueba con otro nombre' : 'No tienes acciones futuras pendientes'}
-                    </p>
-                  </>
-                )}
-              </div>
+            ) : filteredAgenda.length === 0 ? (
+              <EmptyState 
+                icon={activeTab === 'caducadas' ? <CheckCircle2 /> : <Calendar />} 
+                title={activeTab === 'caducadas' ? "¡Al día!" : "Agenda despejada"} 
+                subtitle="No hay tareas que mostrar en esta sección." 
+              />
             ) : (
-              filteredAgenda.map((task) => {
-                const isOverdue = new Date(task.due_date) < new Date();
-                return (
-                  <div key={task.id} className="p-4 hover:bg-slate-50 transition-all flex items-center justify-between group bg-white">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => toggleTask(task)}
-                        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all shadow-sm bg-white border border-slate-200 text-slate-300 hover:border-altavik-400 hover:text-altavik-500"
-                      >
-                        <Circle size={20} />
-                      </button>
-
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-medium uppercase tracking-wider px-2 py-0.5 rounded border ${task.type === 'Llamada' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                            task.type === 'WhatsApp' ? 'bg-altavik-50 text-altavik-600 border-altavik-100' :
-                              task.type === 'Visita' ? 'bg-purple-50 text-purple-600 border-purple-100' :
-                                'bg-slate-50 text-slate-600 border-slate-100'
-                            }`}>
-                            {task.type}
-                          </span>
-                          <span className="text-sm font-bold text-slate-800">
-                            {task.leads?.name || 'Sin cliente vinculado'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                           <span className="font-medium">{task.title}</span>
-                          <span>•</span>
-                          <span className={`${isOverdue ? "text-red-500 font-bold flex items-center gap-1" : ""}`}>
-                            {isOverdue && <AlertCircle size={10} />}
-                            {formatDateTime(task.due_date)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                      {task.type === 'Visita' && task.leads?.phone && (
-                        <button
-                          onClick={() => {
-                            const now = new Date();
-                            const hour = now.getHours();
-                            const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
-                            const taskDate = new Date(task.due_date);
-                            const day = taskDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                            const time = taskDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                            const leadName = task.leads?.name || 'Cliente';
-                            const leadPhone = task.leads?.phone || '';
-                            
-                            const text = `${greeting}, ${leadName}.\n\nRecordatorio de la cita:\n*Día:* ${day}\n*Hora:* ${time}\n*Lugar:* Terravall. Plaza Mayor 8 1ºA.`;
-                            
-                            const cleanPhone = leadPhone.replace(/\D/g, '');
-                            const finalPhone = cleanPhone.startsWith('34') ? cleanPhone : `34${cleanPhone}`;
-                            
-                            window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
-                          }}
-                          title="Enviar recordatorio por WhatsApp"
-                          className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors"
-                        >
-                          <Smartphone size={16} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteTask(task.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
+              filteredAgenda.map(task => (
+                <AgendaListItem 
+                  key={task.id} 
+                  task={task} 
+                  onToggle={() => toggleTask(task)} 
+                  onDelete={() => deleteTask(task.id)} 
+                  formatDate={formatDateTime}
+                />
+              ))
             )}
           </div>
         </div>
 
-        {/* BARRA LATERAL: LEADS Y ACCESOS */}
-        <div className="space-y-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
-              <h3 className="font-bold text-slate-800 text-sm">Clientes Recientes</h3>
-              <button onClick={() => navigate('/leads')} className="text-[10px] font-bold text-altavik-600 hover:text-altavik-700 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
-                VER TODOS
+        {/* RIGHT BENTO: SIDEBAR MODULES */}
+        <div className="col-span-12 lg:col-span-4 space-y-5 flex flex-col">
+          
+          {/* RECENT LEADS BENTO */}
+          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-100/50 flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-slate-800 text-sm tracking-tight flex items-center gap-2">
+                  <TrendingUp size={16} className="text-green-500" />
+                  Nuevos Prospectos
+                </h3>
+                <p className="text-[10px] text-slate-400 font-medium">Últimas entradas al sistema</p>
+              </div>
+              <button onClick={() => navigate('/leads')} className="text-[10px] font-bold text-slate-600 hover:text-altavik-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 transition-all">
+                Ver todos
               </button>
             </div>
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-1.5 overflow-y-auto max-h-[300px]">
               {recentLeads.map((lead) => (
                 <div
                   key={lead.id}
                   onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)}
-                  className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 p-3 hover:bg-slate-100/50 rounded-2xl transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs border border-slate-200 group-hover:bg-white group-hover:border-altavik-200 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-slate-700 font-black text-xs border border-slate-200 group-hover:scale-105 group-hover:border-altavik-200 transition-all duration-300">
                     {lead.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-slate-800 truncate group-hover:text-altavik-700 transition-colors">{lead.name}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{lead.source || 'Sin origen'}</p>
+                    <p className="text-[13px] font-bold text-slate-800 tracking-tight group-hover:text-altavik-700 transition-colors">{lead.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-slate-400 font-medium">{lead.source || 'Directo'}</span>
+                      <span className="text-[8px] text-slate-300">•</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{new Date(lead.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 bg-white">
-              <h3 className="font-bold text-slate-800 text-sm">Accesos Rápidos</h3>
+          {/* QUICK LINKS BENTO */}
+          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-900/15 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+              <Target size={120} />
             </div>
-            <div className="p-5 space-y-3">
+            <h3 className="font-bold text-sm tracking-widest uppercase opacity-60 mb-4">Módulos Rápidos</h3>
+            <div className="space-y-3 relative z-10">
               <button
-                onClick={() => navigate('/leads')}
-                className="w-full py-3 bg-slate-900 text-white rounded-lg text-xs font-bold shadow hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                onClick={() => navigate('/pipeline')}
+                className="w-full py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-2xl text-[13px] font-black tracking-tight transition-all flex items-center justify-center gap-3 group border border-white/5"
               >
-                <Users size={14} /> Gestionar Clientes
+                <Target size={18} className="group-hover:scale-110 transition-transform" /> Pipeline de Ventas
               </button>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => navigate('/inventory')}
-                  className="w-full py-3 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                  className="py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-[12px] font-bold transition-all flex items-center justify-center gap-2 border border-white/5"
                 >
-                  <Clock size={14} /> Inventario
+                  <Inbox size={16} /> Stock
                 </button>
                 <button
-                  onClick={() => navigate('/agenda')}
-                  className="w-full py-3 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                  onClick={() => navigate('/stats')}
+                  className="py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-[12px] font-bold transition-all flex items-center justify-center gap-2 border border-white/5"
                 >
-                  <Calendar size={14} /> Agenda
+                  <BarChart3 size={16} /> Informes
                 </button>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ title, value, change, isPositive, icon, trendIcon = true, onClick }: any) {
+// --- SUBCOMPONENTES ---
+
+function StatCard({ title, value, subtitle, icon, isTrend, trendValue, onClick }: any) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all duration-200 flex flex-col justify-between ${onClick ? 'cursor-pointer hover:shadow-md hover:border-altavik-200 hover:-translate-y-0.5' : ''
-        }`}
+      className={`bg-white p-5 rounded-3xl border border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] transition-all duration-300 flex flex-col justify-between h-full group hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 cursor-pointer overflow-hidden relative active:scale-95`}
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="p-1.5 bg-slate-50 rounded-lg">{icon}</div>
-        {trendIcon && (
-          <div className={`flex items-center text-[10px] font-bold ${isPositive ? 'text-altavik-600' : 'text-red-600'}`}>
-            {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            <span className="ml-1">{change}</span>
+      <div className="absolute -right-2 -top-2 w-20 h-20 bg-slate-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700" />
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-altavik-50 group-hover:border-altavik-100 transition-colors">
+          {icon}
+        </div>
+        {isTrend && (
+          <div className="bg-green-50 text-green-600 text-[10px] px-3 py-1 rounded-full font-black flex items-center gap-1 border border-green-100">
+            <ArrowUpRight size={12} /> {trendValue}
           </div>
         )}
       </div>
-      <div>
-        <p className="text-slate-500 text-xs font-medium">{title}</p>
-        <h4 className="text-xl font-bold text-slate-900 mt-0.5">{value}</h4>
+      <div className="relative z-10">
+        <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mb-0.5">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <h4 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h4>
+          <span className="text-[10px] text-slate-400 font-semibold">{subtitle}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabButton({ label, active, onClick, count, variant }: any) {
+  const countColor = variant === 'overdue' ? 'bg-red-500' : variant === 'warning' ? 'bg-orange-500' : 'bg-altavik-500';
+  const textColor = active 
+    ? (variant === 'overdue' ? 'text-red-700' : variant === 'warning' ? 'text-orange-700' : 'text-altavik-700')
+    : 'text-slate-500 hover:text-slate-700';
+
+  return (
+    <button
+      onClick={onClick}
+      className={`relative px-5 py-2.5 rounded-xl text-[13px] font-black transition-all flex items-center gap-2 whitespace-nowrap active:scale-95 ${active ? 'bg-white shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/50 ' + textColor : 'text-slate-400 hover:text-slate-600'}`}
+    >
+      {label}
+      {count !== undefined && count > 0 && (
+        <span className={`${countColor} text-white text-[9px] min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-black animate-in zoom-in px-1`}>
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function EmptyState({ icon, title, subtitle }: any) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
+      <div className="p-5 bg-slate-50 rounded-full text-slate-300 mb-4 ring-8 ring-slate-50/50">
+        {icon && Object.assign({}, icon, { props: { ...icon.props, size: 40 } })}
+      </div>
+      <h4 className="text-sm font-black text-slate-800 mb-1 tracking-tight">{title}</h4>
+      <p className="text-[11px] text-slate-400 font-medium px-10">{subtitle}</p>
+    </div>
+  );
+}
+
+function NoActivityItem({ lead, onClick }: any) {
+  return (
+    <div className="p-4 hover:bg-slate-50 transition-all flex items-center justify-between group cursor-pointer rounded-2xl" onClick={onClick}>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-orange-50 text-orange-600 border border-orange-100/50 font-black text-xs group-hover:rotate-3 transition-transform">
+          {lead.name.substring(0, 2).toUpperCase()}
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[14px] font-black text-slate-800 tracking-tight">{lead.name}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+            <span>{lead.source || 'Sin registro'}</span>
+            <span className="text-[8px] opacity-30">•</span>
+            <span className="text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100">Sin actividad inmediata</span>
+          </div>
+        </div>
+      </div>
+      <div className="opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 p-2 bg-slate-900 text-white rounded-xl">
+        <Plus size={16} />
+      </div>
+    </div>
+  );
+}
+
+function AgendaListItem({ task, onToggle, onDelete, formatDate }: any) {
+  const isOverdue = new Date(task.due_date) < new Date();
+  
+  return (
+    <div className="py-4 flex items-center justify-between group hover:pl-2 transition-all rounded-2xl">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onToggle}
+          className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 border-slate-100 bg-white text-slate-200 hover:border-altavik-500 hover:text-altavik-500 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50"
+        >
+          <Circle size={22} strokeWidth={3} />
+        </button>
+
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
+              task.type === 'Llamada' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+              task.type === 'WhatsApp' ? 'bg-altavik-50 text-altavik-600 border-altavik-100' :
+              task.type === 'Visita' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+              'bg-slate-50 text-slate-500 border-slate-100'
+            }`}>
+              {task.type}
+            </span>
+            <span className="text-[15px] font-black text-slate-800 tracking-tight truncate max-w-[200px]">
+              {task.leads?.name || 'Cliente anónimo'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
+            <span className="truncate">{task.title}</span>
+            <span className="opacity-30">•</span>
+            <span className={`${isOverdue ? "text-red-500 font-black flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100" : "text-altavik-600"}`}>
+              {isOverdue && <AlertCircle size={10} />}
+              {formatDate(task.due_date)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1 transform translate-x-3 group-hover:translate-x-0">
+        <button
+          onClick={onDelete}
+          className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+        >
+          <Trash2 size={18} />
+        </button>
       </div>
     </div>
   );

@@ -52,7 +52,7 @@ export default function Inventory() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
+  const [stateFilter, setStateFilter] = useState('DISPONIBLE');
   const [portalFilter, setPortalFilter] = useState('');
   const [dormitoriosFilter, setDormitoriosFilter] = useState('');
   const [plantaFilter, setPlantaFilter] = useState('');
@@ -128,7 +128,7 @@ export default function Inventory() {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setStateFilter('');
+    setStateFilter('DISPONIBLE');
     setPortalFilter('');
     setDormitoriosFilter('');
     setPlantaFilter('');
@@ -403,7 +403,7 @@ export default function Inventory() {
           </div>
 
           <div className="flex w-full lg:w-auto gap-3 flex-wrap sm:flex-nowrap">
-            <div className="relative flex-1 sm:w-32 lg:w-40 min-w-[120px]">
+            <div className="relative flex-1 sm:w-40 lg:w-48 min-w-[160px]">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <select
                 value={stateFilter}
@@ -515,12 +515,36 @@ export default function Inventory() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {currentItems.map((property) => (
-                  <tr key={property.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr 
+                    key={property.id} 
+                    className={`hover:bg-slate-50/50 transition-colors group relative ${
+                      property.estado_vivienda === 'RESERVADA' 
+                        ? 'bg-indigo-50/40' 
+                        : property.estado_vivienda === 'BLOQUEADA' || property.estado_vivienda === 'NO DISPONIBLE'
+                        ? 'opacity-75 grayscale-[0.5]'
+                        : ''
+                    }`}
+                  >
                     <td className="px-4 py-5">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center font-bold text-base">
+                      <div className="flex flex-col items-center justify-center gap-1">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-base shadow-sm shrink-0 ${
+                          property.estado_vivienda === 'RESERVADA' 
+                            ? 'bg-indigo-600 text-white shadow-indigo-200' 
+                            : 'bg-altavik-50 text-altavik-600'
+                        }`}>
                           {property.n_orden}
                         </div>
+                        {property.estado_vivienda && property.estado_vivienda !== 'DISPONIBLE' && (
+                          <span className={`text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md border ${
+                            property.estado_vivienda === 'RESERVADA' 
+                              ? 'bg-indigo-100 text-indigo-700 border-indigo-200' 
+                              : property.estado_vivienda === 'BLOQUEADA' || property.estado_vivienda === 'NO DISPONIBLE'
+                              ? 'bg-red-100 text-red-700 border-red-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}>
+                            {property.estado_vivienda}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-5">

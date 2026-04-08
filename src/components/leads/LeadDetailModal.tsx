@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
-  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone
+  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -65,6 +66,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
 
+  const [showDocsHistory, setShowDocsHistory] = useState(false);
   const [formData, setFormData] = useState({
     name: lead.name || '',
     email: lead.email || '',
@@ -403,8 +405,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   <Send size={16} /> Enviar Documentación (WhatsApp / Email)
                 </button>
 
-                <form onSubmit={handleUpdate} className="space-y-4 flex-1 overflow-y-auto pr-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <form onSubmit={handleUpdate} className="space-y-3 flex-1 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                     {/* Fila 1 */}
                     <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
@@ -424,23 +426,6 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <input name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
-                      <div className="mt-1 px-4 py-2.3 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100 h-[42px]">
-                         <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={formData.is_subscribed}
-                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
-                          />
-                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-altavik-500"></div>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Fila 3 */}
-                    <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
                       <div className="relative">
                         <Compass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -456,8 +441,11 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           <option value="Referido">Referido</option>
                           <option value="Otro">Otro</option>
                         </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
                       </div>
                     </div>
+
+                    {/* Fila 3 */}
                     <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
                       <select name="status" value={formData.status} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 cursor-pointer transition-all appearance-none">
@@ -470,45 +458,68 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </select>
                     </div>
 
-                    {/* Fila 4 */}
-                    <div className="md:col-start-2">
+                    <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          name="created_at_date"
-                          value={formData.created_at_date}
-                          onChange={handleChange}
-                          className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all"
-                        />
+                      <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
+                    </div>
+
+                    {/* Fila 4: Newsletter al final a ancho completo */}
+                    <div className="md:col-span-2 mt-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
+                      <div className="mt-1 px-4 py-2.5 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100 h-[42px]">
+                         <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={formData.is_subscribed}
+                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+                          />
+                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-altavik-500"></div>
+                        </label>
                       </div>
                     </div>
                   </div>
 
                   <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas</label>
-                    <textarea name="notes" rows={2} value={formData.notes} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 resize-none border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" placeholder="Escribe detalles importantes..." />
+                    <textarea name="notes" rows={5} value={formData.notes} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 resize-none border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" placeholder="Escribe detalles importantes..." />
                   </div>
 
                   {/* Historial de Documentos */}
-                  <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <Clock size={12} /> Documentación Enviada
-                    </h3>
-                    <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                      {sentHistory.length === 0 ? (
-                        <p className="text-[11px] text-slate-400 italic">No hay envíos registrados.</p>
-                      ) : (
-                        sentHistory.map((item) => (
-                          <div key={item.id} className="bg-white p-2.5 rounded-lg border border-slate-100 flex items-center justify-between shadow-sm">
-                            <span className="text-xs font-bold text-slate-700 truncate max-w-[180px]">{item.doc_name}</span>
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase ${item.method === 'whatsapp' ? 'bg-altavik-100 text-altavik-600' : 'bg-blue-100 text-blue-600'}`}>
-                              {item.method}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                  <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowDocsHistory(!showDocsHistory)}
+                      className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-100/50 transition-colors"
+                    >
+                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Clock size={12} /> Documentación Enviada ({sentHistory.length})
+                      </h3>
+                      {showDocsHistory ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+                    </button>
+                    
+                    {showDocsHistory && (
+                      <div className="px-5 pb-5 space-y-2 max-h-48 overflow-y-auto custom-scrollbar animate-in slide-in-from-top-1 duration-200">
+                        {sentHistory.length === 0 ? (
+                          <p className="text-[11px] text-slate-400 italic">No hay envíos registrados.</p>
+                        ) : (
+                          sentHistory.map((item) => (
+                            <div key={item.id} className="bg-white p-2.5 rounded-lg border border-slate-100 flex items-center justify-between shadow-sm">
+                              <div className="flex flex-col gap-0.5 min-w-0">
+                                <span className="text-xs font-bold text-slate-700 truncate" title={item.doc_name}>{item.doc_name}</span>
+                                <span className="text-[9px] text-slate-400">
+                                  {item.sent_at ? new Date(item.sent_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Fecha desconocida'}
+                                </span>
+                              </div>
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ml-2 ${item.method === 'whatsapp' ? 'bg-altavik-100 text-altavik-600' : 'bg-blue-100 text-blue-600'}`}>
+                                {item.method}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between pt-2">

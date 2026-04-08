@@ -257,23 +257,23 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             <label className={labelCls}>DNI / NIE / Pasaporte</label>
             <input className={inputCls} value={personalForm.dni} onChange={e => setPersonalForm(f => ({...f, dni: e.target.value}))} placeholder="12345678A" />
           </div>
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-1">
             <label className={labelCls}>Estado Civil</label>
             <select className={inputCls + ' cursor-pointer appearance-none'} value={personalForm.civil_status} onChange={e => setPersonalForm(f => ({...f, civil_status: e.target.value}))}>
               <option value="">Seleccionar...</option>
               {CIVIL_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div>
+          <div className="xl:col-span-1">
             <label className={labelCls}>Nacionalidad</label>
             <input className={inputCls} value={personalForm.nationality} onChange={e => setPersonalForm(f => ({...f, nationality: e.target.value}))} />
           </div>
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-3">
             <label className={labelCls}>Profesión</label>
             <input className={inputCls} value={personalForm.occupation} onChange={e => setPersonalForm(f => ({...f, occupation: e.target.value}))} placeholder="Empleado/a por cuenta ajena" />
           </div>
 
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-2">
             <label className={labelCls}>Domicilio</label>
             <input className={inputCls} value={personalForm.address} onChange={e => setPersonalForm(f => ({...f, address: e.target.value}))} placeholder="Calle, número, piso..." />
           </div>
@@ -281,7 +281,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             <label className={labelCls}>Código Postal</label>
             <input className={inputCls} value={personalForm.postal_code} onChange={e => setPersonalForm(f => ({...f, postal_code: e.target.value}))} placeholder="03001" />
           </div>
-          <div className="xl:col-span-1">
+          <div className="xl:col-span-2">
             <label className={labelCls}>Localidad</label>
             <input className={inputCls} value={personalForm.city} onChange={e => setPersonalForm(f => ({...f, city: e.target.value}))} placeholder="Alicante" />
           </div>

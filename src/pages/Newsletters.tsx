@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Loader2, Plus, Mail, Clock, Send, Edit, Copy } from 'lucide-react';
+import { Loader2, Plus, Mail, Clock, Send, Edit, Copy, Trash2 } from 'lucide-react';
+import { useDialog } from '../context/DialogContext';
 
 type Newsletter = {
     id: string;
@@ -14,6 +15,7 @@ type Newsletter = {
 
 export default function Newsletters() {
     const navigate = useNavigate();
+    const { showConfirm } = useDialog();
     const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -91,6 +93,30 @@ export default function Newsletters() {
         } catch (error) {
             console.error("Error duplicating newsletter", error);
             alert("No se pudo duplicar la campaña.");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        const confirmed = await showConfirm({
+            title: 'Eliminar Campaña',
+            message: '¿Estás seguro de que deseas eliminar esta campaña? Esta acción no se puede deshacer.',
+            confirmText: 'Eliminar',
+            cancelText: 'Cancelar'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const { error } = await supabase
+                .from('newsletters')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setNewsletters(prev => prev.filter(n => n.id !== id));
+        } catch (error) {
+            console.error("Error deleting newsletter", error);
+            alert("No se pudo eliminar la campaña.");
         }
     };
 
@@ -190,6 +216,13 @@ export default function Newsletters() {
                                                 title="Duplicar campaña"
                                             >
                                                 <Copy size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(nl.id)}
+                                                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50"
+                                                title="Eliminar campaña"
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>

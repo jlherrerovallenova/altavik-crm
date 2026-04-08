@@ -102,8 +102,8 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
   });
 
   const compradorLinea = datos.nombreCotitular
-    ? `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia}), de nacionalidad ${datos.nacionalidad}, y ${datos.nombreCotitular}, con DNI ${datos.dniCotitular}`
-    : `${datos.nombre}, con DNI ${datos.dni}, en estado civil ${datos.estadoCivil}, con domicilio en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia}), de nacionalidad ${datos.nacionalidad}`;
+    ? `D/Dª. ${datos.nombre}, con DNI ${datos.dni}, y D/Dª. ${datos.nombreCotitular}, con DNI ${datos.dniCotitular || '_______'}, ambos en estado civil ${datos.estadoCivil}, nacionalidad ${datos.nacionalidad}, y con domicilio a efectos de notificaciones en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`
+    : `D/Dª. ${datos.nombre}, con DNI ${datos.dni}, estado civil ${datos.estadoCivil}, nacionalidad ${datos.nacionalidad}, y con domicilio a efectos de notificaciones en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`;
 
   try {
     doc.setData({
@@ -249,14 +249,18 @@ export async function generarReservaPdf(datos: DatosReserva): Promise<void> {
   addLine('Representante', 'D. ANTONIO ROBERTO PASTRANA GONZÁLEZ');
 
   addSection('PARTE COMPRADORA');
-  addLine('Nombre', datos.nombre);
-  addLine('DNI / NIE', datos.dni);
-  addLine('Estado civil', datos.estadoCivil);
-  addLine('Nacionalidad', datos.nacionalidad);
-  addLine('Domicilio', `${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`);
   if (datos.nombreCotitular) {
-    addLine('Cotitular', datos.nombreCotitular);
-    addLine('DNI Cotitular', datos.dniCotitular || '');
+    addLine('Comprador 1', `${datos.nombre} (DNI ${datos.dni})`);
+    addLine('Comprador 2', `${datos.nombreCotitular} (DNI ${datos.dniCotitular || '_______'})`);
+    addLine('Estado Civil', datos.estadoCivil);
+    addLine('Nacionalidad', datos.nacionalidad);
+    addLine('Domicilio común', `${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`);
+  } else {
+    addLine('Nombre', datos.nombre);
+    addLine('DNI / NIE', datos.dni);
+    addLine('Estado civil', datos.estadoCivil);
+    addLine('Nacionalidad', datos.nacionalidad);
+    addLine('Domicilio', `${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`);
   }
 
   // ─── VIVIENDA ───────────────────────────────────────────────────
