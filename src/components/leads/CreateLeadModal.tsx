@@ -1,8 +1,9 @@
 // src/components/leads/CreateLeadModal.tsx
 import { useState } from 'react';
-import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles } from 'lucide-react';
+import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { CustomSelect, IdealistaIcon } from '../Shared';
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,14 @@ interface Props {
 }
 
 import { useCreateLead } from '../../hooks/useLeads';
+
+const SOURCE_CONFIG = [
+  { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
+  { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
+  { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
+  { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
+  { id: 'Otro', label: 'Otro', icon: Plus, color: 'text-slate-500' },
+];
 
 export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
   const { user, profile } = useAuth();
@@ -292,20 +301,17 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Origen</label>
-            <select
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700 cursor-pointer"
-              value={formData.source}
-              onChange={e => setFormData({ ...formData, source: e.target.value })}
-            >
-              <option value="Idealista">Idealista</option>
-              <option value="Web">Web</option>
-              <option value="Redes Sociales">Redes Sociales</option>
-              <option value="Referido">Referido</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Origen"
+            value={formData.source}
+            onChange={(val) => setFormData({ ...formData, source: val })}
+            options={SOURCE_CONFIG.map(s => ({
+              id: s.id,
+              label: s.label,
+              icon: s.icon,
+              color: s.color
+            }))}
+          />
 
           <div>
             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Notas Internas / Mensaje</label>

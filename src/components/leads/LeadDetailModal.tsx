@@ -4,7 +4,7 @@ import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, Globe, Users
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import { useDialog } from '../../context/DialogContext';
 import EmailComposerModal from './EmailComposerModal';
 import { useDocuments } from '../../hooks/useDocuments';
 import SaleTab from './SaleTab';
+import { CustomSelect, IdealistaIcon } from '../Shared';
 import type { Database } from '../../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -19,14 +20,24 @@ type AgendaItem = Database['public']['Tables']['agenda']['Row'];
 
 // getAvatarColor removed as it's no longer used for emerald square avatars
 
-const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }> = {
-  new:         { dot: 'bg-blue-400',    pill: 'bg-blue-900/40 text-blue-200 border border-blue-700/50',     label: 'Nuevo' },
-  contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-900/40 text-purple-200 border border-purple-700/50', label: 'Contactado' },
-  qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-altavik-200 border border-altavik-700/50', label: 'Cualificado' },
-  visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-900/40 text-cyan-200 border border-cyan-700/50',       label: 'Visitando' },
-  closed:      { dot: 'bg-slate-400',   pill: 'bg-slate-700/50 text-slate-300 border border-slate-600/50',   label: 'Venta Cerrada' },
-  lost:        { dot: 'bg-red-400',     pill: 'bg-red-900/40 text-red-200 border border-red-700/50',         label: 'Perdido' },
+const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string; icon: any }> = {
+  new:         { dot: 'bg-blue-400',    pill: 'bg-blue-900/40 text-blue-200 border border-blue-700/50',     label: 'Nuevo', icon: Circle },
+  contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-900/40 text-purple-200 border border-purple-700/50', label: 'Contactado', icon: MessageCircle },
+  qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-altavik-200 border border-altavik-700/50', label: 'Cualificado', icon: CheckCircle2 },
+  visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-900/40 text-cyan-200 border border-cyan-700/50',       label: 'Visitando', icon: Compass },
+  proposal:    { dot: 'bg-orange-400',  pill: 'bg-orange-900/40 text-orange-200 border border-orange-700/50', label: 'Propuesta', icon: Smartphone },
+  negotiation: { dot: 'bg-amber-400',   pill: 'bg-amber-900/40 text-amber-200 border border-amber-700/50',   label: 'Negociación', icon: RotateCcw },
+  closed:      { dot: 'bg-slate-400',   pill: 'bg-slate-700/50 text-slate-300 border border-slate-600/50',   label: 'Venta Cerrada', icon: ShoppingCart },
+  lost:        { dot: 'bg-red-400',     pill: 'bg-red-900/40 text-red-200 border border-red-700/50',         label: 'Perdido', icon: X },
 };
+
+const SOURCE_CONFIG = [
+  { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
+  { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
+  { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
+  { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
+  { id: 'Otro', label: 'Otro', icon: Plus, color: 'text-slate-500' },
+];
 
 interface Props {
   lead: Lead;
@@ -397,7 +408,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
 
               {/* COLUMNA IZQUIERDA: FORMULARIO */}
-              <div className="space-y-4 flex flex-col h-full">
+              <div className="space-y-1 flex flex-col h-full">
                 <button
                   onClick={() => setIsEmailModalOpen(true)}
                   className="w-full py-3 px-4 bg-altavik-50 text-altavik-700 rounded-xl border border-altavik-100 font-bold flex items-center justify-center gap-2 hover:bg-altavik-100 transition-all active:scale-95 text-xs"
@@ -405,8 +416,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   <Send size={16} /> Enviar Documentación (WhatsApp / Email)
                 </button>
 
-                <form onSubmit={handleUpdate} className="space-y-3 flex-1 overflow-y-auto pr-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                <form onSubmit={handleUpdate} className="space-y-1 flex-1 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
                     {/* Fila 1 */}
                     <div>
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
@@ -426,47 +437,52 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <input name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
                       <div className="relative">
-                        <Compass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <select
-                          name="source"
-                          value={formData.source}
+                        <input
+                          type="date"
+                          name="created_at_date"
+                          value={formData.created_at_date}
                           onChange={handleChange}
-                          className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all appearance-none cursor-pointer"
-                        >
-                          <option value="Idealista">Idealista</option>
-                          <option value="Web">Web</option>
-                          <option value="Redes Sociales">Redes Sociales</option>
-                          <option value="Referido">Referido</option>
-                          <option value="Otro">Otro</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                          className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all"
+                        />
                       </div>
                     </div>
 
-                    {/* Fila 3 */}
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-                      <select name="status" value={formData.status} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 cursor-pointer transition-all appearance-none">
-                        <option value="new">Nuevo</option>
-                        <option value="contacted">Contactado</option>
-                        <option value="qualified">Cualificado</option>
-                        <option value="visiting">Visitando</option>
-                        <option value="closed">Venta Cerrada</option>
-                        <option value="lost">Perdido</option>
-                      </select>
-                    </div>
+                    {/* Fila 3 y 4 */}
+                    <CustomSelect
+                      label="Origen"
+                      value={formData.source}
+                      onChange={(val) => setFormData({ ...formData, source: val })}
+                      options={SOURCE_CONFIG.map(s => ({
+                        id: s.id,
+                        label: s.label,
+                        icon: s.icon,
+                        color: s.color
+                      }))}
+                    />
+                    <CustomSelect
+                      label="Estado"
+                      value={formData.status}
+                      onChange={(val) => setFormData({ ...formData, status: val as any })}
+                      options={Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({
+                        id: key,
+                        label: cfg.label,
+                        icon: cfg.icon,
+                        color: cfg.dot.replace('bg-', 'text-')
+                      }))}
+                    />
 
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
-                      <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
-                    </div>
-
-                    {/* Fila 4: Newsletter al final a ancho completo */}
+                    {/* Notas Internas */}
                     <div className="md:col-span-2 mt-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas</label>
+                      <textarea name="notes" rows={8} value={formData.notes} onChange={handleChange} className="w-full mt-1 px-4 py-2 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 resize-none border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all font-sans" placeholder="Escribe detalles importantes..." />
+                    </div>
+
+                    {/* Newsletters debajo de Notas */}
+                    <div className="md:col-start-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
-                      <div className="mt-1 px-4 py-2.5 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100 h-[42px]">
+                      <div className="mt-1 px-4 py-1.5 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100">
                          <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -479,11 +495,6 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         </label>
                       </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas</label>
-                    <textarea name="notes" rows={5} value={formData.notes} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 resize-none border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" placeholder="Escribe detalles importantes..." />
                   </div>
 
                   {/* Historial de Documentos */}

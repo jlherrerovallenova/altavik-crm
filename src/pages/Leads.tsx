@@ -9,7 +9,6 @@ import {
   UserPlus,
   Loader2,
   MessageCircle,
-  Filter,
   Download,
   ChevronLeft,
   ChevronsLeft,
@@ -32,6 +31,7 @@ import ImportLeadsModal from '../components/leads/ImportLeadsModal';
 import { AppNotification } from '../components/AppNotification';
 import { useDocuments } from '../hooks/useDocuments';
 import { useLeads } from '../hooks/useLeads';
+import { CustomSelect, IdealistaIcon } from '../components/Shared';
 import type { Database } from '../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -74,9 +74,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
   if (lower.includes('idealista')) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Idealista">
-        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden">
-          <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
-        </div>
+        <IdealistaIcon className="w-5 h-5" />
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Idealista</span>
       </div>
     );
@@ -230,20 +228,6 @@ export default function Leads() {
     updateURLParams('search', value);
   };
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setStatusFilter(value);
-    setPage(1);
-    updateURLParams('status', value);
-  };
-
-  const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setSourceFilter(value);
-    setPage(1);
-    updateURLParams('source', value);
-  };
-
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
@@ -311,40 +295,44 @@ export default function Leads() {
           </div>
 
           <div className="flex w-full lg:w-auto gap-3">
-            <div className="relative flex-1 lg:w-48">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <select
-                value={statusFilter}
-                onChange={handleStatusChange}
-                className="w-full pl-9 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700"
-              >
-                <option value="">Todos los Estados</option>
-                <option value="new">Nuevos</option>
-                <option value="contacted">Contactados</option>
-                <option value="qualified">Cualificados</option>
-                <option value="visiting">Visitando</option>
-                <option value="closed">Venta Cerrada</option>
-                <option value="lost">Perdidos</option>
-              </select>
-            </div>
+            <CustomSelect
+              className="flex-1 lg:w-48"
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(val);
+                setPage(1);
+                updateURLParams('status', val);
+              }}
+              placeholder="Todos los Estados"
+              options={[
+                { id: '', label: 'Todos los Estados' },
+                ...Object.entries(STATUS_LABELS).map(([id, label]) => ({
+                  id,
+                  label,
+                  dotColor: STATUS_CONFIG[id]?.dot
+                }))
+              ]}
+            />
 
-            <div className="relative flex-1 lg:w-48">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <select
-                value={sourceFilter}
-                onChange={handleSourceChange}
-                className="w-full pl-9 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none appearance-none shadow-sm cursor-pointer text-slate-700"
-              >
-                <option value="">Cualquier Origen</option>
-                <option value="Idealista">Idealista</option>
-                <option value="Web">Web</option>
-                <option value="Google">Google</option>
-                <option value="Redes Sociales">Redes Sociales</option>
-                <option value="Referido">Referido</option>
-                <option value="Llamada">Llamada</option>
-                <option value="Otro">Otro</option>
-              </select>
-            </div>
+            <CustomSelect
+              className="flex-1 lg:w-48"
+              value={sourceFilter}
+              onChange={(val) => {
+                setSourceFilter(val);
+                setPage(1);
+                updateURLParams('source', val);
+              }}
+              placeholder="Cualquier Origen"
+              options={[
+                   { id: '', label: 'Cualquier Origen' },
+                   { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
+                   { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
+                   { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
+                   { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
+                   { id: 'Llamada', label: 'Llamada', icon: Phone, color: 'text-green-500' },
+                   { id: 'Otro', label: 'Otro', icon: HelpCircle, color: 'text-slate-500' }
+              ]}
+            />
 
             {hasActiveFilters && (
               <button

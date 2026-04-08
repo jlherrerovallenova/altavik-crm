@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { generarReservaPdf, generarReservaDocx, type DatosReserva } from '../../utils/generarReserva';
+import { CustomSelect } from '../Shared';
 import type { Database } from '../../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -257,14 +258,14 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             <label className={labelCls}>DNI / NIE / Pasaporte</label>
             <input className={inputCls} value={personalForm.dni} onChange={e => setPersonalForm(f => ({...f, dni: e.target.value}))} placeholder="12345678A" />
           </div>
-          <div className="xl:col-span-1">
-            <label className={labelCls}>Estado Civil</label>
-            <select className={inputCls + ' cursor-pointer appearance-none'} value={personalForm.civil_status} onChange={e => setPersonalForm(f => ({...f, civil_status: e.target.value}))}>
-              <option value="">Seleccionar...</option>
-              {CIVIL_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div className="xl:col-span-1">
+          <CustomSelect
+            label="Estado Civil"
+            className="xl:col-span-2"
+            value={personalForm.civil_status}
+            onChange={(val) => setPersonalForm(f => ({...f, civil_status: val}))}
+            options={CIVIL_STATUS_OPTIONS.map(s => ({ id: s, label: s }))}
+          />
+          <div>
             <label className={labelCls}>Nacionalidad</label>
             <input className={inputCls} value={personalForm.nationality} onChange={e => setPersonalForm(f => ({...f, nationality: e.target.value}))} />
           </div>
@@ -336,20 +337,20 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-cyan-600">Vivienda</h3>
         </div>
         <div className="p-5">
-          <label className={labelCls}>Vivienda seleccionada</label>
-          <select
-            className={inputCls + ' cursor-pointer appearance-none'}
+          <CustomSelect
+            label="Vivienda seleccionada"
             value={personalForm.property_id}
-            onChange={e => setPersonalForm(f => ({...f, property_id: e.target.value}))}
-            disabled={!!sale}
-          >
-            <option value="">-- Seleccionar vivienda --</option>
-            {properties.map(p => (
-              <option key={p.id} value={p.id}>
-                Nº {p.n_orden} | Portal {p.portal} | Planta {p.planta}{p.letra} — {fmt(p.precio)} [{p.estado_vivienda || 'Sin estado'}]
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setPersonalForm(f => ({...f, property_id: val}))}
+            options={[
+              { id: '', label: '-- Seleccionar vivienda --' },
+              ...properties.map(p => ({
+                id: p.id,
+                label: `Nº ${p.n_orden} | Portal ${p.portal} | Planta ${p.planta}${p.letra} — ${fmt(p.precio)} [${p.estado_vivienda || 'Sin estado'}]`,
+                icon: Home,
+                color: p.estado_vivienda === 'Libre' ? 'text-green-500' : 'text-slate-400'
+              }))
+            ]}
+          />
           {selectedProperty && (
             <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
               <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-center">
