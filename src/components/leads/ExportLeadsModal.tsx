@@ -25,9 +25,8 @@ export default function ExportLeadsModal({ isOpen, onClose }: Props) {
       let query = supabase
         .from('leads')
         .select('*')
-        // Ordenamos por 'source' para mantener la clasificación solicitada
-        .order('source', { ascending: true })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('source', { ascending: true });
 
       // Aplicar filtro de mes si es necesario
       if (filterType === 'month' && selectedMonth) {

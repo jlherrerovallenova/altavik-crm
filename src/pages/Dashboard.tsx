@@ -18,12 +18,14 @@ import {
   Target,
   BarChart3,
   TrendingUp,
-  Inbox
+  Inbox,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
+import FeedbackEmailModal from '../components/leads/FeedbackEmailModal';
 
 // --- TIPOS ---
 type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
@@ -58,8 +60,11 @@ export default function Dashboard() {
 
   // Estado para la búsqueda del cliente y el tab activo
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'sinActividad'>('futuras');
-  const [noActivityLeads, setNoActivityLeads] = useState<RecentLead[]>([]);
+  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'radar' | 'feedback'>('futuras');
+  const [criticalLeads, setCriticalLeads] = useState<any[]>([]);
+  const [feedbackLeads, setFeedbackLeads] = useState<any[]>([]);
+  const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<any | null>(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -114,22 +119,66 @@ export default function Dashboard() {
         setAgenda(formattedData);
       }
 
-      // 3. CARGA DE CLIENTES SIN ACTIVIDAD
-      const { data: noActivityData, error: noActError } = await supabase
+      // 3. CARGA DE RADAR DE OPORTUNIDADES CRÍTICAS
+      const { data: radarData, error: radarError } = await supabase
         .from('leads')
-        .select('id, name, source, created_at, agenda(id)');
+        .select('id, name, source, created_at, status, agenda(due_date, completed)')
+        .not('status', 'in', '("closed","lost")'); // Excluir ventas cerradas o perdidas
 
-      if (!noActError && noActivityData) {
-        const filtered = noActivityData
-          .filter((l: any) => !l.agenda || l.agenda.length === 0)
-          .map((l: any) => ({
-            id: l.id,
-            name: l.name,
-            source: l.source,
-            created_at: l.created_at
-          }))
+      if (!radarError && radarData) {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+        const processedRadar = radarData
+          .map((l: any) => {
+            // Encontrar la fecha de última actividad (o creación si no hay agenda)
+            const agendaItems = l.agenda || [];
+            const lastActivity = agendaItems.length > 0
+              ? new Date(Math.max(...agendaItems.map((a: any) => new Date(a.due_date).getTime())))
+              : new Date(l.created_at);
+            
+            const daysSinceLastActivity = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+            const hasFutureTask = agendaItems.some((a: any) => !a.completed && new Date(a.due_date) > now);
+
+            return {
+              id: l.id,
+              name: l.name,
+              source: l.source,
+              created_at: l.created_at,
+              status: l.status,
+              daysSinceLastActivity,
+              isCritical: daysSinceLastActivity >= 7 && !hasFutureTask,
+              hasAgenda: agendaItems.length > 0
+            };
+          })
+          .filter((l: any) => l.isCritical)
+          .sort((a, b) => b.daysSinceLastActivity - a.daysSinceLastActivity)
           .slice(0, 50);
-        setNoActivityLeads(filtered);
+
+        setCriticalLeads(processedRadar);
+
+        // 4. CARGA DE LEADS PARA FEEDBACK (Opinión Pendiente)
+        // Leads en estado 'visiting' o 'closed' con más de 7 días y sin feedback_sent
+        const { data: feedbackData, error: feedbackError } = await supabase
+          .from('leads')
+          .select('id, name, email, source, created_at, status, feedback_sent')
+          .in('status', ['visiting', 'closed'])
+          .eq('feedback_sent', false);
+
+        if (!feedbackError && feedbackData) {
+          const processedFeedback = feedbackData
+            .map((l: any) => {
+              const daysSinceCreated = Math.floor((now.getTime() - new Date(l.created_at).getTime()) / (1000 * 60 * 60 * 24));
+              return {
+                ...l,
+                daysSinceCreated
+              };
+            })
+            .filter((l: any) => l.daysSinceCreated >= 7)
+            .sort((a, b) => b.daysSinceCreated - a.daysSinceCreated);
+
+          setFeedbackLeads(processedFeedback);
+        }
       }
 
     } catch (error) {
@@ -146,6 +195,8 @@ export default function Dashboard() {
     const isOverdue = taskDate < new Date().getTime();
     if (activeTab === 'caducadas' && !isOverdue) return false;
     if (activeTab === 'futuras' && isOverdue) return false;
+    if (activeTab === 'radar') return false; 
+    if (activeTab === 'feedback') return false;
     return true;
   });
 
@@ -295,11 +346,11 @@ export default function Dashboard() {
                   variant="overdue" 
                 />
                 <TabButton 
-                  label="Sin Actividad" 
-                  count={noActivityLeads.length} 
-                  active={activeTab === 'sinActividad'} 
-                  onClick={() => setActiveTab('sinActividad')} 
-                  variant="warning" 
+                  label="Opinión" 
+                  count={feedbackLeads.length} 
+                  active={activeTab === 'feedback'} 
+                  onClick={() => setActiveTab('feedback')} 
+                  variant="primary" 
                 />
               </div>
 
@@ -318,12 +369,27 @@ export default function Dashboard() {
           </div>
 
           <div className="flex-1 overflow-y-auto max-h-[480px] px-6 py-2 divide-y divide-slate-50">
-            {activeTab === 'sinActividad' ? (
-              noActivityLeads.length === 0 ? (
-                <EmptyState icon={<Inbox />} title="¡Todo impecable!" subtitle="No hay clientes sin acciones programadas." />
+            {activeTab === 'radar' ? (
+              criticalLeads.length === 0 ? (
+                <EmptyState icon={<CheckCircle2 />} title="¡Sin fugas!" subtitle="No hay oportunidades en riesgo crítico de enfriamiento." />
               ) : (
-                noActivityLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
-                  <NoActivityItem key={lead.id} lead={lead} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} />
+                criticalLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
+                  <RadarItem key={lead.id} lead={lead} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} />
+                ))
+              )
+            ) : activeTab === 'feedback' ? (
+              feedbackLeads.length === 0 ? (
+                <EmptyState icon={<CheckCircle2 />} title="¡Todo en orden!" subtitle="No hay clientes esperando encuesta de opinión hoy." />
+              ) : (
+                feedbackLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
+                  <FeedbackListItem 
+                    key={lead.id} 
+                    lead={lead} 
+                    onSend={() => {
+                      setSelectedLeadForFeedback(lead);
+                      setIsFeedbackModalOpen(true);
+                    }} 
+                  />
                 ))
               )
             ) : filteredAgenda.length === 0 ? (
@@ -416,6 +482,15 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {selectedLeadForFeedback && (
+            <FeedbackEmailModal
+              isOpen={isFeedbackModalOpen}
+              onClose={() => setIsFeedbackModalOpen(false)}
+              lead={selectedLeadForFeedback}
+              onSuccess={loadDashboardData}
+            />
+          )}
+
         </div>
       </div>
     </div>
@@ -485,27 +560,60 @@ function EmptyState({ icon, title, subtitle }: any) {
   );
 }
 
-function NoActivityItem({ lead, onClick }: any) {
+function RadarItem({ lead, onClick }: any) {
   return (
-    <div className="p-4 hover:bg-slate-50 transition-all flex items-center justify-between group cursor-pointer rounded-2xl" onClick={onClick}>
+    <div className="p-4 hover:bg-red-50/30 transition-all flex items-center justify-between group cursor-pointer rounded-2xl border border-transparent hover:border-red-100" onClick={onClick}>
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-orange-50 text-orange-600 border border-orange-100/50 font-black text-xs group-hover:rotate-3 transition-transform">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-red-50 text-red-600 border border-red-100 font-black text-xs group-hover:scale-105 transition-transform relative">
+          {lead.name.substring(0, 2).toUpperCase()}
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[14px] font-black text-slate-800 tracking-tight">{lead.name}</span>
+            <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-lg border border-red-200">CRÍTICO</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+            <span>{lead.source || 'Sin registro'}</span>
+            <span className="text-[8px] opacity-30">•</span>
+            <span className="text-red-500 font-bold">Sin actividad hace {lead.daysSinceLastActivity} días</span>
+          </div>
+        </div>
+      </div>
+      <div className="opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 p-2 bg-slate-900 text-white rounded-xl shadow-lg">
+        <Plus size={16} />
+      </div>
+    </div>
+  );
+}
+
+function FeedbackListItem({ lead, onSend }: any) {
+  return (
+    <div className="py-4 flex items-center justify-between group hover:pl-2 transition-all rounded-2xl">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-altavik-50 text-altavik-600 border border-altavik-100 font-black text-xs group-hover:scale-105 transition-transform">
           {lead.name.substring(0, 2).toUpperCase()}
         </div>
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[14px] font-black text-slate-800 tracking-tight">{lead.name}</span>
+            <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-200">
+              {lead.status === 'visiting' ? 'VISITÓ HACE 7+ DÍAS' : 'VENTA CERRADA'}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
             <span>{lead.source || 'Sin registro'}</span>
             <span className="text-[8px] opacity-30">•</span>
-            <span className="text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-100">Sin actividad inmediata</span>
+            <span className="text-altavik-600 font-bold">Esperando feedback</span>
           </div>
         </div>
       </div>
-      <div className="opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 p-2 bg-slate-900 text-white rounded-xl">
-        <Plus size={16} />
-      </div>
+      <button
+        onClick={onSend}
+        className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow-lg transform translate-x-2 group-hover:translate-x-0 active:scale-95"
+      >
+        <Send size={14} /> ENVIAR OPINIÓN
+      </button>
     </div>
   );
 }

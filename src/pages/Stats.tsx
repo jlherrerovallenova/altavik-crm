@@ -52,7 +52,8 @@ export default function Stats() {
     try {
       const { data: leads, error } = await supabase
         .from('leads')
-        .select('created_at, source, status');
+        .select('name, email, phone, created_at, source, status')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
