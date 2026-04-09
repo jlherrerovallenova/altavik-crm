@@ -371,7 +371,7 @@ export default function Leads() {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="grid md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 hidden md:grid">
+            <div className="grid md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
               <div
                 className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('name')}
@@ -382,15 +382,15 @@ export default function Leads() {
               <div className="text-left">Teléfono</div>
               <div className="text-left">Email</div>
               <div className="text-left">Origen</div>
-              <div className="text-center">Estado</div>
+              <div className="text-left pl-2">Estado</div>
               <div
-                className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
+                className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('created_at')}
               >
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div className="text-center">Acciones</div>
+              <div className="text-left">Acciones</div>
             </div>
 
             {leads.map((lead) => {
@@ -432,17 +432,17 @@ export default function Leads() {
                     <SourceIcon source={lead.source} />
                   </div>
 
-                  <div className="flex justify-center items-center">
+                  <div className="flex justify-start items-center">
                     {getStatusBadge(lead.status)}
                   </div>
 
-                  <div className="flex justify-center items-center">
+                  <div className="flex justify-start items-center">
                     <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
                       {new Date(lead.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-center gap-1 transition-opacity">
+                  <div className="flex items-center justify-start gap-1 transition-opacity">
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle size={15} /></button>
                     <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail size={15} /></button>
                     <ChevronRight size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
@@ -509,7 +509,7 @@ export default function Leads() {
       <CreateLeadModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={() => { showMsg('success', '¡Completado!', 'El nuevo cliente ha sido creado con éxito.'); }}
+        onSuccess={() => { refetch(); showMsg('success', '¡Completado!', 'El nuevo cliente ha sido creado con éxito.'); }}
       />
 
       {selectedLead && (
@@ -517,6 +517,7 @@ export default function Leads() {
           lead={selectedLead}
           onClose={() => setSelectedLead(null)}
           onUpdate={(deleted?: boolean) => {
+            refetch();
             if (deleted) showMsg('success', 'Cliente eliminado', 'Cliente borrado.');
             else showMsg('info', 'Cliente actualizado', 'Cambios guardados.');
           }}

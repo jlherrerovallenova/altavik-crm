@@ -1,10 +1,10 @@
 // src/components/leads/LeadDetailModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
-  ChevronDown, ChevronUp, Globe, Users
+  ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -324,428 +324,343 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     });
   };
 
-  // URLs rápidas
   const cleanPhone = formData.phone.replace(/\D/g, '');
   const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}` : '#';
   const mailtoUrl = formData.email ? `mailto:${formData.email}?subject=Información%20Finca%20Altavik` : '#';
 
   const statusCfg = STATUS_CONFIG[formData.status || 'new'] || STATUS_CONFIG['new'];
 
+  const [expandedDocs, setExpandedDocs] = useState<Record<string, boolean>>({});
+
+  const toggleDocs = (id: string) => {
+    setExpandedDocs(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const groupedHistory = useMemo(() => {
+    const combined = [...tasks, ...sentHistory].sort((a, b) => 
+      new Date(b.sent_at || b.due_date).getTime() - new Date(a.sent_at || a.due_date).getTime()
+    );
+
+    const result: any[] = [];
+    let currentGroup: any = null;
+
+    combined.forEach((item) => {
+      const isDoc = !!item.method;
+      if (!isDoc) {
+        result.push(item);
+        currentGroup = null;
+        return;
+      }
+
+      const time = new Date(item.sent_at).getTime();
+      const groupTime = currentGroup ? new Date(currentGroup.sent_at).getTime() : 0;
+
+      // Group if same method and within 30 seconds
+      if (currentGroup && currentGroup.method === item.method && Math.abs(time - groupTime) < 30000) {
+        const names = item.doc_name?.includes('||') ? item.doc_name.split('||') : [item.doc_name];
+        currentGroup.allDocs = [...currentGroup.allDocs, ...names];
+      } else {
+        const names = item.doc_name?.includes('||') ? item.doc_name.split('||') : [item.doc_name];
+        currentGroup = { ...item, allDocs: names };
+        result.push(currentGroup);
+      }
+    });
+
+    return result;
+  }, [tasks, sentHistory]);
+
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="bg-white w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
-
-          {/* HEADER oscuro con avatar de color */}
-          <div className="px-8 py-5 bg-slate-900 flex items-center justify-between">
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="bg-[#f8fafc] w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
+          
+          {/* HEADER PREMIUM */}
+          <div className="px-8 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-altavik-50 text-altavik-700 flex items-center justify-center font-bold text-xl border border-altavik-100/50 shadow-sm shrink-0">
-                {formData.name.substring(0, 2).toUpperCase() || 'CL'}
+              <div className="w-12 h-12 rounded-xl bg-[#e0f2fe] text-[#0369a1] flex items-center justify-center shadow-sm shrink-0">
+                <Users size={24} />
               </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h2 className="text-lg font-bold text-white leading-tight">{formData.name}</h2>
-                  {/* Badge de estado */}
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${statusCfg.pill}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+              <div className="space-y-0.5">
+                <h2 className="text-xl font-bold text-[#1e293b] leading-tight">{formData.name}</h2>
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusCfg.pill}`}>
+                    <span className={`w-1 h-1 rounded-full ${statusCfg.dot}`} />
                     {statusCfg.label}
                   </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-slate-400 font-medium">Ficha del Cliente</p>
-                  <div className="flex gap-1.5">
-                    {formData.phone && (
-                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-altavik-600 text-white rounded-lg hover:bg-altavik-500 transition-colors shadow-sm" title="WhatsApp">
-                        <MessageCircle size={13} />
-                      </a>
-                    )}
-                    {formData.email && (
-                      <a href={mailtoUrl} className="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors shadow-sm" title="Email">
-                        <Mail size={13} />
-                      </a>
-                    )}
-                  </div>
+                  <span className="text-[10px] font-medium text-slate-400">Lead ID: #{lead.id.toString().slice(-5)}</span>
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white">
-              <X size={20} />
-            </button>
-          </div>
 
-          {/* TABS */}
-          <div className="flex border-b border-slate-200 bg-white">
-            <button
-              onClick={() => setActiveTab('ficha')}
-              className={`flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${
-                activeTab === 'ficha'
-                  ? 'border-altavik-600 text-altavik-600'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <Mail size={14} /> Ficha y Agenda
-            </button>
-            <button
-              onClick={() => setActiveTab('venta')}
-              className={`flex items-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${
-                activeTab === 'venta'
-                  ? 'border-amber-500 text-amber-600'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <ShoppingCart size={14} /> Gestión de Compra
-              {lead.sale_status && (
-                <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold rounded-full uppercase">{lead.sale_status}</span>
-              )}
-            </button>
-          </div>
-
-          {/* CONTENIDO PRINCIPAL */}
-          <div className="flex-1 overflow-y-auto p-6 bg-white">
-            {activeTab === 'venta' ? (
-              <SaleTab lead={lead} onLeadUpdate={handleLeadUpdate} />
-            ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-
-              {/* COLUMNA IZQUIERDA: FORMULARIO */}
-              <div className="space-y-1 flex flex-col h-full">
-                <button
-                  onClick={() => setIsEmailModalOpen(true)}
-                  className="w-full py-3 px-4 bg-altavik-50 text-altavik-700 rounded-xl border border-altavik-100 font-bold flex items-center justify-center gap-2 hover:bg-altavik-100 transition-all active:scale-95 text-xs"
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsEmailModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-50 transition-all shadow-sm"
+              >
+                <Mail size={14} /> Email
+              </button>
+              {formData.phone && (
+                <a 
+                  href={whatsappUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] rounded-xl font-bold text-xs hover:bg-[#dcfce7] transition-all shadow-sm"
                 >
-                  <Send size={16} /> Enviar Documentación (WhatsApp / Email)
-                </button>
+                  <MessageCircle size={14} /> WhatsApp
+                </a>
+              )}
+              <button onClick={onClose} className="p-2 ml-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                <X size={20} />
+              </button>
+            </div>
+          </div>
 
-                <form onSubmit={handleUpdate} className="space-y-1 flex-1 overflow-y-auto pr-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
-                    {/* Fila 1 */}
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
-                      <input name="name" value={formData.name} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" required />
+          {/* CONTENIDO PRINCIPAL EN DOS COLUMNAS */}
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              
+              {/* COLUMNA IZQUIERDA (7/12) */}
+              <div className="lg:col-span-7 space-y-4">
+                
+                {/* DATOS DEL LEAD */}
+                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
+                    <div className="p-1 bg-blue-50 text-blue-600 rounded-lg"><FileText size={16} /></div> DATOS DEL LEAD
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-3">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre Completo</label>
+                      <input name="name" value={formData.name} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="600..." className="w-full mt-1 pl-9 pr-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
+                      <input name="phone" value={formData.phone} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Correo Electrónico</label>
+                      <input name="email" value={formData.email} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
+                      <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Origen del Lead</label>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-lg text-[11px] font-bold uppercase border border-[#bae6fd]">
+                                {formData.source}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado Actual</label>
+                      <select 
+                        name="status" 
+                        value={formData.status} 
+                        onChange={handleChange}
+                        className="w-full mt-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      >
+                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                          <option key={key} value={key}>{cfg.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Notas Internas</label>
+                    <textarea 
+                      name="notes" 
+                      rows={3} 
+                      value={formData.notes} 
+                      onChange={handleChange}
+                      placeholder="Escribe detalles importantes..." 
+                      className="w-full p-3 bg-[#f1f5f9] rounded-xl border-none text-sm font-medium text-slate-700 italic focus:ring-2 focus:ring-blue-100 transition-all resize-none shadow-inner"
+                    />
+                  </div>
+                </section>
+
+                {/* NEWSLETTERS & MARKETING */}
+                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2">
+                      <div className="p-1 bg-indigo-50 text-indigo-600 rounded-lg"><Bell size={16} /></div> NEWSLETTERS & MARKETING
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Suscrito a Correos</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={formData.is_subscribed}
+                          onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3b82f6]"></div>
+                      </label>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* COLUMNA DERECHA (5/12) */}
+              <div className="lg:col-span-5 space-y-4">
+                
+                {/* AGENDA DE ACCIONES */}
+                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
+                    <div className="p-1 bg-blue-50 text-blue-600 rounded-lg"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo de Acción</label>
+                      <select
+                        value={newTask.type}
+                        onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:border-blue-500 focus:bg-white outline-none"
+                      >
+                        <option value="Llamada">Llamada</option>
+                        <option value="Email">Email</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Visita">Visita</option>
+                      </select>
                     </div>
 
-                    {/* Fila 2 */}
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
-                      <input name="email" value={formData.email} onChange={handleChange} className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Alta</label>
-                      <div className="relative">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha y Hora</label>
+                      <div className="flex gap-2">
                         <input
                           type="date"
-                          name="created_at_date"
-                          value={formData.created_at_date}
-                          onChange={handleChange}
-                          className="w-full mt-1 px-4 py-2.5 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all"
+                          value={newTask.date}
+                          onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+                          className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:bg-white"
+                        />
+                        <input
+                          type="time"
+                          value={newTask.time}
+                          onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
+                          className="w-24 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:bg-white"
                         />
                       </div>
                     </div>
 
-                    {/* Fila 3 y 4 */}
-                    <CustomSelect
-                      label="Origen"
-                      value={formData.source}
-                      onChange={(val) => setFormData({ ...formData, source: val })}
-                      options={SOURCE_CONFIG.map(s => ({
-                        id: s.id,
-                        label: s.label,
-                        icon: s.icon,
-                        color: s.color
-                      }))}
-                    />
-                    <CustomSelect
-                      label="Estado"
-                      value={formData.status}
-                      onChange={(val) => setFormData({ ...formData, status: val as any })}
-                      options={Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({
-                        id: key,
-                        label: cfg.label,
-                        icon: cfg.icon,
-                        color: cfg.dot.replace('bg-', 'text-')
-                      }))}
-                    />
-
-                    {/* Notas Internas */}
-                    <div className="md:col-span-2 mt-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas</label>
-                      <textarea name="notes" rows={8} value={formData.notes} onChange={handleChange} className="w-full mt-1 px-4 py-2 bg-slate-50 rounded-lg outline-none text-sm font-medium text-slate-700 resize-none border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all font-sans" placeholder="Escribe detalles importantes..." />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descripción Corta</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Llamar para confirmar visita"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                        className="w-full bg-slate-50 border border-white rounded-xl px-4 py-2 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white shadow-sm outline-none"
+                      />
                     </div>
 
-                    {/* Newsletters debajo de Notas */}
-                    <div className="md:col-start-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Newsletters</label>
-                      <div className="mt-1 px-4 py-1.5 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100">
-                         <span className="text-sm font-medium text-slate-700">Suscrito a Correos</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={formData.is_subscribed}
-                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
-                          />
-                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-altavik-500"></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Historial de Documentos */}
-                  <div className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden">
-                    <button 
-                      type="button" 
-                      onClick={() => setShowDocsHistory(!showDocsHistory)}
-                      className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-100/50 transition-colors"
-                    >
-                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <Clock size={12} /> Documentación Enviada ({sentHistory.length})
-                      </h3>
-                      {showDocsHistory ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
-                    </button>
-                    
-                    {showDocsHistory && (
-                      <div className="px-5 pb-5 space-y-2 max-h-48 overflow-y-auto custom-scrollbar animate-in slide-in-from-top-1 duration-200">
-                        {sentHistory.length === 0 ? (
-                          <p className="text-[11px] text-slate-400 italic">No hay envíos registrados.</p>
-                        ) : (
-                          sentHistory.map((item) => (
-                            <div key={item.id} className="bg-white p-2.5 rounded-lg border border-slate-100 flex items-center justify-between shadow-sm">
-                              <div className="flex flex-col gap-0.5 min-w-0">
-                                <span className="text-xs font-bold text-slate-700 truncate" title={item.doc_name}>{item.doc_name}</span>
-                                <span className="text-[9px] text-slate-400">
-                                  {item.sent_at ? new Date(item.sent_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Fecha desconocida'}
-                                </span>
-                              </div>
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase shrink-0 ml-2 ${item.method === 'whatsapp' ? 'bg-altavik-100 text-altavik-600' : 'bg-blue-100 text-blue-600'}`}>
-                                {item.method}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <button type="button" onClick={handleDelete} className="text-red-500 font-medium text-xs flex items-center gap-1.5 px-3 py-2 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 size={14} /> Eliminar lead
-                    </button>
-                    <button type="submit" disabled={loading} className="px-6 py-2.5 bg-altavik-600 text-white font-semibold text-sm rounded-lg flex items-center gap-2 shadow-md hover:bg-altavik-700 transition-all active:scale-95">
-                      {loading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Guardar cambios
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* COLUMNA DERECHA: AGENDA (CONECTADA A LA TABLA AGENDA) */}
-              <div className="bg-slate-50 rounded-2xl p-6 text-slate-900 shadow-sm flex flex-col h-full border border-slate-200">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-altavik-600">
-                  <CalendarIcon size={14} /> Agenda de Acciones
-                </h3>
-
-                {/* Formulario Inline Compacto */}
-                <div className="grid grid-cols-1 gap-2 mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                  <div className="flex gap-2">
-                    <select
-                      value={newTask.type}
-                      onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-                      className="bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium p-2.5 outline-none focus:border-altavik-500 focus:ring-2 focus:ring-altavik-500/20 text-slate-700"
-                    >
-                      <option value="Llamada">Llamada</option>
-                      <option value="Email">Email</option>
-                      <option value="WhatsApp">WhatsApp</option>
-                      <option value="Visita">Visita</option>
-                      <option value="Reunión">Reunión</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={newTask.date}
-                      onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px] p-2.5 outline-none focus:border-altavik-500 focus:ring-2 focus:ring-altavik-500/20 text-slate-700"
-                    />
-                    <input
-                      type="time"
-                      value={newTask.time}
-                      onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                      className="w-20 bg-slate-50 border border-slate-200 rounded-lg text-[11px] p-2.5 outline-none focus:border-altavik-500 focus:ring-2 focus:ring-altavik-500/20 text-slate-700"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={editingTaskId ? "Editando tarea..." : "Nueva tarea pendiente..."}
-                      value={newTask.title}
-                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                      className="flex-1 bg-slate-50 border border-slate-200 rounded-lg text-xs p-2.5 outline-none focus:border-altavik-500 focus:ring-2 focus:ring-altavik-500/20 text-slate-900 placeholder-slate-400"
-                    />
-                    {editingTaskId && (
-                      <button
-                        onClick={() => {
-                          setEditingTaskId(null);
-                          setNewTask({ 
-                            type: 'Llamada', 
-                            title: '', 
-                            date: new Date().toISOString().slice(0, 10), 
-                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-                            comentario: ''
-                          });
-                        }}
-                        className="bg-slate-100 px-3 rounded-lg hover:bg-slate-200 transition-colors text-slate-500"
-                        title="Cancelar edición"
-                      >
-                        <RotateCcw size={16} />
-                      </button>
-                    )}
                     <button
                       onClick={() => saveTask()}
-                      className={`${editingTaskId ? 'bg-blue-600 hover:bg-blue-500' : 'bg-altavik-600 hover:bg-altavik-500'} px-4 text-white rounded-lg transition-colors shadow-sm active:scale-95`}
+                      disabled={loading || !newTask.title}
+                      className="w-full py-2.5 bg-[#334155] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#1e293b] transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                     >
-                      {editingTaskId ? <Save size={18} /> : <Plus size={18} />}
+                      <Plus size={16} /> Programar Acción
                     </button>
                   </div>
-                </div>
+                </section>
 
-                {/* Lista de Tareas */}
-                <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
-                  {tasks.length === 0 && (
-                    <div className="text-center py-10 opacity-50">
-                      <CalendarIcon size={32} className="mx-auto mb-2 text-slate-300" />
-                      <p className="text-xs text-slate-500 italic">No hay tareas para este cliente.</p>
-                    </div>
-                  )}
-                  {tasks.map((task) => {
-                    const dateObj = new Date(task.due_date);
-                    const isEditingComment = editingCommentId === task.id;
-                    return (
-                      <div key={task.id} className={`group rounded-lg border transition-all ${task.completed ? 'bg-slate-50 border-transparent opacity-60' : 'bg-white border-slate-200 hover:border-altavik-200 shadow-sm'}`}>
-                        <div className="flex items-center justify-between p-2.5">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <button onClick={() => toggleTaskStatus(task)} className={`shrink-0 transition-transform hover:scale-110 ${task.completed ? 'text-altavik-500' : 'text-slate-300 hover:text-altavik-500'}`}>
-                              {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                            </button>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">{task.type}</span>
-                                <p className={`text-sm font-bold truncate ${task.completed ? 'text-altavik-600 opacity-70' : 'text-slate-800'}`}>{task.title}</p>
+                {/* HISTORIAL DE ACTIVIDAD */}
+                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col h-full max-h-[400px]">
+                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
+                    <div className="p-1 bg-slate-50 text-slate-600 rounded-lg"><Clock size={14} /></div> HISTORIAL DE ACTIVIDAD
+                  </h3>
+
+                  <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2 pb-2">
+                    {groupedHistory.map((item: any, idx) => {
+                        const isDoc = !!item.method;
+                        const docNames = item.allDocs || [];
+                        const isExpanded = expandedDocs[item.id] || false;
+
+                        return (
+                          <div key={idx} className={`flex gap-5 relative ${item.completed === false ? 'opacity-100' : 'opacity-70'}`}>
+                            {idx !== 0 && <div className="absolute left-6 -top-8 w-px h-8 bg-slate-100" />}
+                            
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm shrink-0 ${
+                              item.completed === false ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-50' :
+                              item.type === 'Llamada' ? 'bg-blue-50 text-blue-500' : 
+                              item.method ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400'
+                            }`}>
+                              {item.type === 'Llamada' ? <Phone size={18} /> : 
+                               item.method === 'email' ? <Mail size={18} /> : 
+                               item.method === 'whatsapp' ? <MessageCircle size={18} /> : 
+                               item.type === 'Visita' ? <Compass size={18} /> : 
+                               item.doc_name ? <FileText size={18} /> : <Clock size={18} />}
+                            </div>
+                            <div className="flex-1 pt-1 min-w-0">
+                              <div className="flex items-start justify-between gap-4">
+                                <h4 className="text-sm font-bold text-slate-700 truncate">
+                                  {item.title || (item.method ? 'Envío de documentación' : 'Actividad')}
+                                </h4>
+                                <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-tighter">
+                                  {new Date(item.sent_at || item.due_date).toLocaleDateString()}
+                                </span>
                               </div>
-                              <p className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                                <Clock size={10} /> {dateObj.toLocaleDateString()} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                              <div className="mt-1">
+                                {isDoc && docNames.length > 0 ? (
+                                  <div className="space-y-1">
+                                    <button 
+                                      onClick={() => toggleDocs(item.id)}
+                                      className="text-xs text-blue-500 font-bold flex items-center gap-1 hover:text-blue-700 transition-colors"
+                                      type="button"
+                                    >
+                                      {docNames.length} {docNames.length === 1 ? 'documento enviado' : 'documentos enviados'}
+                                      {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                    </button>
+                                    
+                                    {isExpanded && (
+                                      <div className="pl-2 border-l-2 border-slate-100 space-y-1 py-1 animate-in slide-in-from-top-1 duration-200">
+                                        {docNames.map((name: string, dIdx: number) => (
+                                          <div key={dIdx} className="flex items-center gap-2 text-[11px] text-slate-500">
+                                            <FileText size={10} className="text-slate-300" />
+                                            <span className="truncate italic">{name}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-slate-500 line-clamp-2 italic leading-relaxed">
+                                    {item.comentario || 'Sin detalles adicionales registrados.'}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
-
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
-                            {task.type === 'Visita' && formData.phone && (
-                              <button
-                                onClick={() => {
-                                  const now = new Date();
-                                  const hour = now.getHours();
-                                  const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
-                                  const taskDate = new Date(task.due_date);
-                                  const day = taskDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                                  const time = taskDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                                  
-                                  const text = `${greeting}, ${formData.name}.\n\nRecordatorio de la cita:\n*Día:* ${day}\n*Hora:* ${time}\n*Lugar:* Terravall. Plaza Mayor 8 1ºA.`;
-                                  
-                                  const cleanPhone = formData.phone.replace(/\D/g, '');
-                                  const finalPhone = cleanPhone.startsWith('34') ? cleanPhone : `34${cleanPhone}`;
-                                  
-                                  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
-                                }}
-                                className="p-1.5 hover:bg-slate-100 rounded text-green-600 transition-colors"
-                                title="Enviar recordatorio por WhatsApp"
-                              >
-                                <Smartphone size={14} />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                setEditingCommentId(isEditingComment ? null : task.id);
-                                setCommentDraft(task.comentario || '');
-                              }}
-                              className={`p-1.5 rounded transition-colors text-xs font-bold ${ isEditingComment ? 'bg-altavik-100 text-altavik-600' : 'hover:bg-slate-100 text-slate-400 hover:text-altavik-600'}`}
-                              title="Añadir comentario"
-                            >
-                              💬
-                            </button>
-                            <button
-                              onClick={() => startEditingTask(task)}
-                              className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-colors"
-                              title="Editar"
-                            >
-                              <Pencil size={14} />
-                            </button>
-                            <button
-                              onClick={() => deleteTask(task.id)}
-                              className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-red-600 transition-colors"
-                              title="Borrar"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Botones ATENDIDA / NO ATENDIDA — solo Llamadas pendientes */}
-                        {task.type === 'Llamada' && !task.completed && (
-                          <div className="px-2.5 pb-2 flex gap-1.5">
-                            <button
-                              onClick={() => handleCallResult(task, true)}
-                              className="flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[10px] font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors active:scale-95"
-                            >
-                              ✅ Atendida
-                            </button>
-                            <button
-                              onClick={() => handleCallResult(task, false)}
-                              className="flex-1 flex items-center justify-center gap-1 py-1 px-2 rounded-md text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors active:scale-95"
-                            >
-                              ❌ No atendida
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Área de comentario */}
-                        {(isEditingComment || task.comentario) && (
-                          <div className="px-2.5 pb-2.5">
-                            {isEditingComment ? (
-                              <div className="flex gap-1.5 items-end">
-                                <textarea
-                                  autoFocus
-                                  value={commentDraft}
-                                  onChange={(e) => setCommentDraft(e.target.value)}
-                                  placeholder="Escribe el resultado de esta acción..."
-                                  rows={2}
-                                  className="flex-1 bg-altavik-50/50 border border-altavik-100 rounded-lg text-[11px] p-2 outline-none focus:border-altavik-500 text-slate-700 placeholder-slate-400 resize-none"
-                                />
-                                <button
-                                  onClick={() => saveComment(task.id)}
-                                  className="p-2 bg-altavik-600 hover:bg-altavik-500 text-white rounded-lg transition-colors shrink-0 shadow-sm"
-                                  title="Guardar comentario"
-                                >
-                                  <Save size={14} />
-                                </button>
-                              </div>
-                            ) : (
-                              <p className="text-[11px] text-altavik-700 bg-altavik-50/30 border border-altavik-100/50 rounded-lg px-2.5 py-1.5 italic leading-relaxed">
-                                💬 {task.comentario}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                        );
+                      })}
+                    {tasks.length === 0 && sentHistory.length === 0 && (
+                      <p className="text-xs text-slate-400 text-center py-10 italic">No hay actividad registrada recientemente.</p>
+                    )}
+                  </div>
+                </section>
               </div>
-
             </div>
-            )}
+          </div>
+
+          {/* FOOTER */}
+          <div className="px-8 py-4 bg-white border-t border-slate-100 flex items-center justify-end">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={onClose}
+                className="px-6 py-2 text-slate-500 font-bold text-xs hover:text-slate-700 transition-colors"
+              >
+                Descartar cambios
+              </button>
+              <button 
+                onClick={handleUpdate}
+                disabled={loading}
+                className="px-8 py-2.5 bg-[#334155] text-white rounded-xl font-bold text-xs hover:bg-[#1e293b] transition-all shadow-lg active:scale-95 flex items-center gap-2"
+              >
+                {loading && <Loader2 size={14} className="animate-spin" />} Guardar cambios
+              </button>
+            </div>
           </div>
         </div>
       </div>

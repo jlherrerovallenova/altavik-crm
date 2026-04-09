@@ -1,6 +1,6 @@
 // src/components/leads/CreateLeadModal.tsx
 import { useState } from 'react';
-import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone } from 'lucide-react';
+import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { CustomSelect, IdealistaIcon } from '../Shared';
@@ -191,7 +191,8 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
         notes: formData.notes || null,
         source: formData.source,
         status: 'new',
-        assigned_to: profile?.id || null
+        assigned_to: (profile?.id || user?.id) || null,
+        is_subscribed: true
       };
 
       createMutation.mutate(payload, {
@@ -211,38 +212,43 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-[#f8fafc] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
 
         {/* Header */}
-        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h2 className="text-xl font-bold text-slate-900">Nuevo Cliente</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-altavik-50 text-altavik-600 flex items-center justify-center">
+                    <Plus size={20} />
+                </div>
+                <h2 className="text-xl font-bold text-[#1e293b]">Nuevo Cliente</h2>
+            </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
           {/* Quick Paste Area */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 overflow-hidden">
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
              <button 
               type="button"
               onClick={() => setShowPaste(!showPaste)}
               className="flex items-center justify-between w-full text-slate-600 hover:text-altavik-700 transition-colors"
              >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-altavik-50 text-altavik-600 flex items-center justify-center">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                     <Sparkles size={16} />
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider">Pegado Rápido (Idealista)</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#1e293b]">Pegado Rápido (Idealista)</span>
                 </div>
-                <ClipboardPaste size={16} className={showPaste ? 'text-altavik-600' : 'text-slate-400'} />
+                <ChevronDown size={18} className={`transition-transform duration-300 ${showPaste ? 'rotate-180 text-blue-600' : 'text-slate-300'}`} />
              </button>
 
              {showPaste && (
-               <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+               <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                   <textarea 
-                    className="w-full h-32 p-3 bg-white border border-slate-200 rounded-xl text-xs font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all resize-none"
+                    className="w-full h-32 p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all resize-none italic shadow-inner"
                     placeholder="Pega aquí el contenido del correo de Idealista..."
                     value={pasteText}
                     onChange={(e) => setPasteText(e.target.value)}
@@ -250,7 +256,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                   <button
                     type="button"
                     onClick={handlePasteParse}
-                    className="w-full py-2.5 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all shadow-sm"
+                    className="w-full py-3 bg-[#334155] text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#1e293b] transition-all shadow-md active:scale-95"
                   >
                     Extraer Datos del Contacto
                   </button>
@@ -258,42 +264,42 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
              )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
           {errorMsg && (
-            <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center gap-2 animate-in slide-in-from-top-2">
+            <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 border border-red-100">
               <AlertCircle size={18} className="shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Nombre Completo <span className="text-red-500">*</span></label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo <span className="text-red-500">*</span></label>
             <input
               type="text"
               required
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700"
+              className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
               placeholder="Ej. Juan Pérez"
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Email</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700"
+                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
                 placeholder="juan@ejemplo.com"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
-            <div className="col-span-1">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Teléfono</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
               <input
                 type="tel"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700"
+                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
                 placeholder="600 000 000"
                 value={formData.phone}
                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -301,46 +307,48 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
           </div>
 
-          <CustomSelect
-            label="Origen"
-            value={formData.source}
-            onChange={(val) => setFormData({ ...formData, source: val })}
-            options={SOURCE_CONFIG.map(s => ({
-              id: s.id,
-              label: s.label,
-              icon: s.icon,
-              color: s.color
-            }))}
-          />
+          <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
+              <CustomSelect
+                value={formData.source}
+                onChange={(val) => setFormData({ ...formData, source: val })}
+                options={SOURCE_CONFIG.map(s => ({
+                  id: s.id,
+                  label: s.label,
+                  icon: s.icon,
+                  color: s.color
+                }))}
+              />
+          </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Notas Internas / Mensaje</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas / Mensaje</label>
             <textarea
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700 h-24 resize-none"
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm font-medium text-slate-700 h-28 resize-none shadow-inner italic"
               placeholder="Ej. Interesado en piso de 3 habitaciones..."
               value={formData.notes}
               onChange={e => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-4 flex gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+              className="flex-1 px-4 py-3 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-xl transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-altavik-600 text-white font-bold rounded-xl shadow-lg hover:bg-altavik-700 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 bg-[#334155] text-white font-bold rounded-xl shadow-lg hover:bg-[#1e293b] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : 'Guardar Cliente'}
             </button>
           </div>
         </form>
-      </div>
+        </div>
       </div>
     </div>
   );

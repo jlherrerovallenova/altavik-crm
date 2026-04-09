@@ -6,10 +6,13 @@ import {
   Paperclip,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Building2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
+import PropertySelector from './PropertySelector';
+import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 
 // Importamos la imagen de la firma (asegúrate de que la ruta sea correcta según tu estructura)
 // import firmaImg from '../../assets/Firma.png';
@@ -56,6 +59,11 @@ export default function EmailComposerModal({
   const [selectedDocs, setSelectedDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
   const [customDocs, setCustomDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
+  
+  // Nuevos estados para selección de viviendas
+  const [isPropertySelectorOpen, setIsPropertySelectorOpen] = useState(false);
+  const [isGeneratingFichas, setIsGeneratingFichas] = useState(false);
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -87,6 +95,58 @@ export default function EmailComposerModal({
     }
   };
 
+  const handlePropertySelect = async (properties: any[]) => {
+    setIsGeneratingFichas(true);
+    try {
+      const newFichas: { name: string; url: string; category?: string }[] = [];
+      const newIds = [...selectedPropertyIds];
+
+      for (const prop of properties) {
+        if (newIds.includes(prop.id)) continue;
+
+        // 1. Generar el PDF Blob
+        const pdfBlob = await generatePropertyPDFBlob(prop);
+        
+        const formatPlanta = (p: string) => {
+          if (!p) return '';
+          return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+        };
+
+        const fileName = `Ficha_P${prop.portal}_Planta_${formatPlanta(prop.planta)}_${prop.letra}.pdf`;
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+        // 2. Subir a Supabase Storage
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filePath = `leads/${leadId}/fichas/${Date.now()}_${cleanName}`;
+        
+        const { error } = await supabase.storage.from('documents').upload(filePath, file, { upsert: true });
+        if (error) throw error;
+        
+        const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+        
+        const newDoc = { name: file.name, url: publicUrlData.publicUrl, category: 'Fichas de Vivienda' };
+        newFichas.push(newDoc);
+        newIds.push(prop.id);
+      }
+
+      setCustomDocs(prev => [...prev, ...newFichas]);
+      setSelectedDocs(prev => [...prev, ...newFichas]);
+      setSelectedPropertyIds(newIds);
+      
+      if (newFichas.length > 0) {
+        showAlert({ 
+          title: 'Documentos Generados', 
+          message: `Se han generado y adjuntado ${newFichas.length} ficha(s) de vivienda con su forma de pago.` 
+        });
+      }
+    } catch (err: any) {
+      console.error("Error al generar fichas:", err);
+      showAlert({ title: 'Error', message: 'No se pudieron generar las fichas de las viviendas seleccionadas.' });
+    } finally {
+      setIsGeneratingFichas(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   // Función para convertir la firma a Base64 para que sea visible en el email
@@ -111,16 +171,16 @@ export default function EmailComposerModal({
     if (selectedDocs.length === 0) return;
 
     try {
-      const records = selectedDocs.map(doc => ({
+      const record = {
         lead_id: leadId,
-        doc_name: doc.name,
+        doc_name: selectedDocs.map(d => d.name).join('||'),
         method: sentMethod,
         sent_at: new Date().toISOString()
-      }));
+      };
 
       const { error } = await (supabase as any)
         .from('sent_documents')
-        .insert(records as any);
+        .insert([record] as any);
 
       if (error) throw error;
 
@@ -300,6 +360,14 @@ export default function EmailComposerModal({
                   {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo suelto
                 </label>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsPropertySelectorOpen(true)}
+                disabled={isGeneratingFichas}
+                className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-md transition-all ml-2"
+              >
+                {isGeneratingFichas ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />} Añadir Ficha de Vivienda
+              </button>
             </div>
             
             {customDocs.length > 0 && (
@@ -397,6 +465,15 @@ export default function EmailComposerModal({
           </div>
         </form>
       </div>
+
+      {isPropertySelectorOpen && (
+        <PropertySelector
+          isOpen={isPropertySelectorOpen}
+          onClose={() => setIsPropertySelectorOpen(false)}
+          onSelect={handlePropertySelect}
+          alreadySelected={selectedPropertyIds}
+        />
+      )}
     </div>
   );
 }
