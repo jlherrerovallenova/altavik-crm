@@ -51,6 +51,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const { session } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
   const [activeTab, setActiveTab] = useState<'ficha' | 'venta'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
@@ -377,271 +378,369 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           {/* HEADER PREMIUM */}
           <div className="px-8 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-[#e0f2fe] text-[#0369a1] flex items-center justify-center shadow-sm shrink-0">
-                <Users size={24} />
+              <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 font-bold text-sm tracking-tight border-2 border-slate-800">
+                {formData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
               <div className="space-y-0.5">
-                <h2 className="text-xl font-bold text-[#1e293b] leading-tight">{formData.name}</h2>
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusCfg.pill}`}>
-                    <span className={`w-1 h-1 rounded-full ${statusCfg.dot}`} />
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-black text-[#1e293b] leading-tight tracking-tight">{formData.name}</h2>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${statusCfg.pill}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot} animate-pulse`} />
                     {statusCfg.label}
                   </span>
-                  <span className="text-[10px] font-medium text-slate-400">Lead ID: #{lead.id.toString().slice(-5)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ficha del Cliente</span>
+                  <div className="flex items-center gap-1.5 ml-1">
+                    <button 
+                      onClick={() => {
+                        setEmailModalMethod('whatsapp');
+                        setIsEmailModalOpen(true);
+                      }} 
+                      className="p-1 px-1.5 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                      title="Enviar por WhatsApp"
+                    >
+                      <MessageCircle size={10} strokeWidth={3} />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setEmailModalMethod('email');
+                        setIsEmailModalOpen(true);
+                      }} 
+                      className="p-1 px-1.5 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 transition-colors"
+                      title="Enviar por Email"
+                    >
+                      <Mail size={10} strokeWidth={3} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button 
-                onClick={() => setIsEmailModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-50 transition-all shadow-sm"
+                onClick={onClose} 
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600 hover:rotate-90 duration-300"
               >
-                <Mail size={14} /> Email
-              </button>
-              {formData.phone && (
-                <a 
-                  href={whatsappUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] rounded-xl font-bold text-xs hover:bg-[#dcfce7] transition-all shadow-sm"
-                >
-                  <MessageCircle size={14} /> WhatsApp
-                </a>
-              )}
-              <button onClick={onClose} className="p-2 ml-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
                 <X size={20} />
               </button>
             </div>
           </div>
 
-          {/* CONTENIDO PRINCIPAL EN DOS COLUMNAS */}
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-              
-              {/* COLUMNA IZQUIERDA (7/12) */}
-              <div className="lg:col-span-7 space-y-4">
+          {/* TAB NAVIGATION */}
+          <div className="flex items-center px-8 bg-white border-b border-slate-100">
+            <button
+              onClick={() => setActiveTab('ficha')}
+              className={`flex items-center gap-2.5 px-6 py-3.5 text-[11px] font-bold tracking-widest relative transition-all ${
+                activeTab === 'ficha' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <FileText size={14} />
+              FICHA Y AGENDA
+              {activeTab === 'ficha' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full shadow-[0_-2px_8px_rgba(37,99,235,0.4)]" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('venta')}
+              className={`flex items-center gap-2.5 px-6 py-3.5 text-[11px] font-bold tracking-widest relative transition-all ${
+                activeTab === 'venta' ? 'text-altavik-600' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <ShoppingCart size={14} />
+              GESTIÓN DE COMPRA
+              {lead.sale_status === 'reserva' && (
+                <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[8px] font-black uppercase">Reserva</span>
+              )}
+              {activeTab === 'venta' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-altavik-600 rounded-t-full shadow-[0_-2px_8px_rgba(11,165,185,0.4)]" />}
+            </button>
+          </div>
+
+          {/* CONTENIDO PRINCIPAL */}
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#f8fafc]">
+            {activeTab === 'ficha' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {/* DATOS DEL LEAD */}
-                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
-                    <div className="p-1 bg-blue-50 text-blue-600 rounded-lg"><FileText size={16} /></div> DATOS DEL LEAD
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-3">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre Completo</label>
-                      <input name="name" value={formData.name} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
-                      <input name="phone" value={formData.phone} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Correo Electrónico</label>
-                      <input name="email" value={formData.email} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
-                      <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-base font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0" />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Origen del Lead</label>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="px-3 py-1 bg-[#f0f9ff] text-[#0369a1] rounded-lg text-[11px] font-bold uppercase border border-[#bae6fd]">
-                                {formData.source}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado Actual</label>
-                      <select 
-                        name="status" 
-                        value={formData.status} 
-                        onChange={handleChange}
-                        className="w-full mt-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:border-blue-500 focus:bg-white transition-all outline-none"
-                      >
-                        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                          <option key={key} value={key}>{cfg.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Notas Internas</label>
-                    <textarea 
-                      name="notes" 
-                      rows={3} 
-                      value={formData.notes} 
-                      onChange={handleChange}
-                      placeholder="Escribe detalles importantes..." 
-                      className="w-full p-3 bg-[#f1f5f9] rounded-xl border-none text-sm font-medium text-slate-700 italic focus:ring-2 focus:ring-blue-100 transition-all resize-none shadow-inner"
-                    />
-                  </div>
-                </section>
-
-                {/* NEWSLETTERS & MARKETING */}
-                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2">
-                      <div className="p-1 bg-indigo-50 text-indigo-600 rounded-lg"><Bell size={16} /></div> NEWSLETTERS & MARKETING
+                {/* COLUMNA IZQUIERDA (7/12) */}
+                <div className="lg:col-span-7 space-y-6">
+                  
+                  {/* DATOS DEL LEAD */}
+                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                      <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CLIENTE
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Suscrito a Correos</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="sr-only peer"
-                          checked={formData.is_subscribed}
-                          onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
+                        <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                      </div>
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Teléfono</label>
+                        <div className="flex gap-2">
+                          <input name="phone" value={formData.phone} onChange={handleChange} className="flex-1 text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                          {formData.phone && (
+                            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100">
+                              <MessageCircle size={18} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico</label>
+                        <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                      </div>
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Lead</label>
+                        <CustomSelect
+                          value={formData.source}
+                          onChange={(val) => setFormData({ ...formData, source: val })}
+                          options={SOURCE_CONFIG}
+                          className="w-full font-bold"
                         />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3b82f6]"></div>
-                      </label>
-                    </div>
-                  </div>
-                </section>
-              </div>
-
-              {/* COLUMNA DERECHA (5/12) */}
-              <div className="lg:col-span-5 space-y-4">
-                
-                {/* AGENDA DE ACCIONES */}
-                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
-                    <div className="p-1 bg-blue-50 text-blue-600 rounded-lg"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
-                  </h3>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo de Acción</label>
-                      <select
-                        value={newTask.type}
-                        onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 focus:border-blue-500 focus:bg-white outline-none"
-                      >
-                        <option value="Llamada">Llamada</option>
-                        <option value="Email">Email</option>
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="Visita">Visita</option>
-                      </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
+                        <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                      </div>
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Estado Actual</label>
+                        <select 
+                          name="status" 
+                          value={formData.status} 
+                          onChange={handleChange}
+                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[15px] font-bold text-slate-700 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.1)] focus:bg-white transition-all outline-none shadow-sm"
+                        >
+                          {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                            <option key={key} value={key} className="font-bold">{cfg.label}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha y Hora</label>
-                      <div className="flex gap-2">
+                    <div className="mt-8 space-y-2 group">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Notas Internas</label>
+                      <textarea 
+                        name="notes" 
+                        rows={4} 
+                        value={formData.notes} 
+                        onChange={handleChange}
+                        placeholder="Escribe detalles importantes sobre este cliente..." 
+                        className="w-full p-4 bg-slate-50/50 rounded-2xl border-none text-[14px] font-semibold text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed"
+                      />
+                    </div>
+                  </section>
+
+                  {/* NEWSLETTERS & MARKETING */}
+                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 text-slate-500 uppercase tracking-widest">
+                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-xl"><Bell size={16} /></div> MARKETING
+                      </h3>
+                      <div className="flex items-center gap-4 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Suscrito a Correos</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={formData.is_subscribed}
+                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+                          />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3b82f6]"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                {/* COLUMNA DERECHA (5/12) */}
+                <div className="lg:col-span-5 space-y-6">
+                  
+                  {/* AGENDA DE ACCIONES */}
+                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                      <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> {editingTaskId ? 'EDITAR ACCIÓN' : 'PROGRAMAR ACCIÓN'}
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5 group">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-blue-500">Tipo de Acción</label>
+                          <select
+                            value={newTask.type}
+                            onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
+                            className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
+                          >
+                            <option value="Llamada">Llamada</option>
+                            <option value="Email">Email</option>
+                            <option value="WhatsApp">WhatsApp</option>
+                            <option value="Visita">Visita</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5 group">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-blue-500">Hora</label>
+                          <input
+                            type="time"
+                            value={newTask.time}
+                            onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
+                            className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-blue-500">Fecha de la Tarea</label>
                         <input
                           type="date"
                           value={newTask.date}
                           onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                          className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:bg-white"
-                        />
-                        <input
-                          type="time"
-                          value={newTask.time}
-                          onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                          className="w-24 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:bg-white"
+                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
                         />
                       </div>
+
+                      <div className="space-y-1.5 group">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-blue-500">Descripción o Memo</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Llamar para confirmar visita"
+                          value={newTask.title}
+                          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white shadow-sm outline-none transition-all"
+                        />
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        {editingTaskId && (
+                          <button
+                            onClick={() => {
+                              setEditingTaskId(null);
+                              setNewTask({ ...newTask, title: '' });
+                            }}
+                            className="flex-1 py-3 text-slate-500 font-bold text-xs hover:text-slate-700 transition-all border border-slate-100 rounded-xl"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        <button
+                          onClick={() => saveTask()}
+                          disabled={loading || !newTask.title}
+                          className={`flex-[2] py-3 text-white rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest ${editingTaskId ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 'bg-[#1e293b] hover:bg-slate-800 shadow-slate-200'}`}
+                        >
+                          {loading ? <Loader2 size={16} className="animate-spin" /> : editingTaskId ? <Save size={16} /> : <Plus size={16} />}
+                          {editingTaskId ? 'Actualizar' : 'Añadir a la Agenda'}
+                        </button>
+                      </div>
                     </div>
+                  </section>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descripción Corta</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: Llamar para confirmar visita"
-                        value={newTask.title}
-                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                        className="w-full bg-slate-50 border border-white rounded-xl px-4 py-2 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white shadow-sm outline-none"
-                      />
-                    </div>
+                  {/* HISTORIAL DE ACTIVIDAD */}
+                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col h-full max-h-[500px]">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><Clock size={16} /></div> ACTIVIDAD RECIENTE
+                    </h3>
 
-                    <button
-                      onClick={() => saveTask()}
-                      disabled={loading || !newTask.title}
-                      className="w-full py-2.5 bg-[#334155] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#1e293b] transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-                    >
-                      <Plus size={16} /> Programar Acción
-                    </button>
-                  </div>
-                </section>
+                    <div className="flex-1 space-y-6 overflow-y-auto custom-scrollbar pr-2 pb-2">
+                      {groupedHistory.map((item: any, idx) => {
+                          const isDoc = !!item.method;
+                          const docNames = item.allDocs || [];
+                          const isExpanded = expandedDocs[item.id] || false;
+                          const isTask = !isDoc;
 
-                {/* HISTORIAL DE ACTIVIDAD */}
-                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col h-full max-h-[400px]">
-                  <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2 mb-4">
-                    <div className="p-1 bg-slate-50 text-slate-600 rounded-lg"><Clock size={14} /></div> HISTORIAL DE ACTIVIDAD
-                  </h3>
-
-                  <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2 pb-2">
-                    {groupedHistory.map((item: any, idx) => {
-                        const isDoc = !!item.method;
-                        const docNames = item.allDocs || [];
-                        const isExpanded = expandedDocs[item.id] || false;
-
-                        return (
-                          <div key={idx} className={`flex gap-5 relative ${item.completed === false ? 'opacity-100' : 'opacity-70'}`}>
-                            {idx !== 0 && <div className="absolute left-6 -top-8 w-px h-8 bg-slate-100" />}
-                            
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm shrink-0 ${
-                              item.completed === false ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-50' :
-                              item.type === 'Llamada' ? 'bg-blue-50 text-blue-500' : 
-                              item.method ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400'
-                            }`}>
-                              {item.type === 'Llamada' ? <Phone size={18} /> : 
-                               item.method === 'email' ? <Mail size={18} /> : 
-                               item.method === 'whatsapp' ? <MessageCircle size={18} /> : 
-                               item.type === 'Visita' ? <Compass size={18} /> : 
-                               item.doc_name ? <FileText size={18} /> : <Clock size={18} />}
-                            </div>
-                            <div className="flex-1 pt-1 min-w-0">
-                              <div className="flex items-start justify-between gap-4">
-                                <h4 className="text-sm font-bold text-slate-700 truncate">
-                                  {item.title || (item.method ? 'Envío de documentación' : 'Actividad')}
-                                </h4>
-                                <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-tighter">
-                                  {new Date(item.sent_at || item.due_date).toLocaleDateString()}
-                                </span>
+                          return (
+                            <div key={idx} className={`flex gap-5 relative group/item ${item.completed === false ? 'opacity-100 border-l-2 border-blue-400 pl-4 -ml-4' : 'opacity-70'}`}>
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover/item:scale-105 ${
+                                item.completed === false ? 'bg-blue-600 text-white shadow-blue-100 ring-4 ring-blue-50' :
+                                item.type === 'Llamada' ? 'bg-blue-50 text-blue-500' : 
+                                item.method ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400'
+                              }`}>
+                                {item.type === 'Llamada' ? <Phone size={20} /> : 
+                                 item.method === 'email' ? <Mail size={20} /> : 
+                                 item.method === 'whatsapp' ? <MessageCircle size={20} /> : 
+                                 item.type === 'Visita' ? <Compass size={20} /> : 
+                                 item.doc_name ? <FileText size={20} /> : <Clock size={20} />}
                               </div>
-                              <div className="mt-1">
-                                {isDoc && docNames.length > 0 ? (
-                                  <div className="space-y-1">
-                                    <button 
-                                      onClick={() => toggleDocs(item.id)}
-                                      className="text-xs text-blue-500 font-bold flex items-center gap-1 hover:text-blue-700 transition-colors"
-                                      type="button"
-                                    >
-                                      {docNames.length} {docNames.length === 1 ? 'documento enviado' : 'documentos enviados'}
-                                      {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                    </button>
-                                    
-                                    {isExpanded && (
-                                      <div className="pl-2 border-l-2 border-slate-100 space-y-1 py-1 animate-in slide-in-from-top-1 duration-200">
-                                        {docNames.map((name: string, dIdx: number) => (
-                                          <div key={dIdx} className="flex items-center gap-2 text-[11px] text-slate-500">
-                                            <FileText size={10} className="text-slate-300" />
-                                            <span className="truncate italic">{name}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                    <h4 className="text-[13px] font-black text-slate-700 uppercase tracking-tight">
+                                      {item.title || (item.method ? 'ENVÍO DOCUMENTACIÓN' : 'ACTIVIDAD')}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {new Date(item.sent_at || item.due_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                      </span>
+                                      <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {new Date(item.sent_at || item.due_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    </div>
                                   </div>
-                                ) : (
-                                  <p className="text-xs text-slate-500 line-clamp-2 italic leading-relaxed">
-                                    {item.comentario || 'Sin detalles adicionales registrados.'}
-                                  </p>
-                                )}
+
+                                  {isTask && !item.completed && (
+                                    <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                      <button onClick={() => toggleTaskStatus(item)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Marcar como completada">
+                                        <CheckCircle2 size={16} />
+                                      </button>
+                                      <button onClick={() => startEditingTask(item)} className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors" title="Editar tarea">
+                                        <Pencil size={16} />
+                                      </button>
+                                      <button onClick={() => deleteTask(item.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar tarea">
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="mt-2">
+                                  {isDoc && docNames.length > 0 ? (
+                                    <div className="space-y-2">
+                                      <button 
+                                        onClick={() => toggleDocs(item.id)}
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/50 text-indigo-600 text-[11px] font-bold rounded-lg hover:bg-indigo-100 transition-all border border-indigo-100/50"
+                                        type="button"
+                                      >
+                                        <Share size={12} />
+                                        {docNames.length} {docNames.length === 1 ? 'documento' : 'documentos'} enviado(s)
+                                        {isExpanded ? <ChevronUp size={12} className="ml-1" /> : <ChevronDown size={12} className="ml-1" />}
+                                      </button>
+                                      
+                                      {isExpanded && (
+                                        <div className="pl-4 border-l-2 border-indigo-100 space-y-2 py-1 animate-in slide-in-from-top-2 duration-200">
+                                          {docNames.map((name: string, dIdx: number) => (
+                                            <div key={dIdx} className="flex items-center gap-2.5 text-[11px] text-slate-500 font-medium">
+                                              <FileText size={12} className="text-indigo-300" />
+                                              <span className="truncate">{name}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-[12px] font-medium text-slate-500 leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100/50 italic">
+                                      {item.comentario || 'Acción programada en agenda.'}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    {tasks.length === 0 && sentHistory.length === 0 && (
-                      <p className="text-xs text-slate-400 text-center py-10 italic">No hay actividad registrada recientemente.</p>
-                    )}
-                  </div>
-                </section>
+                          );
+                        })}
+                      {tasks.length === 0 && sentHistory.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-16 opacity-30">
+                          <Clock size={48} className="text-slate-200 mb-4" />
+                          <p className="text-sm font-bold text-slate-400 text-center uppercase tracking-widest">Sin actividad registrada</p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="animate-in fade-in duration-300">
+                <SaleTab 
+                  lead={lead} 
+                  onLeadUpdate={handleLeadUpdate} 
+                />
+              </div>
+            )}
           </div>
 
           {/* FOOTER */}
@@ -675,6 +774,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           leadPhone={formData.phone}
           availableDocs={availableDocs}
           onSentSuccess={fetchHistory}
+          initialMethod={emailModalMethod}
         />
       )}
     </>

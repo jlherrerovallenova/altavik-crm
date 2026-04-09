@@ -15,13 +15,24 @@ import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 
 const shortenUrl = async (url: string) => {
+  // Intentamos primero con v.gd
   try {
-    // Usamos v.gd por ser compatible con CORS y sencillo
     const resp = await fetch(`https://v.gd/create.php?format=simple&url=${encodeURIComponent(url)}`);
-    if (resp.ok) return await resp.text();
-  } catch (e) {
-    console.warn("Error acortando URL:", e);
-  }
+    if (resp.ok) {
+      const short = await resp.text();
+      if (short && short.startsWith('http')) return short;
+    }
+  } catch (e) {}
+
+  // Fallback a TinyURL
+  try {
+    const resp = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+    if (resp.ok) {
+      const short = await resp.text();
+      if (short && short.startsWith('http')) return short;
+    }
+  } catch (e) {}
+
   return url;
 };
 
@@ -50,11 +61,12 @@ export default function EmailComposerModal({
   leadEmail,
   leadPhone,
   availableDocs,
-  onSentSuccess
+  onSentSuccess,
+  initialMethod
 }: Props) {
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
-  const [method, setMethod] = useState<'email' | 'whatsapp'>('email');
+  const [method, setMethod] = useState<'email' | 'whatsapp'>(initialMethod || 'email');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
@@ -291,7 +303,7 @@ export default function EmailComposerModal({
         );
 
         const docsText = shortenedDocs.length > 0
-          ? `\n\n📄 *Documentación adjunta:*` + shortenedDocs.map(d => `\n- ${d.name}: ${d.url}`).join('')
+          ? `\n\n*DOCUMENTACIÓN ADJUNTA:*` + shortenedDocs.map(d => `\n\n📄 *${d.name}*\n🔗 ${d.url}`).join('')
           : '';
 
         const fullMessage = `${message}${docsText}`;
@@ -324,21 +336,19 @@ export default function EmailComposerModal({
             <h2 className="text-white font-bold text-base leading-tight">{leadName}</h2>
           </div>
           {/* TABS como píldoras en el header */}
-          <div className="flex items-center gap-1 bg-altavik-700/60 p-1 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setMethod('email')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${method === 'email' ? 'bg-white text-altavik-700 shadow-sm' : 'text-altavik-100 hover:text-white'}`}
-            >
-              <Mail size={13} /> Email
-            </button>
-            <button
-              type="button"
-              onClick={() => setMethod('whatsapp')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${method === 'whatsapp' ? 'bg-white text-altavik-700 shadow-sm' : 'text-altavik-100 hover:text-white'}`}
-            >
-              <MessageCircle size={13} /> WhatsApp
-            </button>
+          {/* TABS eliminadas - ahora solo muestra el método activo */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-altavik-700/60 rounded-lg text-white font-bold text-xs">
+            {method === 'email' ? (
+              <>
+                <Mail size={14} className="text-blue-300" />
+                <span>ENVÍO POR EMAIL</span>
+              </>
+            ) : (
+              <>
+                <MessageCircle size={14} className="text-emerald-300" />
+                <span>ENVÍO POR WHATSAPP</span>
+              </>
+            )}
           </div>
         </div>
 
