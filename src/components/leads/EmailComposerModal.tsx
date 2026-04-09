@@ -14,6 +14,17 @@ import { useDialog } from '../../context/DialogContext';
 import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 
+const shortenUrl = async (url: string) => {
+  try {
+    // Usamos v.gd por ser compatible con CORS y sencillo
+    const resp = await fetch(`https://v.gd/create.php?format=simple&url=${encodeURIComponent(url)}`);
+    if (resp.ok) return await resp.text();
+  } catch (e) {
+    console.warn("Error acortando URL:", e);
+  }
+  return url;
+};
+
 // Importamos la imagen de la firma (asegúrate de que la ruta sea correcta según tu estructura)
 // import firmaImg from '../../assets/Firma.png';
 
@@ -272,8 +283,15 @@ export default function EmailComposerModal({
         let cleanPhone = leadPhone.replace(/\D/g, '');
         if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
 
-        const docsText = selectedDocs.length > 0
-          ? `\n\n📄 *Documentación adjunta:*` + selectedDocs.map(d => `\n- ${d.name}: ${d.url}`).join('')
+        const shortenedDocs = await Promise.all(
+          selectedDocs.map(async d => ({
+            name: d.name,
+            url: await shortenUrl(d.url)
+          }))
+        );
+
+        const docsText = shortenedDocs.length > 0
+          ? `\n\n📄 *Documentación adjunta:*` + shortenedDocs.map(d => `\n- ${d.name}: ${d.url}`).join('')
           : '';
 
         const fullMessage = `${message}${docsText}`;
