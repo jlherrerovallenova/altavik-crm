@@ -35,26 +35,21 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       // 1. Preparar el contenido
       const emailHtml = getFeedbackEmailTemplate(lead.name);
 
-      // 2. Enviar vía EmailJS (Simulado o real según configuración)
-      // Nota: Aquí se debería usar la configuración de EmailJS que ya tenga el proyecto
-      // Por ahora, simulamos el éxito y actualizamos Supabase
-      
-      /* 
-      // Ejemplo de envío real si estuviera configurado:
-      await emailjs.send(
-        'YOUR_SERVICE_ID',
-        'YOUR_TEMPLATE_ID',
-        {
-          to_email: lead.email,
-          to_name: lead.name,
-          message_html: emailHtml
+      // 2. Enviar vía Supabase Edge Function (Igual que en EmailComposerModal)
+      const { data, error: sendError } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: lead.email,
+          subject: 'Nos encantaría saber tu opinión - RESIDENCIAL ALTAVIK',
+          html: emailHtml,
         },
-        'YOUR_PUBLIC_KEY'
-      );
-      */
+      });
+
+      if (sendError || data?.error) {
+        throw new Error(data?.error || sendError?.message || 'Error al enviar el email');
+      }
 
       // 3. Actualizar base de datos
-      const { error } = await supabase
+      const { error: dbError } = await supabase
         .from('leads')
         .update({ 
           feedback_sent: true,
@@ -62,7 +57,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
         } as any)
         .eq('id', lead.id);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       await showAlert({ 
         title: '¡Email Enviado!', 
@@ -71,9 +66,9 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error enviando feedback:', err);
-      await showAlert({ title: 'Error', message: 'No se pudo enviar el correo. Verifica la conexión.' });
+      await showAlert({ title: 'Error', message: err.message || 'No se pudo enviar el correo. Verifica tu conexión.' });
     } finally {
       setLoading(false);
     }

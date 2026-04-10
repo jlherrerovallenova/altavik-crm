@@ -428,21 +428,25 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex items-center px-8 bg-white border-b border-slate-100">
+          <div className="flex items-center px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2">
             <button
               onClick={() => setActiveTab('ficha')}
-              className={`flex items-center gap-2.5 px-6 py-3.5 text-[11px] font-bold tracking-widest relative transition-all ${
-                activeTab === 'ficha' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+                activeTab === 'ficha' 
+                  ? 'text-blue-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
               }`}
             >
               <FileText size={14} />
               FICHA Y AGENDA
-              {activeTab === 'ficha' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full shadow-[0_-2px_8px_rgba(37,99,235,0.4)]" />}
+              {activeTab === 'ficha' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-t-full" />}
             </button>
             <button
               onClick={() => setActiveTab('venta')}
-              className={`flex items-center gap-2.5 px-6 py-3.5 text-[11px] font-bold tracking-widest relative transition-all ${
-                activeTab === 'venta' ? 'text-altavik-600' : 'text-slate-400 hover:text-slate-600'
+              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+                activeTab === 'venta' 
+                  ? 'text-altavik-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
               }`}
             >
               <ShoppingCart size={14} />
@@ -450,7 +454,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
               {lead.sale_status === 'reserva' && (
                 <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[8px] font-black uppercase">Reserva</span>
               )}
-              {activeTab === 'venta' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-altavik-600 rounded-t-full shadow-[0_-2px_8px_rgba(11,165,185,0.4)]" />}
+              {activeTab === 'venta' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-altavik-600 rounded-t-full" />}
             </button>
           </div>
 

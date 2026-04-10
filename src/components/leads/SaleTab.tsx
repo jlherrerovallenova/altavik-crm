@@ -352,18 +352,24 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             ]}
           />
           {selectedProperty && (
-            <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
-              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 text-center">
-                <div className="text-slate-400 font-medium mb-1">Precio base</div>
-                <div className="font-bold text-slate-800">{fmt(precio)}</div>
+            <div className="mt-4 p-4 bg-altavik-50/50 rounded-2xl border border-altavik-100/50 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-altavik-500 animate-pulse" />
+                <h4 className="text-[10px] font-black text-altavik-700 uppercase tracking-widest">Información de la Propiedad Seleccionada</h4>
               </div>
-              <div className="bg-cyan-50 rounded-lg p-2.5 border border-cyan-100 text-center">
-                <div className="text-cyan-600 font-medium mb-1">Total + IVA 10%</div>
-                <div className="font-bold text-cyan-800">{fmt(totalWithIva)}</div>
-              </div>
-              <div className="bg-altavik-50 rounded-lg p-2.5 border border-altavik-100 text-center">
-                <div className="text-altavik-600 font-medium mb-1">Reserva</div>
-                <div className="font-bold text-altavik-800">{fmt(reservation)}</div>
+              <div className="grid grid-cols-3 gap-2.5 text-[11px]">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-altavik-100 shadow-sm text-center">
+                  <div className="text-slate-400 font-bold mb-1 uppercase tracking-tighter text-[9px]">Precio base</div>
+                  <div className="font-black text-slate-800 text-sm italic">{fmt(precio)}</div>
+                </div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-altavik-100 shadow-sm text-center">
+                  <div className="text-altavik-600 font-bold mb-1 uppercase tracking-tighter text-[9px]">Total + IVA 10%</div>
+                  <div className="font-black text-altavik-800 text-sm italic">{fmt(totalWithIva)}</div>
+                </div>
+                <div className="bg-altavik-600 rounded-xl p-3 shadow-lg shadow-altavik-200 text-center">
+                  <div className="text-altavik-100 font-bold mb-1 uppercase tracking-tighter text-[9px]">Reserva</div>
+                  <div className="font-black text-white text-sm italic">{fmt(reservation)}</div>
+                </div>
               </div>
             </div>
           )}
