@@ -19,7 +19,10 @@ import {
   BarChart3,
   TrendingUp,
   Inbox,
-  Send
+  Send,
+  Heart,
+  HelpCircle,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -157,28 +160,48 @@ export default function Dashboard() {
 
         setCriticalLeads(processedRadar);
 
-        // 4. CARGA DE LEADS PARA FEEDBACK (Opinión Pendiente)
-        // Leads en estado 'visiting' o 'closed' con más de 7 días y sin feedback_sent
-        const { data: feedbackData, error: feedbackError } = await supabase
-          .from('leads')
-          .select('id, name, email, source, created_at, status, feedback_sent')
-          .in('status', ['visiting', 'closed'])
-          .eq('feedback_sent', false);
-
-        if (!feedbackError && feedbackData) {
-          const processedFeedback = feedbackData
-            .map((l: any) => {
-              const daysSinceCreated = Math.floor((now.getTime() - new Date(l.created_at).getTime()) / (1000 * 60 * 60 * 24));
-              return {
-                ...l,
-                daysSinceCreated
-              };
-            })
-            .filter((l: any) => l.daysSinceCreated >= 7)
-            .sort((a, b) => b.daysSinceCreated - a.daysSinceCreated);
-
-          setFeedbackLeads(processedFeedback);
+        // 4. CARGA DE LEADS PARA FEEDBACK (Resiliente)
+        let feedbackData: any[] = [];
+        try {
+          // Intentamos cargar con las nuevas columnas
+          const { data, error } = await supabase
+            .from('leads')
+            .select('id, name, email, source, created_at, status, feedback_sent, feedback_rating, feedback_responded_at')
+            .or(`status.in.(visiting,closed),feedback_rating.not.is.null`);
+          
+          if (!error && data) {
+            feedbackData = data;
+          } else {
+            // Fallback si las columnas no existen todavía
+            const { data: fallbackData } = await supabase
+              .from('leads')
+              .select('id, name, email, source, created_at, status, feedback_sent')
+              .in('status', ['visiting', 'closed'])
+              .eq('feedback_sent', false);
+            feedbackData = fallbackData || [];
+          }
+        } catch (e) {
+          console.error("Error cargando feedback:", e);
         }
+
+        const processedFeedback = feedbackData
+          .map((l: any) => {
+            const daysSinceCreated = Math.floor((now.getTime() - new Date(l.created_at).getTime()) / (1000 * 60 * 60 * 24));
+            return {
+              ...l,
+              daysSinceCreated
+            };
+          })
+          .sort((a, b) => {
+            if (a.feedback_responded_at && b.feedback_responded_at) {
+              return new Date(b.feedback_responded_at).getTime() - new Date(a.feedback_responded_at).getTime();
+            }
+            if (a.feedback_responded_at) return -1;
+            if (b.feedback_responded_at) return 1;
+            return b.daysSinceCreated - a.daysSinceCreated;
+          });
+
+        setFeedbackLeads(processedFeedback);
       }
 
     } catch (error) {
@@ -588,32 +611,60 @@ function RadarItem({ lead, onClick }: any) {
 }
 
 function FeedbackListItem({ lead, onSend }: any) {
+  const hasFeedback = !!lead.feedback_rating;
+  
+  const ratingCfg = {
+    positive: { icon: <Heart size={14} className="text-pink-500" />, label: 'Me ha encantado', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+    neutral: { icon: <HelpCircle size={14} className="text-amber-500" />, label: 'Tengo dudas', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+    negative: { icon: <XCircle size={14} className="text-slate-400" />, label: 'No es lo que buscaba', color: 'bg-slate-50 text-slate-600 border-slate-200' },
+  }[lead.feedback_rating as 'positive' | 'neutral' | 'negative'] || null;
+
   return (
-    <div className="py-4 flex items-center justify-between group hover:pl-2 transition-all rounded-2xl">
+    <div className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:pl-2 transition-all rounded-2xl ${hasFeedback ? 'bg-slate-50/50 px-4 mb-2 border border-slate-100' : ''}`}>
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-altavik-50 text-altavik-600 border border-altavik-100 font-black text-xs group-hover:scale-105 transition-transform">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-black text-xs group-hover:scale-105 transition-transform ${hasFeedback ? 'bg-white border-slate-200 text-slate-700' : 'bg-altavik-50 text-altavik-600 border-altavik-100 border'}`}>
           {lead.name.substring(0, 2).toUpperCase()}
         </div>
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[14px] font-black text-slate-800 tracking-tight">{lead.name}</span>
-            <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-200">
-              {lead.status === 'visiting' ? 'VISITÓ HACE 7+ DÍAS' : 'VENTA CERRADA'}
-            </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-0.5">
+            <span className="text-[14px] font-black text-slate-800 tracking-tight truncate">{lead.name}</span>
+            {hasFeedback ? (
+              <span className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-wider ${ratingCfg?.color}`}>
+                {ratingCfg?.icon}
+                <span className="truncate">{ratingCfg?.label}</span>
+              </span>
+            ) : (
+              <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-200 whitespace-nowrap">
+                {lead.status === 'visiting' ? 'VISITÓ HACE +7 DÍAS' : 'VENTA CERRADA'}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
-            <span>{lead.source || 'Sin registro'}</span>
+            <span className="truncate max-w-[100px] sm:max-w-none">{lead.source || 'Sin registro'}</span>
             <span className="text-[8px] opacity-30">•</span>
-            <span className="text-altavik-600 font-bold">Esperando feedback</span>
+            {hasFeedback ? (
+              <span className="text-slate-500 font-bold italic truncate">
+                {new Date(lead.feedback_responded_at).toLocaleDateString()}
+              </span>
+            ) : (
+              <span className="text-altavik-600 font-bold">Esperando feedback</span>
+            )}
           </div>
         </div>
       </div>
-      <button
-        onClick={onSend}
-        className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow-lg transform translate-x-2 group-hover:translate-x-0 active:scale-95"
-      >
-        <Send size={14} /> ENVIAR OPINIÓN
-      </button>
+      
+      {!hasFeedback ? (
+        <button
+          onClick={onSend}
+          className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow-lg sm:transform sm:translate-x-2 sm:group-hover:translate-x-0 active:scale-95 w-full sm:w-auto"
+        >
+          <Send size={14} /> ENVIAR ENCUESTA
+        </button>
+      ) : (
+        <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-slate-100 text-center sm:text-left">
+          Registrado
+        </div>
+      )}
     </div>
   );
 }

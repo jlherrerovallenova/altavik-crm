@@ -4,8 +4,10 @@ import {
   X, Mail, Phone, Save, Trash2, Loader2, Send,
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
-  ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell
+  ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
+  Heart, HelpCircle, XCircle
 } from 'lucide-react';
+import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useDialog } from '../../context/DialogContext';
@@ -51,6 +53,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const { session } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
   const [activeTab, setActiveTab] = useState<'ficha' | 'venta'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
@@ -372,25 +375,25 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="bg-[#f8fafc] w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+        <div className="bg-[#f8fafc] w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
           
           {/* HEADER PREMIUM */}
-          <div className="px-8 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="px-5 sm:px-8 py-3 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 font-bold text-sm tracking-tight border-2 border-slate-800">
                 {formData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-[#1e293b] leading-tight tracking-tight">{formData.name}</h2>
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-[#1e293b] leading-tight tracking-tight truncate">{formData.name}</h2>
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${statusCfg.pill}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot} animate-pulse`} />
                     {statusCfg.label}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ficha del Cliente</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Ficha del Cliente</span>
                   <div className="flex items-center gap-1.5 ml-1">
                     <button 
                       onClick={() => {
@@ -417,7 +420,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 absolute sm:static top-3 right-3">
               <button 
                 onClick={onClose} 
                 className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600 hover:rotate-90 duration-300"
@@ -428,7 +431,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex items-center px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2">
+          <div className="flex items-center px-4 sm:px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2 overflow-x-auto custom-scrollbar-hide">
             <button
               onClick={() => setActiveTab('ficha')}
               className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
@@ -459,7 +462,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* CONTENIDO PRINCIPAL */}
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#f8fafc]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-[#f8fafc]">
             {activeTab === 'ficha' ? (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
@@ -472,7 +475,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CLIENTE
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
                       <div className="space-y-1.5 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
                         <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
@@ -535,11 +538,11 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
                   {/* NEWSLETTERS & MARKETING */}
                   <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 text-slate-500 uppercase tracking-widest">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 text-slate-500 uppercase tracking-widest w-full sm:w-auto">
                         <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-xl"><Bell size={16} /></div> MARKETING
                       </h3>
-                      <div className="flex items-center gap-4 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="flex items-center justify-between sm:justify-end gap-4 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 w-full sm:w-auto">
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Suscrito a Correos</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -553,6 +556,67 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     </div>
                   </section>
+
+                  {/* FEEDBACK & OPINIÓN */}
+                  {(['visiting', 'proposal', 'negotiation', 'closed'].includes(formData.status) || sentHistory.length > 0 || tasks.some(t => t.type === 'Visita' && t.completed) || lead.feedback_rating) && (
+                    <section className={`rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 ${
+                      lead.feedback_rating === 'positive' ? 'bg-emerald-50 border-emerald-100' :
+                      lead.feedback_rating === 'neutral' ? 'bg-amber-50 border-amber-100' :
+                      lead.feedback_rating === 'negative' ? 'bg-slate-50 border-slate-200' :
+                      'bg-gradient-to-br from-altavik-50 to-emerald-50 border-altavik-100'
+                    }`}>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-xl shadow-sm border ${
+                            lead.feedback_rating === 'positive' ? 'bg-white text-pink-500 border-pink-100' :
+                            lead.feedback_rating === 'neutral' ? 'bg-white text-amber-500 border-amber-100' :
+                            lead.feedback_rating === 'negative' ? 'bg-white text-slate-400 border-slate-200' :
+                            'bg-white text-altavik-600 border-altavik-100'
+                          }`}>
+                            {lead.feedback_rating === 'positive' ? <Heart size={20} /> :
+                             lead.feedback_rating === 'neutral' ? <HelpCircle size={20} /> :
+                             lead.feedback_rating === 'negative' ? <XCircle size={20} /> :
+                             <MessageSquareQuote size={20} />}
+                          </div>
+                          <div>
+                            <h3 className={`text-xs font-black uppercase tracking-widest ${
+                              lead.feedback_rating === 'positive' ? 'text-emerald-800' :
+                              lead.feedback_rating === 'neutral' ? 'text-amber-800' :
+                              lead.feedback_rating === 'negative' ? 'text-slate-700' :
+                              'text-altavik-800'
+                            }`}>
+                              {lead.feedback_rating === 'positive' ? '¡Opinión Muy Positiva!' :
+                               lead.feedback_rating === 'neutral' ? 'Tiene algunas dudas' :
+                               lead.feedback_rating === 'negative' ? 'No es lo que buscaba' :
+                               'Encuesta de Opinión'}
+                            </h3>
+                            <p className={`text-[10px] font-bold uppercase tracking-tight mt-0.5 ${
+                              lead.feedback_rating ? 'text-slate-500' : 'text-altavik-600/70'
+                            }`}>
+                              {lead.feedback_rating 
+                                ? `Recibida el ${new Date(lead.feedback_responded_at!).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })}` 
+                                : lead.feedback_sent 
+                                  ? `Enviada el ${new Date(lead.feedback_sent_at!).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })}` 
+                                  : 'Disponible para enviar'}
+                            </p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => setIsFeedbackModalOpen(true)}
+                          className={`px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto ${
+                            lead.feedback_rating
+                            ? 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            : lead.feedback_sent 
+                              ? 'bg-white text-altavik-600 border border-altavik-200 hover:bg-altavik-50' 
+                              : 'bg-altavik-600 text-white hover:bg-altavik-700 shadow-altavik-200'
+                          }`}
+                        >
+                          <Send size={12} />
+                          {lead.feedback_rating ? 'Enviar de nuevo' : lead.feedback_sent ? 'Reenviar Encuesta' : 'Enviar Encuesta VIP'}
+                        </button>
+                      </div>
+                    </section>
+                  )}
                 </div>
 
                 {/* COLUMNA DERECHA (5/12) */}
@@ -779,6 +843,15 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           availableDocs={availableDocs}
           onSentSuccess={fetchHistory}
           initialMethod={emailModalMethod}
+        />
+      )}
+
+      {isFeedbackModalOpen && (
+        <FeedbackEmailModal
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          lead={lead}
+          onSuccess={() => onUpdate()}
         />
       )}
     </>

@@ -17,6 +17,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Newsletters = lazy(() => import('./pages/Newsletters'));
 const NewsletterEditor = lazy(() => import('./pages/NewsletterEditor'));
 const Stats = lazy(() => import('./pages/Stats'));
+const FeedbackResponse = lazy(() => import('./pages/FeedbackResponse'));
 
 const PageLoader = () => (
   <div className="w-full h-[60vh] flex flex-col items-center justify-center">
@@ -36,6 +37,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackResponse /></Suspense>} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />

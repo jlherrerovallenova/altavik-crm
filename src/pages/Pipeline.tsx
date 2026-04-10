@@ -107,7 +107,7 @@ export default function Pipeline() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] animate-in fade-in duration-500 max-w-[1600px] mx-auto w-full gap-6">
+    <div className="flex flex-col h-[calc(100vh-6rem)] animate-in fade-in duration-500 max-w-full w-full gap-6">
       <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>

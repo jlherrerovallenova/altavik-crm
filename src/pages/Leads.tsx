@@ -240,7 +240,7 @@ export default function Leads() {
   const totalPages = Math.ceil(totalLeads / ITEMS_PER_PAGE);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-full">
 
       <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

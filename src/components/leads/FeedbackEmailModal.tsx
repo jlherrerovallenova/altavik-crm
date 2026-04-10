@@ -33,7 +33,8 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
     setLoading(true);
     try {
       // 1. Preparar el contenido
-      const emailHtml = getFeedbackEmailTemplate(lead.name);
+      const baseUrl = window.location.origin;
+      const emailHtml = getFeedbackEmailTemplate(lead.name, 'RESIDENCIAL ALTAVIK', lead.id, baseUrl);
 
       // 2. Enviar vía Supabase Edge Function (Igual que en EmailComposerModal)
       const { data, error: sendError } = await supabase.functions.invoke('send-email', {
