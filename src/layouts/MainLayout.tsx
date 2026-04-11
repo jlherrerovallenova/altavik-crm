@@ -21,7 +21,8 @@ import {
   Mail, 
   AlertTriangle, 
   Clock,
-  BarChart3
+  BarChart3,
+  Inbox
 } from 'lucide-react';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
 
@@ -146,6 +147,9 @@ export default function MainLayout() {
           <SidebarItem to="/pipeline" icon={<Calendar size={18} />} label="Ventas" active={location.pathname === '/pipeline'} onClick={closeSidebar} />
           <SidebarItem to="/stats" icon={<BarChart3 size={18} />} label="Estadísticas" active={location.pathname === '/stats'} onClick={closeSidebar} />
 
+          <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Comunicaciones</p>
+          <SidebarItem to="/inbox" icon={<Inbox size={18} />} label="Bandeja Inbox" active={location.pathname === '/inbox'} onClick={closeSidebar} />
+          
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Gestión</p>
           <SidebarItem to="/newsletters" icon={<Mail size={18} />} label="Newsletters" active={location.pathname.startsWith('/newsletters')} onClick={closeSidebar} />
           <SidebarItem to="/settings" icon={<Settings size={18} />} label="Configuración" active={location.pathname === '/settings'} onClick={closeSidebar} />
