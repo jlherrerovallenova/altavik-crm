@@ -20,7 +20,8 @@ import {
   CheckCircle2,
   Mail,
   Home,
-  Plus
+  Plus,
+  Users
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +32,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import CreatePropertyModal from '../components/inventory/CreatePropertyModal';
 import ImportInventoryModal from '../components/inventory/ImportInventoryModal';
 import UploadFichasModal from '../components/inventory/UploadFichasModal';
+import ExportLeadsModal from '../components/leads/ExportLeadsModal';
+import ImportLeadsModal from '../components/leads/ImportLeadsModal';
 import { AppNotification } from '../components/AppNotification';
 
 const Settings: React.FC = () => {
@@ -39,7 +42,7 @@ const Settings: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Estados de Navegación y UI
-  const [activeTab, setActiveTab] = useState<'profile' | 'documents' | 'integrations' | 'inventory'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'documents' | 'integrations' | 'inventory' | 'clients'>('profile');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -76,6 +79,10 @@ const Settings: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [propertyToDeleteSettings, setPropertyToDeleteSettings] = useState<string>('');
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+
+  // Estados para Clientes
+  const [isImportLeadsModalOpen, setIsImportLeadsModalOpen] = useState(false);
+  const [isExportLeadsModalOpen, setIsExportLeadsModalOpen] = useState(false);
 
   // Estados de Formulario de Perfil
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -389,6 +396,16 @@ const Settings: React.FC = () => {
           >
             <Home size={16} />
             <span className="font-medium">Viviendas</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('clients')}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm transition-all ${activeTab === 'clients'
+              ? 'bg-altavik-600 text-white shadow-sm'
+              : 'hover:bg-slate-100 text-slate-600'
+              }`}
+          >
+            <Users size={16} />
+            <span className="font-medium">Clientes</span>
           </button>
         </div>
 
@@ -766,6 +783,50 @@ const Settings: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* VISTA: CLIENTES */}
+          {activeTab === 'clients' && (
+            <div className="p-8 space-y-8 animate-in fade-in duration-300">
+              <div className="border-b pb-4">
+                <h2 className="text-xl font-bold text-slate-800">Gestión de Clientes</h2>
+                <p className="text-sm text-slate-500 mt-1">Importa bases de datos masivas o exporta el listado completo de leads actuales.</p>
+              </div>
+
+              <div className="flex flex-col gap-4 max-w-4xl">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-colors group flex flex-col sm:flex-row items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Upload size={24} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-bold text-slate-800 text-sm">Importar Clientes</h3>
+                    <p className="text-xs text-slate-500">Carga contactos desde un archivo Excel o CSV para añadirlos al CRM.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsImportLeadsModalOpen(true)}
+                    className="w-full sm:w-48 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm shrink-0"
+                  >
+                    Importar CSV/Excel
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-colors group flex flex-col sm:flex-row items-center gap-6">
+                  <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Download size={24} />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-bold text-slate-800 text-sm">Exportar Clientes</h3>
+                    <p className="text-xs text-slate-500">Descarga un archivo Excel con toda la información de la base de datos.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsExportLeadsModalOpen(true)}
+                    className="w-full sm:w-48 bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all shadow-sm shrink-0"
+                  >
+                    Exportar DB
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -796,6 +857,21 @@ const Settings: React.FC = () => {
           isOpen={isFichasModalOpen}
           onClose={() => setIsFichasModalOpen(false)}
           onSuccess={() => {}}
+        />
+      )}
+
+      {isExportLeadsModalOpen && (
+        <ExportLeadsModal isOpen={isExportLeadsModalOpen} onClose={() => setIsExportLeadsModalOpen(false)} />
+      )}
+
+      {isImportLeadsModalOpen && (
+        <ImportLeadsModal
+          isOpen={isImportLeadsModalOpen}
+          onClose={() => setIsImportLeadsModalOpen(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            setNotification({ show: true, type: 'success', title: 'Completado', message: 'Los clientes han sido importados correctamente.' });
+          }}
         />
       )}
 

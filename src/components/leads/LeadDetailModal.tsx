@@ -5,7 +5,7 @@ import {
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
   ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle
+  Heart, HelpCircle, XCircle, StickyNote
 } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
@@ -14,6 +14,7 @@ import { useDialog } from '../../context/DialogContext';
 import EmailComposerModal from './EmailComposerModal';
 import { useDocuments } from '../../hooks/useDocuments';
 import SaleTab from './SaleTab';
+import LeadTimeline from './LeadTimeline';
 import { CustomSelect, IdealistaIcon } from '../Shared';
 import type { Database } from '../../types/supabase';
 
@@ -55,7 +56,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
-  const [activeTab, setActiveTab] = useState<'ficha' | 'venta'>('ficha');
+  const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
@@ -90,8 +91,23 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     source: lead.source || 'Web',
     notes: lead.notes || '',
     is_subscribed: lead.is_subscribed ?? true,
-    created_at_date: lead.created_at ? new Date(lead.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+    created_at_date: lead.created_at ? new Date(lead.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+    statusOriginal: lead.status || 'new'
   });
+
+  const logEvent = async (type: string, description: string, metadata = {}) => {
+    try {
+      await supabase.from('lead_history').insert([{
+        lead_id: lead.id,
+        user_id: session?.user.id,
+        event_type: type,
+        description,
+        metadata
+      }]);
+    } catch (err) {
+      console.error('Error logging event:', err);
+    }
+  };
 
   useEffect(() => {
     fetchHistory();
@@ -287,6 +303,13 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       created_at: new Date(`${created_at_date}T12:00:00Z`).toISOString()
     };
 
+    // Si el estado ha cambiado, lo registramos en el historial
+    if (finalData.status !== formData.statusOriginal) {
+      const oldLabel = STATUS_CONFIG[formData.statusOriginal]?.label || formData.statusOriginal;
+      const newLabel = STATUS_CONFIG[finalData.status]?.label || finalData.status;
+      await logEvent('status_change', `Estado actualizado: de "${oldLabel}" a "${newLabel}"`);
+    }
+
     updateMutation.mutate({ id: lead.id, updates: finalData }, {
       onSuccess: () => {
         onUpdate();
@@ -431,7 +454,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex items-center px-4 sm:px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2 overflow-x-auto custom-scrollbar-hide">
+          <div className="flex items-center px-4 sm:px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
             <button
               onClick={() => setActiveTab('ficha')}
               className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
@@ -446,10 +469,14 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
             </button>
             <button
               onClick={() => setActiveTab('venta')}
+              disabled={formData.status !== 'closed'}
+              title={formData.status !== 'closed' ? 'Solo disponible cuando el estado es Venta Cerrada' : ''}
               className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
-                activeTab === 'venta' 
-                  ? 'text-altavik-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
-                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                formData.status !== 'closed'
+                  ? 'opacity-50 cursor-not-allowed text-slate-300'
+                  : activeTab === 'venta' 
+                    ? 'text-altavik-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
               }`}
             >
               <ShoppingCart size={14} />
@@ -459,18 +486,27 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
               )}
               {activeTab === 'venta' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-altavik-600 rounded-t-full" />}
             </button>
+            <button
+              onClick={() => setActiveTab('historial')}
+              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+                activeTab === 'historial' 
+                  ? 'text-indigo-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <Clock size={14} />
+              HISTORIAL
+              {activeTab === 'historial' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-t-full" />}
+            </button>
           </div>
 
           {/* CONTENIDO PRINCIPAL */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-[#f8fafc]">
-            {activeTab === 'ficha' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                
-                {/* COLUMNA IZQUIERDA (7/12) */}
-                <div className="lg:col-span-7 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar-hide bg-[#f8fafc]">
+            {activeTab === 'ficha' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   
                   {/* DATOS DEL LEAD */}
-                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CLIENTE
                     </h3>
@@ -522,22 +558,10 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         </select>
                       </div>
                     </div>
-
-                    <div className="mt-8 space-y-2 group">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Notas Internas</label>
-                      <textarea 
-                        name="notes" 
-                        rows={4} 
-                        value={formData.notes} 
-                        onChange={handleChange}
-                        placeholder="Escribe detalles importantes sobre este cliente..." 
-                        className="w-full p-4 bg-slate-50/50 rounded-2xl border-none text-[14px] font-semibold text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed"
-                      />
-                    </div>
                   </section>
 
                   {/* NEWSLETTERS & MARKETING */}
-                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-center">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                       <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 text-slate-500 uppercase tracking-widest w-full sm:w-auto">
                         <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-xl"><Bell size={16} /></div> MARKETING
@@ -559,7 +583,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
                   {/* FEEDBACK & OPINIÓN */}
                   {(['visiting', 'proposal', 'negotiation', 'closed'].includes(formData.status) || sentHistory.length > 0 || tasks.some(t => t.type === 'Visita' && t.completed) || lead.feedback_rating) && (
-                    <section className={`rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 ${
+                    <section className={`lg:col-start-1 lg:col-end-8 lg:row-start-3 rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 flex flex-col justify-center ${
                       lead.feedback_rating === 'positive' ? 'bg-emerald-50 border-emerald-100' :
                       lead.feedback_rating === 'neutral' ? 'bg-amber-50 border-amber-100' :
                       lead.feedback_rating === 'negative' ? 'bg-slate-50 border-slate-200' :
@@ -617,13 +641,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     </section>
                   )}
-                </div>
-
-                {/* COLUMNA DERECHA (5/12) */}
-                <div className="lg:col-span-5 space-y-6">
-                  
                   {/* AGENDA DE ACCIONES */}
-                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> {editingTaskId ? 'EDITAR ACCIÓN' : 'PROGRAMAR ACCIÓN'}
                     </h3>
@@ -699,114 +718,33 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </div>
                   </section>
 
-                  {/* HISTORIAL DE ACTIVIDAD */}
-                  <section className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col h-full max-h-[500px]">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
-                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><Clock size={16} /></div> ACTIVIDAD RECIENTE
+                  {/* NOTAS INTERNAS */}
+                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-2 lg:row-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col h-full">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-4 text-slate-500 uppercase tracking-widest">
+                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
                     </h3>
-
-                    <div className="flex-1 space-y-6 overflow-y-auto custom-scrollbar pr-2 pb-2">
-                      {groupedHistory.map((item: any, idx) => {
-                          const isDoc = !!item.method;
-                          const docNames = item.allDocs || [];
-                          const isExpanded = expandedDocs[item.id] || false;
-                          const isTask = !isDoc;
-
-                          return (
-                            <div key={idx} className={`flex gap-5 relative group/item ${item.completed === false ? 'opacity-100 border-l-2 border-blue-400 pl-4 -ml-4' : 'opacity-70'}`}>
-                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0 transition-transform group-hover/item:scale-105 ${
-                                item.completed === false ? 'bg-blue-600 text-white shadow-blue-100 ring-4 ring-blue-50' :
-                                item.type === 'Llamada' ? 'bg-blue-50 text-blue-500' : 
-                                item.method ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400'
-                              }`}>
-                                {item.type === 'Llamada' ? <Phone size={20} /> : 
-                                 item.method === 'email' ? <Mail size={20} /> : 
-                                 item.method === 'whatsapp' ? <MessageCircle size={20} /> : 
-                                 item.type === 'Visita' ? <Compass size={20} /> : 
-                                 item.doc_name ? <FileText size={20} /> : <Clock size={20} />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div>
-                                    <h4 className="text-[13px] font-black text-slate-700 uppercase tracking-tight">
-                                      {item.title || (item.method ? 'ENVÍO DOCUMENTACIÓN' : 'ACTIVIDAD')}
-                                    </h4>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        {new Date(item.sent_at || item.due_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                      </span>
-                                      <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        {new Date(item.sent_at || item.due_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {isTask && !item.completed && (
-                                    <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                      <button onClick={() => toggleTaskStatus(item)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Marcar como completada">
-                                        <CheckCircle2 size={16} />
-                                      </button>
-                                      <button onClick={() => startEditingTask(item)} className="p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors" title="Editar tarea">
-                                        <Pencil size={16} />
-                                      </button>
-                                      <button onClick={() => deleteTask(item.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar tarea">
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="mt-2">
-                                  {isDoc && docNames.length > 0 ? (
-                                    <div className="space-y-2">
-                                      <button 
-                                        onClick={() => toggleDocs(item.id)}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/50 text-indigo-600 text-[11px] font-bold rounded-lg hover:bg-indigo-100 transition-all border border-indigo-100/50"
-                                        type="button"
-                                      >
-                                        <Share size={12} />
-                                        {docNames.length} {docNames.length === 1 ? 'documento' : 'documentos'} enviado(s)
-                                        {isExpanded ? <ChevronUp size={12} className="ml-1" /> : <ChevronDown size={12} className="ml-1" />}
-                                      </button>
-                                      
-                                      {isExpanded && (
-                                        <div className="pl-4 border-l-2 border-indigo-100 space-y-2 py-1 animate-in slide-in-from-top-2 duration-200">
-                                          {docNames.map((name: string, dIdx: number) => (
-                                            <div key={dIdx} className="flex items-center gap-2.5 text-[11px] text-slate-500 font-medium">
-                                              <FileText size={12} className="text-indigo-300" />
-                                              <span className="truncate">{name}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <p className="text-[12px] font-medium text-slate-500 leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100/50 italic">
-                                      {item.comentario || 'Acción programada en agenda.'}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      {tasks.length === 0 && sentHistory.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-16 opacity-30">
-                          <Clock size={48} className="text-slate-200 mb-4" />
-                          <p className="text-sm font-bold text-slate-400 text-center uppercase tracking-widest">Sin actividad registrada</p>
-                        </div>
-                      )}
-                    </div>
+                    <textarea 
+                      name="notes" 
+                      value={formData.notes} 
+                      onChange={handleChange}
+                      placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
+                      className="w-full h-full p-5 bg-slate-50/50 rounded-2xl border-none text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[160px]"
+                    />
                   </section>
-                </div>
               </div>
-            ) : (
+            )}
+            {activeTab === 'venta' && (
               <div className="animate-in fade-in duration-300">
                 <SaleTab 
                   lead={lead} 
                   onLeadUpdate={handleLeadUpdate} 
                 />
+              </div>
+            )}
+
+            {activeTab === 'historial' && (
+              <div className="max-w-4xl mx-auto py-4">
+                <LeadTimeline leadId={lead.id} />
               </div>
             )}
           </div>

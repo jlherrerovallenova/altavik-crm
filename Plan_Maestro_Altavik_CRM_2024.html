@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estrategia Altavik CRM 2.0 | Propuesta Ejecutiva</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155;
+            --blue-600: #2563eb; --blue-500: #3b82f6; --emerald-600: #059669;
+            --bg: #ffffff; --card: #f8fafc; --border: #e2e8f0;
+        }
+
+        @media print {
+            body { padding: 0 !important; }
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            color: var(--slate-700); 
+            line-height: 1.5; 
+            padding: 40px;
+            background: #fff;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* HEADER */
+        .main-header {
+            border-left: 8px solid var(--blue-600);
+            padding-left: 2rem;
+            margin-bottom: 3rem;
+        }
+        .main-header h1 { font-size: 3rem; font-weight: 800; color: var(--slate-900); letter-spacing: -0.02em; }
+        .main-header p { font-size: 1.25rem; color: var(--blue-600); font-weight: 600; }
+
+        /* EXECUTIVE SUMMARY TABLE */
+        .exec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.9rem;
+        }
+        .exec-table th { background: var(--slate-900); color: white; text-align: left; padding: 1rem; border: 1px solid var(--slate-800); }
+        .exec-table td { padding: 1rem; border: 1px solid var(--border); font-weight: 500; }
+        .exec-table tr:nth-child(even) { background: var(--card); }
+
+        /* GRID SECTIONS */
+        .section { margin-top: 4rem; }
+        .section-title { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            color: var(--slate-900); 
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::before { content: ""; width: 24px; height: 4px; background: var(--blue-600); border-radius: 2px; }
+
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .feature-card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        .feature-card h3 { color: var(--slate-900); margin-bottom: 1rem; font-size: 1.2rem; }
+        .feature-card ul { list-style: none; }
+        .feature-card li { margin-bottom: 0.5rem; padding-left: 1.5rem; position: relative; font-size: 0.95rem; }
+        .feature-card li::before { content: "✓"; position: absolute; left: 0; color: var(--blue-600); font-weight: 900; }
+
+        /* PILL TAGS */
+        .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
+        .tag-tech { background: #dbeafe; color: #1e40af; }
+        .tag-biz { background: #d1fae5; color: #065f46; }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .highlight-box {
+            background: var(--slate-900);
+            color: white;
+            padding: 3rem;
+            border-radius: 24px;
+            margin: 4rem 0;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <header class="main-header">
+            <h1>Propuesta Estratégica: Altavik CRM 2.0</h1>
+            <p>Evolución hacia la Inteligencia Artificial yAutomatización Inmobiliaria</p>
+            <div style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">Versión 2.1 • Documento de Estrategia Ejecutiva</div>
+        </header>
+
+        <!-- RESUMEN EJECUTIVO CONCISO -->
+        <section class="section">
+            <h2 class="section-title">Resumen Ejecutivo</h2>
+            <table class="exec-table">
+                <thead>
+                    <tr>
+                        <th>Línea de Mejora</th>
+                        <th>Impacto en Venta</th>
+                        <th>Complejidad</th>
+                        <th>Plazo Estimado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1. Lead Scoring Predictivo (IA)</td>
+                        <td>Aumento de conversión +25%</td>
+                        <td>Media-Alta</td>
+                        <td>4-5 Semanas</td>
+                    </tr>
+                    <tr>
+                        <td>2. Matching Engine Proactivo</td>
+                        <td>Reducción ciclo de venta -15%</td>
+                        <td>Media</td>
+                        <td>3-4 Semanas</td>
+                    </tr>
+                    <tr>
+                        <td>3. Automatización de Flujos (Dropsheet)</td>
+                        <td>Ahorro tiempo operativo -40%</td>
+                        <td>Baja</td>
+                        <td>2 Semanas</td>
+                    </tr>
+                    <tr>
+                        <td>4. Portal Privado del Cliente (VIP)</td>
+                        <td>Fidelización y Referidos +50%</td>
+                        <td>Media</td>
+                        <td>6 Semanas</td>
+                    </tr>
+                    <tr>
+                        <td>5. Inteligencia de Negocio (ROI)</td>
+                        <td>Optimización inversión MKT -20%</td>
+                        <td>Baja-Media</td>
+                        <td>3 Semanas</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- DESARROLLO AMPLIO PERO CONCISO -->
+        <section class="section">
+            <h2 class="section-title">Análisis de Implementaciones</h2>
+            <div class="feature-grid">
+                
+                <div class="feature-card">
+                    <div class="tag tag-tech">Arquitectura IA</div>
+                    <h3>1. Cualificación Inteligente</h3>
+                    <ul>
+                        <li><strong>Scoring Dinámico:</strong> Evaluación de leads analizando presupuesto, urgencia y engagement.</li>
+                        <li><strong>Voz a Dato:</strong> Transcripción de llamadas de agentes para detectar automáticamente palabras clave del comprador.</li>
+                        <li><strong>Alerta de Temperatura:</strong> Notificaciones push cuando un lead pasa de "Templado" a "Caliente".</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="tag tag-tech">Base de Datos</div>
+                    <h3>2. Matching Proactivo</h3>
+                    <ul>
+                        <li><strong>Cruce Bidireccional:</strong> La vivienda busca al cliente y el cliente busca la vivienda.</li>
+                        <li><strong>Push de Lanzamiento:</strong> Envío inmediato de nuevas propiedades a leads con match > 85%.</li>
+                        <li><strong>Análisis de GAP:</strong> Informar a dirección sobre qué tipo de casas buscan los clientes que no tenemos en stock.</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="tag tag-biz">Marketing</div>
+                    <h3>3. Automatización Omnicanal</h3>
+                    <ul>
+                        <li><strong>WhatsApp API Integration:</strong> Seguimiento automático tras visitas sin intervención humana.</li>
+                        <li><strong>Retargeting Interno:</strong> Mostrar avisos al agente si un cliente VIP busca en portales externos.</li>
+                        <li><strong>Plantillas Dinámicas:</strong> Generación de presentaciones PDF personalizadas en un clic.</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="tag tag-biz">Experiencia Cliente</div>
+                    <h3>4. Ecosistema VIP Pass</h3>
+                    <ul>
+                        <li><strong>Self-Service:</strong> El cliente descarga sus contratos y planos cuando quiera.</li>
+                        <li><strong>Seguimiento de Obra:</strong> Timeline visual con avances de construcción en tiempo real.</li>
+                        <li><strong>Sistema de Citas:</strong> Reserva de visitas directamente desde el área privada.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- SEGURIDAD Y ESCALABILIDAD -->
+        <section class="section">
+            <h2 class="section-title">Ciberseguridad y RGPD</h2>
+            <div class="feature-card" style="width: 100%;">
+                <p>La protección de datos de clientes con alto poder adquisitivo es crítica para Altavik.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                    <div>
+                        <h4 style="color: var(--blue-600);">Protección de Datos</h4>
+                        <ul style="list-style: none; margin-top: 10px; font-size: 0.9rem;">
+                            <li>• Encriptación AES-256 para documentos legales.</li>
+                            <li>• Log de auditoría: Registro de quién accede a qué dato y cuándo.</li>
+                            <li>• Anonimización de datos para entrenamiento de IA.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--blue-emerald-600);">Cumplimiento Normativo</h4>
+                        <ul style="list-style: none; margin-top: 10px; font-size: 0.9rem;">
+                            <li>• Servidores en UE (Región Frankfurt para Supabase).</li>
+                            <li>• Gestión centralizada de consentimientos de marketing.</li>
+                            <li>• Firma digital de documentos integrada (Docusign/Signaturit).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TECNOLOGÍA SUGERIDA -->
+        <section class="section">
+            <h2 class="section-title">Infraestructura Técnica Sugerida</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Frontend & App</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8;">React 18 + Tailwind CSS + Framer Motion para una experiencia Premium Fluida y Responsive.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Backend & IA</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8;">Supabase (PostgreSQL) + OpenAI API (GPT-4o) + Redis para caché de alta velocidad.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONCLUSIÓN -->
+        <div class="highlight-box">
+            <h2 style="color: white; margin-bottom: 1rem;">Conclusión e Inversión Estratégica</h2>
+            <p>La implementación de Altavik CRM 2.0 no es un gasto, sino el activo digital más importante de la compañía. Se estima un <strong>retorno de inversión (ROI) del 300%</strong> en el primer año debido a la reducción de fugas de clientes y la optimización de los presupuestos de marketing en portales inmobiliarios.</p>
+        </div>
+
+        <footer class="footer">
+            <div>ALTAVIK REAL ESTATE • TERRAVALL ESTATES S.L.</div>
+            <div>© 2024 Todos los derechos reservados.</div>
+        </footer>
+
+    </div>
+
+    <div class="no-print" style="position: fixed; bottom: 20px; right: 20px; background: var(--blue-600); color: white; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2);" onclick="window.print()">
+        🖨️ Generar PDF Ahora
+    </div>
+
+</body>
+</html>

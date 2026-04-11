@@ -26,8 +26,6 @@ import {
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
 import EmailComposerModal from '../components/leads/EmailComposerModal';
-import ExportLeadsModal from '../components/leads/ExportLeadsModal';
-import ImportLeadsModal from '../components/leads/ImportLeadsModal';
 import { AppNotification } from '../components/AppNotification';
 import { useDocuments } from '../hooks/useDocuments';
 import { useLeads } from '../hooks/useLeads';
@@ -155,8 +153,6 @@ export default function Leads() {
 
   // Modales
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
   const [initialMethod, setInitialMethod] = useState<'email' | 'whatsapp'>('email');
@@ -255,24 +251,6 @@ export default function Leads() {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-altavik-600 transition-colors shadow-sm hidden sm:flex items-center gap-2"
-              title="Importar CSV"
-            >
-              <Upload size={18} />
-              <span className="hidden lg:inline text-xs font-bold">Importar</span>
-            </button>
-
-            <button
-              onClick={() => setIsExportModalOpen(true)}
-              className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-altavik-600 transition-colors shadow-sm hidden sm:flex items-center gap-2"
-              title="Exportar Listado"
-            >
-              <Download size={18} />
-              <span className="hidden lg:inline text-xs font-bold">Exportar</span>
-            </button>
-
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center"
@@ -499,14 +477,6 @@ export default function Leads() {
           </div>
         )}
       </div>
-
-      <ExportLeadsModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} />
-
-      <ImportLeadsModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onSuccess={() => { refetch(); showMsg('success', '¡Importación completada!', 'Los clientes han sido importados correctamente.'); }}
-      />
 
       <CreateLeadModal
         isOpen={isCreateModalOpen}

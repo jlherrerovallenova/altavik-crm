@@ -207,6 +207,14 @@ export default function EmailComposerModal({
 
       if (error) throw error;
 
+      // También registramos en el historial general (Timeline)
+      await supabase.from('lead_history').insert([{
+        lead_id: leadId,
+        event_type: 'document',
+        description: `Documentación enviada via ${sentMethod.toUpperCase()}: ${selectedDocs.map(d => d.name).join(', ')}`,
+        metadata: { method: sentMethod, docs: selectedDocs.map(d => d.name) }
+      }]);
+
       if (onSentSuccess) onSentSuccess();
     } catch (error) {
       console.error('Error al guardar el historial:', error);
