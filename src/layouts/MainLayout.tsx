@@ -25,6 +25,7 @@ import {
   Inbox
 } from 'lucide-react';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
+import { useInboxCount } from '../hooks/useInboxCount';
 
 
 export default function MainLayout() {
@@ -44,6 +45,7 @@ export default function MainLayout() {
   const [showBellPopover, setShowBellPopover] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const { todayCount, overdueCount, total: alertTotal } = useAgendaAlerts();
+  const { data: inboxCount = 0 } = useInboxCount();
 
   // Cierra el popover al hacer clic fuera
   useEffect(() => {
@@ -148,7 +150,14 @@ export default function MainLayout() {
           <SidebarItem to="/stats" icon={<BarChart3 size={18} />} label="Estadísticas" active={location.pathname === '/stats'} onClick={closeSidebar} />
 
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Comunicaciones</p>
-          <SidebarItem to="/inbox" icon={<Inbox size={18} />} label="Bandeja Inbox" active={location.pathname === '/inbox'} onClick={closeSidebar} />
+          <div className="relative">
+            <SidebarItem to="/inbox" icon={<Inbox size={18} />} label="Bandeja Inbox" active={location.pathname === '/inbox'} onClick={closeSidebar} />
+            {inboxCount > 0 && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-500 text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full border-2 border-slate-900 shadow-lg pointer-events-none">
+                {inboxCount}
+              </span>
+            )}
+          </div>
           
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Gestión</p>
           <SidebarItem to="/newsletters" icon={<Mail size={18} />} label="Newsletters" active={location.pathname.startsWith('/newsletters')} onClick={closeSidebar} />
