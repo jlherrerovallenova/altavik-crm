@@ -22,7 +22,8 @@ import {
   AlertTriangle, 
   Clock,
   BarChart3,
-  Inbox
+  Inbox,
+  Sparkles
 } from 'lucide-react';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
 import { useInboxCount } from '../hooks/useInboxCount';
@@ -158,6 +159,7 @@ export default function MainLayout() {
               </span>
             )}
           </div>
+          <SidebarItem to="/discovery" icon={<Sparkles size={18} />} label="Lead Discovery" active={location.pathname === '/discovery'} onClick={closeSidebar} />
           
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Gestión</p>
           <SidebarItem to="/newsletters" icon={<Mail size={18} />} label="Newsletters" active={location.pathname.startsWith('/newsletters')} onClick={closeSidebar} />

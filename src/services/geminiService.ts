@@ -43,9 +43,9 @@ ${emailBody}
 `;
 
   try {
-    // Usamos gemini-2.5-flash: súper eficiente, rápido e ideal para extracción de datos (Standard 2026).
+    // Usamos gemini-pro-latest: Alias estable detectado en la cuenta del usuario para evitar errores 404 y saturación
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-pro-latest',
       contents: prompt,
       config: {
         temperature: 0.1,

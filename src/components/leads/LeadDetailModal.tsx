@@ -294,29 +294,36 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     fetchTasks();
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
-    const { created_at_date, ...restData } = formData;
+    const { created_at_date, statusOriginal, ...restData } = formData;
     const finalData = {
       ...restData,
       created_at: new Date(`${created_at_date}T12:00:00Z`).toISOString()
     };
 
     // Si el estado ha cambiado, lo registramos en el historial
-    if (finalData.status !== formData.statusOriginal) {
-      const oldLabel = STATUS_CONFIG[formData.statusOriginal]?.label || formData.statusOriginal;
-      const newLabel = STATUS_CONFIG[finalData.status]?.label || finalData.status;
+    if (formData.status !== statusOriginal) {
+      const oldLabel = STATUS_CONFIG[statusOriginal]?.label || statusOriginal;
+      const newLabel = STATUS_CONFIG[formData.status]?.label || formData.status;
       await logEvent('status_change', `Estado actualizado: de "${oldLabel}" a "${newLabel}"`);
     }
 
+    setLoading(true);
     updateMutation.mutate({ id: lead.id, updates: finalData }, {
       onSuccess: () => {
         onUpdate();
         onClose();
+        setLoading(false);
       },
-      onError: (err) => {
+      onError: async (err: any) => {
+        setLoading(false);
         console.error("Error actualizando lead:", err);
+        await showAlert({ 
+          title: 'Error al Guardar', 
+          message: err.message || 'No se pudieron guardar los cambios. Por favor, revisa los datos e inténtalo de nuevo.' 
+        });
       }
     });
   };
@@ -506,32 +513,44 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   
                   {/* DATOS DEL LEAD */}
-                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CLIENTE
                     </h3>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
-                      <div className="space-y-1.5 group">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-3">
+                      <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
-                        <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1.5 group">
+                      <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Teléfono</label>
-                        <div className="flex gap-2">
-                          <input name="phone" value={formData.phone} onChange={handleChange} className="flex-1 text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <div className="relative w-full group/phone">
+                          <input 
+                            name="phone" 
+                            value={formData.phone} 
+                            onChange={handleChange} 
+                            placeholder="600 000 000"
+                            className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-12 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" 
+                          />
                           {formData.phone && (
-                            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100">
-                              <MessageCircle size={18} />
+                            <a 
+                              href={whatsappUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                              title="Abrir WhatsApp"
+                            >
+                              <MessageCircle size={16} strokeWidth={3} />
                             </a>
                           )}
                         </div>
                       </div>
-                      <div className="space-y-1.5 group">
+                      <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico</label>
-                        <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1.5 group">
+                      <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Lead</label>
                         <CustomSelect
                           value={formData.source}
@@ -540,50 +559,48 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           className="w-full font-bold"
                         />
                       </div>
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
-                        <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50/50 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1.5 group">
+                      <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Estado Actual</label>
                         <select 
                           name="status" 
                           value={formData.status} 
                           onChange={handleChange}
-                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[15px] font-bold text-slate-700 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.1)] focus:bg-white transition-all outline-none shadow-sm"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[15px] font-bold text-slate-700 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.1)] focus:bg-white transition-all outline-none shadow-sm"
                         >
                           {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
                             <option key={key} value={key} className="font-bold">{cfg.label}</option>
                           ))}
                         </select>
                       </div>
-                    </div>
-                  </section>
-
-                  {/* NEWSLETTERS & MARKETING */}
-                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-center">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 text-slate-500 uppercase tracking-widest w-full sm:w-auto">
-                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-xl"><Bell size={16} /></div> MARKETING
-                      </h3>
-                      <div className="flex items-center justify-between sm:justify-end gap-4 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 w-full sm:w-auto">
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Suscrito a Correos</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={formData.is_subscribed}
-                            onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
-                          />
-                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3b82f6]"></div>
-                        </label>
+                      {/* MARKETING INTEGRADO */}
+                      <div className="sm:col-span-2 pt-2 border-t border-slate-50 mt-2">
+                        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/50 rounded-xl border border-slate-100">
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><Bell size={14} /></div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Suscrito a Comunicaciones</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={formData.is_subscribed}
+                              onChange={(e) => setFormData({ ...formData, is_subscribed: e.target.checked })}
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#3b82f6]"></div>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </section>
 
+
                   {/* FEEDBACK & OPINIÓN */}
                   {(['visiting', 'proposal', 'negotiation', 'closed'].includes(formData.status) || sentHistory.length > 0 || tasks.some(t => t.type === 'Visita' && t.completed) || lead.feedback_rating) && (
-                    <section className={`lg:col-start-1 lg:col-end-8 lg:row-start-3 rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 flex flex-col justify-center ${
+                    <section className={`lg:col-start-1 lg:col-end-8 lg:row-start-2 rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 flex flex-col justify-center ${
                       lead.feedback_rating === 'positive' ? 'bg-emerald-50 border-emerald-100' :
                       lead.feedback_rating === 'neutral' ? 'bg-amber-50 border-amber-100' :
                       lead.feedback_rating === 'negative' ? 'bg-slate-50 border-slate-200' :
@@ -642,19 +659,19 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </section>
                   )}
                   {/* AGENDA DE ACCIONES */}
-                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> {editingTaskId ? 'EDITAR ACCIÓN' : 'PROGRAMAR ACCIÓN'}
                     </h3>
 
-                    <div className="space-y-4">
+                    <div className="flex flex-col h-full gap-3 mt-1">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5 group">
                           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-blue-500">Tipo de Acción</label>
                           <select
                             value={newTask.type}
                             onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
-                            className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
                           >
                             <option value="Llamada">Llamada</option>
                             <option value="Email">Email</option>
@@ -668,7 +685,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                             type="time"
                             value={newTask.time}
                             onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                            className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
                           />
                         </div>
                       </div>
@@ -679,7 +696,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           type="date"
                           value={newTask.date}
                           onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm"
                         />
                       </div>
 
@@ -690,26 +707,15 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           placeholder="Ej: Llamar para confirmar visita"
                           value={newTask.title}
                           onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                          className="w-full bg-slate-50/50 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white shadow-sm outline-none transition-all"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white shadow-sm outline-none transition-all"
                         />
                       </div>
 
-                      <div className="flex gap-3 pt-2">
-                        {editingTaskId && (
-                          <button
-                            onClick={() => {
-                              setEditingTaskId(null);
-                              setNewTask({ ...newTask, title: '' });
-                            }}
-                            className="flex-1 py-3 text-slate-500 font-bold text-xs hover:text-slate-700 transition-all border border-slate-100 rounded-xl"
-                          >
-                            Cancelar
-                          </button>
-                        )}
+                      <div className="flex gap-3 pt-4 border-t border-slate-50 mt-auto">
                         <button
                           onClick={() => saveTask()}
                           disabled={loading || !newTask.title}
-                          className={`flex-[2] py-3 text-white rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest ${editingTaskId ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 'bg-[#1e293b] hover:bg-slate-800 shadow-slate-200'}`}
+                          className={`flex-1 py-3 text-white rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-[10px] uppercase tracking-widest ${editingTaskId ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 'bg-[#1e293b] hover:bg-slate-800 shadow-slate-200'}`}
                         >
                           {loading ? <Loader2 size={16} className="animate-spin" /> : editingTaskId ? <Save size={16} /> : <Plus size={16} />}
                           {editingTaskId ? 'Actualizar' : 'Añadir a la Agenda'}
@@ -719,8 +725,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   </section>
 
                   {/* NOTAS INTERNAS */}
-                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-2 lg:row-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col h-full">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-4 text-slate-500 uppercase tracking-widest">
+                  <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
                     </h3>
                     <textarea 
@@ -728,7 +734,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       value={formData.notes} 
                       onChange={handleChange}
                       placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
-                      className="w-full h-full p-5 bg-slate-50/50 rounded-2xl border-none text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[160px]"
+                      className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
                     />
                   </section>
               </div>

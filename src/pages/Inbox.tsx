@@ -6,15 +6,29 @@ import { useCreateLead } from '../hooks/useLeads';
 import { useEmails, useUpdateEmail, type IncomingEmail } from '../hooks/useEmails';
 import { AppNotification } from '../components/AppNotification';
 import { supabase } from '../lib/supabase';
+import { useDialog } from '../context/DialogContext';
 
 export default function Inbox() {
   const { data: emails = [], isLoading } = useEmails();
   const updateEmailMutation = useUpdateEmail();
   const [selectedMailId, setSelectedMailId] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'leads'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [replyText, setReplyText] = useState('');
+  const [existingLeadEmails, setExistingLeadEmails] = useState<Set<string>>(new Set());
   const [isSendingReply, setIsSendingReply] = useState(false);
   
-  const selectedMail = emails.find(m => m.id === selectedMailId) || emails[0] || null;
+  const filteredEmails = emails.filter(m => {
+    const matchesFilter = filterType === 'leads' ? m.tags.includes('Escaneable IA') : true;
+    const matchesSearch = 
+      m.subject.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      m.sender_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.sender_email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  });
+
+  const selectedMail = filteredEmails.find(m => m.id === selectedMailId) || filteredEmails[0] || null;
 
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionResult, setExtractionResult] = useState<GeminiExtractedLead | null>(null);
@@ -27,6 +41,19 @@ export default function Inbox() {
   }>({ show: false, title: '', message: '', type: 'success' });
 
   const createLeadMutation = useCreateLead();
+  const { showConfirm } = useDialog();
+  
+  // 1. Cargar emails de leads existentes para detección inmediata
+  useEffect(() => {
+    const fetchLeadEmails = async () => {
+      const { data } = await supabase.from('leads').select('email');
+      if (data) {
+        const emailSet = new Set(data.map(l => l.email?.toLowerCase()).filter(Boolean) as string[]);
+        setExistingLeadEmails(emailSet);
+      }
+    };
+    fetchLeadEmails();
+  }, []);
 
   const extractWithGemini = async () => {
     if (!selectedMail) return;
@@ -46,10 +73,37 @@ export default function Inbox() {
     if (!extractionResult || !selectedMail) return;
 
     try {
+      // 1. Verificar duplicados por Email o Teléfono
+      const emailToCheck = extractionResult.email === 'No proporcionado' ? null : extractionResult.email;
+      const phoneToCheck = extractionResult.phone === 'No proporcionado' ? null : extractionResult.phone;
+
+      let duplicateQuery = [];
+      if (emailToCheck) duplicateQuery.push(`email.eq.${emailToCheck}`);
+      if (phoneToCheck) duplicateQuery.push(`phone.eq.${phoneToCheck}`);
+
+      if (duplicateQuery.length > 0) {
+        const { data: duplicates } = await supabase
+          .from('leads')
+          .select('id, name')
+          .or(duplicateQuery.join(','));
+
+        if (duplicates && duplicates.length > 0) {
+          const names = duplicates.map(d => d.name).join(', ');
+          const proceed = await showConfirm({
+            title: 'Posible Duplicado detectado',
+            message: `Ya existe un lead con estos datos (${names}). ¿Estás seguro de que quieres crear una nueva ficha?`,
+            confirmText: 'Sí, crear de todas formas',
+            cancelText: 'No, cancelar'
+          });
+
+          if (!proceed) return;
+        }
+      }
+
       await createLeadMutation.mutateAsync({
         name: extractionResult.name,
-        email: extractionResult.email === 'No proporcionado' ? null : extractionResult.email,
-        phone: extractionResult.phone === 'No proporcionado' ? null : extractionResult.phone,
+        email: emailToCheck,
+        phone: phoneToCheck,
         source: extractionResult.source,
         notes: extractionResult.notes,
         status: 'new'
@@ -62,6 +116,16 @@ export default function Inbox() {
         type: 'success'
       });
       
+      // Marcar el email como procesado y añadir etiqueta
+      await updateEmailMutation.mutateAsync({
+        id: selectedMail.id,
+        updates: { 
+          is_processed: true, 
+          is_read: true,
+          tags: [...selectedMail.tags, 'Procesado'].filter((v, i, a) => a.indexOf(v) === i) 
+        }
+      });
+
       setExtractionResult(null);
 
     } catch (err: any) {
@@ -129,9 +193,19 @@ export default function Inbox() {
         <div className="p-4 border-b border-slate-200 bg-white">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-black text-slate-800 tracking-tight">Bandeja de Entrada</h2>
-            <div className="flex gap-2">
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                <Filter size={18} />
+            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
+              <button 
+                onClick={() => setFilterType('all')}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${filterType === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Todos
+              </button>
+              <button 
+                onClick={() => setFilterType('leads')}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${filterType === 'leads' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                <Wand2 size={12} />
+                Leads
               </button>
             </div>
           </div>
@@ -139,8 +213,10 @@ export default function Inbox() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
               type="text" 
-              placeholder="Buscar correos o leads..." 
+              placeholder="Buscar correos..." 
               className="w-full pl-9 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all outline-none text-slate-700"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -151,12 +227,12 @@ export default function Inbox() {
               <Loader2 size={24} className="animate-spin text-indigo-500" />
               <span className="text-xs font-bold uppercase tracking-widest">Sincronizando...</span>
             </div>
-          ) : emails.length === 0 ? (
+          ) : filteredEmails.length === 0 ? (
             <div className="p-12 text-center text-slate-400">
-              <p className="text-xs font-bold uppercase tracking-widest">Bandeja Vacía</p>
+              <p className="text-xs font-bold uppercase tracking-widest">{filterType === 'leads' ? 'Sin Leads Detectados' : 'Bandeja Vacía'}</p>
             </div>
           ) : (
-            emails.map((mail) => (
+            filteredEmails.map((mail) => (
               <div 
                 key={mail.id}
                 onClick={() => {
@@ -179,7 +255,18 @@ export default function Inbox() {
                 <h3 className={`text-xs mb-1.5 line-clamp-1 ${!mail.is_read ? 'font-bold text-slate-800' : 'text-slate-600'}`}>{mail.subject}</h3>
                 <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{mail.body.substring(0, 100)}...</p>
                 
-                <div className="flex gap-2 mt-3">
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  {/* Etiqueta de contacto nuevo/existente */}
+                  {existingLeadEmails.has(mail.sender_email.toLowerCase()) ? (
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-blue-100 text-blue-700">
+                       Cliente Registrado
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-orange-100 text-orange-700">
+                       Contacto Nuevo
+                    </span>
+                  )}
+
                   {mail.tags.map(t => (
                     <span key={t} className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${t === 'Escaneable IA' ? 'bg-indigo-100 text-indigo-700' : t === 'Procesado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                       {t === 'Escaneable IA' && <Wand2 size={10} className="inline mr-1" />}

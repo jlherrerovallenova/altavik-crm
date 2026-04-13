@@ -30,13 +30,13 @@ async function syncEmails() {
         const connection = await imaps.connect(config);
         await connection.openBox('INBOX');
 
-        // Buscar correos no leídos de los últimos 15 días
-        const delay = 15 * 24 * 3600 * 1000;
+        // Buscar correos de los últimos 30 días (leídos y no leídos)
+        const delay = 30 * 24 * 3600 * 1000;
         const limitDate = new Date();
         limitDate.setTime(Date.now() - delay);
         
         const searchCriteria = [
-            'UNSEEN',
+            'ALL',
             ['SINCE', limitDate.toISOString()]
         ];
 
@@ -82,21 +82,41 @@ async function syncEmails() {
             const subjectLower = emailData.subject.toLowerCase();
             const senderEmail = emailData.sender_email.toLowerCase();
 
-            // --- LÓGICA DE DETECCIÓN MEJORADA ---
-            if (
-                bodyLower.includes('idealista') || 
-                bodyLower.includes('nuevo mensaje') ||
-                bodyLower.includes('espera tu respuesta') ||
-                bodyLower.includes('interesa este piso') ||
-                subjectLower.includes('interés') ||
-                subjectLower.includes('contacto') ||
-                subjectLower.includes('vivienda') ||
-                senderEmail.includes('idealista')
-            ) {
+            // Identificación de portales
+            if (bodyLower.includes('idealista') || subjectLower.includes('idealista')) emailData.tags.push('Idealista');
+            if (bodyLower.includes('habitaclia') || subjectLower.includes('habitaclia')) emailData.tags.push('Habitaclia');
+            if (bodyLower.includes('fotocasa') || subjectLower.includes('fotocasa')) emailData.tags.push('Fotocasa');
+            if (bodyLower.includes('contacto') || subjectLower.includes('contacto')) emailData.tags.push('Web');
+
+            // CRITERIO DE LEAD: Solo si parece un mensaje de un interesado
+            const isLeadSubject = (
+                subjectLower.includes('interés') || 
+                subjectLower.includes('mensaje') || 
+                subjectLower.includes('contacto') || 
+                subjectLower.includes('solicitud') ||
+                subjectLower.includes('llamada atendida')
+            );
+
+            // EXCLUSIÓN DE NOTICIAS/MARKETING
+            const isMarketingOrNews = (
+                subjectLower.includes('está pasando') || 
+                subjectLower.includes('boletín') || 
+                subjectLower.includes('novedades') ||
+                subjectLower.includes('noticias') ||
+                subjectLower.includes('newsletter') ||
+                subjectLower.includes('campaña') ||
+                subjectLower.includes('inquilino necesitan saber') ||
+                subjectLower.includes('áticos con terraza') ||
+                bodyLower.includes('suscríbete') ||
+                senderEmail.includes('news@') ||
+                senderEmail.includes('mailing@') ||
+                senderEmail.includes('semanal@') ||
+                senderEmail.includes('no-reply') ||
+                senderEmail.includes('publicidad')
+            );
+            
+            if (isLeadSubject && !isMarketingOrNews) {
                 emailData.tags.push('Escaneable IA');
-                if (bodyLower.includes('idealista') || senderEmail.includes('idealista')) {
-                    emailData.tags.push('Idealista');
-                }
             }
 
             if (senderEmail.includes('altavik') || bodyLower.includes('formulario web')) {

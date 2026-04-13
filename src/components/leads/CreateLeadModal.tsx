@@ -216,7 +216,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
       <div className="bg-[#f8fafc] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
 
         {/* Header */}
-        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-altavik-50 text-altavik-600 flex items-center justify-center">
                     <Plus size={20} />
@@ -228,9 +228,9 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
           </button>
         </div>
 
-        <div className="p-8 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+        <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh] custom-scrollbar">
           {/* Quick Paste Area */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
              <button 
               type="button"
               onClick={() => setShowPaste(!showPaste)}
@@ -248,7 +248,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
              {showPaste && (
                <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                   <textarea 
-                    className="w-full h-32 p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all resize-none italic shadow-inner"
+                    className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all resize-none italic shadow-inner"
                     placeholder="Pega aquí el contenido del correo de Idealista..."
                     value={pasteText}
                     onChange={(e) => setPasteText(e.target.value)}
@@ -256,7 +256,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                   <button
                     type="button"
                     onClick={handlePasteParse}
-                    className="w-full py-3 bg-[#334155] text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#1e293b] transition-all shadow-md active:scale-95"
+                    className="w-full py-2.5 bg-[#334155] text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-[#1e293b] transition-all shadow-md active:scale-95"
                   >
                     Extraer Datos del Contacto
                   </button>
@@ -277,7 +277,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             <input
               type="text"
               required
-              className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
               placeholder="Ej. Juan Pérez"
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -289,7 +289,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
               <input
                 type="email"
-                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
                 placeholder="juan@ejemplo.com"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -297,13 +297,26 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-              <input
-                type="tel"
-                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
-                placeholder="600 000 000"
-                value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-              />
+              <div className="relative w-full group/phone">
+                <input
+                  type="tel"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm pr-12"
+                  placeholder="600 000 000"
+                  value={formData.phone}
+                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                />
+                {formData.phone && (
+                  <a 
+                    href={`https://wa.me/${formData.phone.replace(/\D/g, '')}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                    title="Abrir WhatsApp"
+                  >
+                    <Smartphone size={16} />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -324,7 +337,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas / Mensaje</label>
             <textarea
-              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm font-medium text-slate-700 h-28 resize-none shadow-inner italic"
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm font-medium text-slate-700 h-28 resize-none shadow-inner italic"
               placeholder="Ej. Interesado en piso de 3 habitaciones..."
               value={formData.notes}
               onChange={e => setFormData({ ...formData, notes: e.target.value })}
