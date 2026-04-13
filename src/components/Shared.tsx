@@ -22,7 +22,7 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
   const activeColor = colors[type as keyof typeof colors] || colors.neutral;
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all">
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all">
       <div className="flex justify-between items-start z-10">
         <div>
           <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
@@ -57,7 +57,7 @@ export function StageBadge({ stage }: { stage: string }) {
   const active = config[stage] || { label: stage, class: 'bg-slate-50 text-slate-600 border-slate-200' };
 
   return (
-     <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wide ${active.class}`}>
+     <span className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${active.class}`}>
         {active.label}
      </span>
   );
@@ -85,9 +85,9 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
   }, [duration, onClose]);
 
   const themes = {
-    success: { icon: <CheckCircle2 size={20} />, style: 'bg-altavik-600 text-white' },
-    error: { icon: <AlertCircle size={20} />, style: 'bg-rose-600 text-white' },
-    info: { icon: <Info size={20} />, style: 'bg-slate-800 text-white' },
+    success: { icon: <CheckCircle2 strokeWidth={2.5} size={20} />, style: 'bg-altavik-600 text-white' },
+    error: { icon: <AlertCircle strokeWidth={2.5} size={20} />, style: 'bg-rose-600 text-white' },
+    info: { icon: <Info strokeWidth={2.5} size={20} />, style: 'bg-slate-800 text-white' },
   };
 
   const theme = themes[type];
@@ -96,7 +96,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
     <div className={`
       fixed bottom-6 right-6 z-[100]
       w-full max-w-sm overflow-hidden
-      ${theme.style} rounded-lg shadow-lg shadow-slate-900/20
+      ${theme.style} rounded-xl shadow-lg shadow-slate-900/20
       animate-in slide-in-from-right-10 duration-300
       flex items-start p-4 gap-3
     `}>
@@ -106,7 +106,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
         <p className="text-sm opacity-90 leading-snug mt-1">{message}</p>
       </div>
       <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
-        <X size={16} />
+        <X strokeWidth={2.5} size={16} />
       </button>
     </div>
   );
@@ -140,14 +140,14 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-medium text-slate-700 flex items-center justify-between cursor-pointer"
+        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-bold text-slate-700 flex items-center justify-between cursor-pointer shadow-sm"
       >
         <div className="flex items-center gap-3">
-          {selected?.icon && <selected.icon size={16} className={selected.color || 'text-slate-400'} />}
+          {selected?.icon && <selected.icon strokeWidth={2.5} size={16} className={selected.color || 'text-slate-400'} />}
           {selected?.dotColor && <span className={`w-2 h-2 rounded-full ${selected.dotColor}`} />}
           <span>{selected?.label || placeholder}</span>
         </div>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown strokeWidth={2.5} size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

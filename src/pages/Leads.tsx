@@ -50,7 +50,7 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; border: string 
   contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-50 text-purple-700 border border-purple-200', border: 'border-l-purple-400' },
   qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-50 text-altavik-700 border border-emerald-200', border: 'border-l-altavik-400' },
   visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-50 text-cyan-700 border border-cyan-200',       border: 'border-l-cyan-400' },
-  closed:      { dot: 'bg-slate-600',   pill: 'bg-slate-800 text-slate-100 border border-slate-700',  border: 'border-l-slate-600' },
+  closed:      { dot: 'bg-emerald-500', pill: 'bg-emerald-50 text-emerald-700 border border-emerald-200', border: 'border-l-emerald-500' },
   lost:        { dot: 'bg-red-400',     pill: 'bg-red-50 text-red-700 border border-red-200',         border: 'border-l-red-400' },
 };
 
@@ -82,7 +82,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
         <div className="w-5 h-5 bg-blue-50 flex items-center justify-center rounded border border-blue-100 shadow-sm">
-          <Globe size={11} className="text-blue-600" />
+          <Globe strokeWidth={2.5} size={11} className="text-blue-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Web</span>
       </div>
@@ -93,7 +93,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Redes Sociales">
         <div className="w-5 h-5 bg-purple-50 flex items-center justify-center rounded border border-purple-100 shadow-sm">
-          <Smartphone size={11} className="text-purple-600" />
+          <Smartphone strokeWidth={2.5} size={11} className="text-purple-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Social</span>
       </div>
@@ -104,7 +104,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Referido">
         <div className="w-5 h-5 bg-emerald-50 flex items-center justify-center rounded border border-emerald-100 shadow-sm">
-          <Users size={11} className="text-emerald-600" />
+          <Users strokeWidth={2.5} size={11} className="text-emerald-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Amigo</span>
       </div>
@@ -115,7 +115,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
     return (
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Llamada">
         <div className="w-5 h-5 bg-green-50 flex items-center justify-center rounded border border-green-100 shadow-sm">
-          <Phone size={11} className="text-green-600" />
+          <Phone strokeWidth={2.5} size={11} className="text-green-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Llamada</span>
       </div>
@@ -125,7 +125,7 @@ const SourceIcon = ({ source }: { source: string | null }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
       <div className="w-5 h-5 bg-slate-50 flex items-center justify-center rounded border border-slate-200 shadow-sm">
-        <HelpCircle size={11} className="text-slate-500" />
+        <HelpCircle strokeWidth={2.5} size={11} className="text-slate-500" />
       </div>
       <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Otros</span>
     </div>
@@ -253,16 +253,16 @@ export default function Leads() {
           <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center"
+              className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-slate-200 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center"
             >
-              <UserPlus size={18} /> <span className="inline">Nuevo Cliente</span>
+              <UserPlus strokeWidth={2.5} size={18} /> <span className="inline">Nuevo Cliente</span>
             </button>
           </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-3 items-center bg-white p-3 rounded-xl border border-slate-200">
           <div className="relative flex-1 w-full group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" strokeWidth={2.5} size={18} />
             <input
               type="text"
               placeholder="Buscar por nombre, email o teléfono..."
@@ -318,7 +318,7 @@ export default function Leads() {
                 className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0"
                 title="Limpiar filtros"
               >
-                <FilterX size={18} />
+                <FilterX strokeWidth={2.5} size={18} />
               </button>
             )}
           </div>
@@ -423,9 +423,9 @@ export default function Leads() {
                   </div>
 
                   <div className="flex items-center justify-start gap-1 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle size={15} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail size={15} /></button>
-                    <ChevronRight size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
+                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
+                    <ChevronRight strokeWidth={2.5} size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
                   </div>
                 </div>
               );
@@ -445,14 +445,14 @@ export default function Leads() {
                 disabled={page === 1}
                 className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
-                <ChevronsLeft size={16} />
+                <ChevronsLeft strokeWidth={2.5} size={16} />
               </button>
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft strokeWidth={2.5} size={16} />
               </button>
 
               <span className="text-[10px] md:text-xs font-bold text-slate-700 px-1 md:px-2 whitespace-nowrap">
@@ -464,14 +464,14 @@ export default function Leads() {
                 disabled={page >= totalPages}
                 className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
-                <ChevronRight size={16} />
+                <ChevronRight strokeWidth={2.5} size={16} />
               </button>
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page >= totalPages}
                 className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
-                <ChevronsRight size={16} />
+                <ChevronsRight strokeWidth={2.5} size={16} />
               </button>
             </div>
           </div>
