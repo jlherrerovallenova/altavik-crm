@@ -14,9 +14,13 @@ import {
   Circle,
   Save,
   Pencil,
-  X
+  X,
+  Plus,
+  Trash2,
+  Check
 } from 'lucide-react';
 import { useDialog } from '../context/DialogContext';
+import { useAuth } from '../context/AuthContext';
 import type { Database } from '../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -39,7 +43,7 @@ export default function LeadDetail() {
   const [lead, setLead] = useState<Lead | null>(null);
   const [tasks, setTasks] = useState<AgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { showAlert } = useDialog();
+  const { showAlert, showConfirm } = useDialog();
 
   // Estados para la edición de la ficha
   const [isEditing, setIsEditing] = useState(false);
@@ -53,6 +57,16 @@ export default function LeadDetail() {
 
   const [savingStatus, setSavingStatus] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string>('');
+
+  const { session } = useAuth();
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [savingTask, setSavingTask] = useState(false);
+  const [newTask, setNewTask] = useState({
+    type: 'Llamada',
+    title: '',
+    date: new Date().toISOString().slice(0, 10),
+    time: (new Date().getHours() + 1).toString().padStart(2, '0') + ':00',
+  });
 
   useEffect(() => {
     if (id) {
@@ -151,6 +165,71 @@ export default function LeadDetail() {
     } catch (error) {
       console.error("Error actualizando tarea:", error);
       fetchLeadData(); // Recargar datos si falla
+    }
+  };
+
+  const handleSaveTask = async () => {
+    if (!newTask.title || !session?.user.id || !lead) return;
+    setSavingTask(true);
+    try {
+      const dateTimeString = `${newTask.date}T${newTask.time}:00`;
+      const finalDate = new Date(dateTimeString).toISOString();
+
+      const taskData = {
+        title: newTask.title,
+        type: newTask.type,
+        due_date: finalDate,
+        lead_id: lead.id,
+        user_id: session.user.id,
+        completed: false
+      };
+
+      const { error } = await (supabase as any).from('agenda').insert([taskData]);
+      if (error) throw error;
+
+      // Abrir Google Calendar
+      const parsedDate = new Date(finalDate);
+      const endParsedDate = new Date(parsedDate.getTime() + 60 * 60 * 1000);
+      const formatGoogleDate = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      const googleCalUrl = new URL('https://calendar.google.com/calendar/render');
+      googleCalUrl.searchParams.append('action', 'TEMPLATE');
+      googleCalUrl.searchParams.append('text', `[${taskData.type}] ${taskData.title}`);
+      googleCalUrl.searchParams.append('dates', `${formatGoogleDate(parsedDate)}/${formatGoogleDate(endParsedDate)}`);
+
+      setTimeout(() => {
+        try { window.open(googleCalUrl.toString(), '_blank'); } catch (e) { console.warn("Popup bloqueado"); }
+      }, 100);
+
+      setNewTask({
+        type: 'Llamada',
+        title: '',
+        date: new Date().toISOString().slice(0, 10),
+        time: (new Date().getHours() + 1).toString().padStart(2, '0') + ':00',
+      });
+      setIsAddingTask(false);
+      fetchLeadData();
+    } catch (error) {
+      console.error("Error guardando tarea:", error);
+      await showAlert({ title: 'Error', message: 'No se pudo agendar la tarea.' });
+    } finally {
+      setSavingTask(false);
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    const confirmed = await showConfirm({
+      title: 'Eliminar Acción',
+      message: '¿Estás seguro de que deseas eliminar esta acción de la agenda?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+    if (!confirmed) return;
+    try {
+      const { error } = await (supabase as any).from('agenda').delete().eq('id', taskId);
+      if (error) throw error;
+      fetchLeadData();
+    } catch (error) {
+      console.error("Error eliminando tarea:", error);
     }
   };
 
@@ -353,16 +432,80 @@ export default function LeadDetail() {
       </div>
 
       {/* AGENDA VINCULADA */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <Clock className="text-altavik-500" size={20} /> Historial y Tareas
           </h2>
-          {/* Aquí iría un botón para abrir un modal de 'Nueva Tarea' pre-vinculada a este cliente */}
-          <button className="text-sm font-bold text-altavik-600 hover:text-altavik-700 bg-altavik-50 px-3 py-1.5 rounded-lg transition-colors">
-            + Agendar Tarea
-          </button>
+          {!isAddingTask && (
+            <button 
+              onClick={() => setIsAddingTask(true)}
+              className="text-sm font-bold text-altavik-600 hover:text-altavik-700 bg-altavik-50 px-4 py-2 rounded-xl transition-all active:scale-95 flex items-center gap-2 border border-altavik-100"
+            >
+              <Plus size={16} /> Agendar Tarea
+            </button>
+          )}
         </div>
+
+        {isAddingTask && (
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 animate-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Nueva Tarea en Agenda</h3>
+              <button onClick={() => setIsAddingTask(false)} className="text-slate-400 hover:text-red-500"><X size={18} /></button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
+                <select 
+                  value={newTask.type}
+                  onChange={e => setNewTask({...newTask, type: e.target.value})}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-altavik-500/20"
+                >
+                  <option value="Llamada">📞 Llamada</option>
+                  <option value="WhatsApp">🟢 WhatsApp</option>
+                  <option value="Visita">🏠 Visita</option>
+                  <option value="Email">📧 Email</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
+                <input 
+                  type="date"
+                  value={newTask.date}
+                  onChange={e => setNewTask({...newTask, date: e.target.value})}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-altavik-500/20"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
+                <input 
+                  type="time"
+                  value={newTask.time}
+                  onChange={e => setNewTask({...newTask, time: e.target.value})}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-altavik-500/20"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5 mb-4">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descripción</label>
+              <input 
+                type="text"
+                placeholder="Ej: Llamar para confirmar visita"
+                value={newTask.title}
+                onChange={e => setNewTask({...newTask, title: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-altavik-500/20"
+              />
+            </div>
+            <button 
+              onClick={handleSaveTask}
+              disabled={savingTask || !newTask.title}
+              className="w-full py-3 bg-altavik-600 hover:bg-altavik-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-altavik-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {savingTask ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              Guardar Tarea
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {tasks.length === 0 ? (
@@ -396,6 +539,12 @@ export default function LeadDetail() {
                       </p>
                     </div>
                   </div>
+                  <button 
+                    onClick={() => deleteTask(task.id.toString())}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               ))}
 

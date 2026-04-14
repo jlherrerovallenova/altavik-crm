@@ -65,6 +65,10 @@ export interface Database {
           property_id: string | null
           province: string | null
           sale_status: string | null
+          feedback_sent: boolean | null
+          feedback_sent_at: string | null
+          feedback_rating: string | null
+          feedback_responded_at: string | null
         }
         Insert: {
           id?: string

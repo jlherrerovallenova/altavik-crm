@@ -164,8 +164,8 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                   })}
                 </span>
               </div>
-              <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                {event.description}
+              <p className="text-sm text-slate-700 font-medium leading-relaxed break-words">
+                {event.description.split('||').join(', ')}
               </p>
               {event.metadata?.source && (
                 <span className="mt-2 inline-block px-2 py-0.5 bg-slate-50 rounded-md text-[9px] font-bold text-slate-400 border border-slate-100">

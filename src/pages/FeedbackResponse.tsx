@@ -38,7 +38,7 @@ export default function FeedbackResponse() {
     recordFeedback();
   }, [leadId, rating]);
 
-  const config = {
+  const feedbackConfigs = {
     positive: {
       icon: <Heart className="text-pink-500" size={48} />,
       bg: 'from-emerald-50 to-teal-50',
@@ -60,7 +60,9 @@ export default function FeedbackResponse() {
       subtitle: 'Sentimos que no encaje con lo que buscas. Tu opinión nos ayuda a ser más precisos en el futuro.',
       waMessage: `Hola! Soy ${name}, la promoción que he visto no encaja con lo que busco ahora mismo.`
     }
-  }[rating as 'positive' | 'neutral' | 'negative'] || config.positive;
+  };
+
+  const config = feedbackConfigs[rating as keyof typeof feedbackConfigs] || feedbackConfigs.positive;
 
   const whatsappUrl = `https://wa.me/34600000000?text=${encodeURIComponent(config.waMessage)}`; // Usamos un placeholder, el usuario puede cambiarlo
 

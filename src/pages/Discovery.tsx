@@ -78,21 +78,38 @@ export default function Discovery() {
   }, []);
 
   const handleProcessLead = async (lead: DiscoveredLead) => {
+    console.log("🚀 Iniciando captura de lead desde email:", lead.emailId);
     setProcessingId(lead.emailId);
     try {
       // Extraemos datos con Gemini
+      console.log("📡 Llamando a Gemini para extracción...");
       const extracted = await extractLeadDataFromEmail(lead.body, lead.senderName);
+      console.log("✅ Datos extraídos por Gemini:", extracted);
       
-      // Verificamos de nuevo por si el email extraído (si era portal) ya existe
-      if (extracted.email && extracted.email !== 'No proporcionado') {
-        const { data: dup } = await supabase.from('leads').select('id, name').eq('email', extracted.email).maybeSingle();
-        if (dup) {
+      // Verificamos duplicados por Email o Teléfono
+      const emailToCheck = extracted.email === 'No proporcionado' ? null : extracted.email;
+      const phoneToCheck = extracted.phone === 'No proporcionado' ? null : extracted.phone;
+
+      let duplicateQuery = [];
+      if (emailToCheck) duplicateQuery.push(`email.eq.${emailToCheck}`);
+      if (phoneToCheck) duplicateQuery.push(`phone.eq.${phoneToCheck}`);
+
+      if (duplicateQuery.length > 0) {
+        const { data: duplicates } = await supabase
+          .from('leads')
+          .select('id, name')
+          .or(duplicateQuery.join(','));
+
+        if (duplicates && duplicates.length > 0) {
+          console.log("⚠️ Duplicado(s) detectado(s):", duplicates);
+          const names = duplicates.map(d => d.name).join(', ');
           const proceed = await showConfirm({
             title: 'Contacto Existente Detectado',
-            message: `Gemini ha encontrado que este lead es ${extracted.name} (${extracted.email}), quien ya está en tu sistema como ${dup.name}. ¿Quieres marcar el correo como procesado de todas formas?`,
+            message: `Gemini ha encontrado que los datos de este lead coinciden con: ${names}. ¿Quieres marcar el correo como procesado de todas formas?`,
             confirmText: 'Sí, marcar como procesado',
             cancelText: 'Cancelar'
           });
+          
           if (proceed) {
              await updateEmailMutation.mutateAsync({
                id: lead.emailId,
@@ -100,11 +117,13 @@ export default function Discovery() {
              });
              fetchDiscoveryData();
           }
+          setProcessingId(null);
           return;
         }
       }
 
       // Crear Lead
+      console.log("📝 Registrando lead en la DB...");
       await createLeadMutation.mutateAsync({
         name: extracted.name,
         email: extracted.email === 'No proporcionado' ? null : extracted.email,
@@ -115,6 +134,7 @@ export default function Discovery() {
       });
 
       // Actualizar Email
+      console.log("📧 Marcando email como procesado...");
       await updateEmailMutation.mutateAsync({
         id: lead.emailId,
         updates: { is_processed: true, tags: [...lead.tags, 'Procesado'] }
@@ -127,15 +147,18 @@ export default function Discovery() {
         type: 'success'
       });
 
+      console.log("✨ Proceso completado con éxito.");
       fetchDiscoveryData();
     } catch (err: any) {
+      console.error("❌ Error en procesamiento de lead:", err);
       setNotification({
         show: true,
         title: 'Error en procesamiento',
-        message: err.message,
+        message: err.message || 'Error desconocido durante la captura',
         type: 'error'
       });
     } finally {
+      console.log("🔚 Finalizando estado de procesamiento.");
       setProcessingId(null);
     }
   };
@@ -207,8 +230,8 @@ export default function Discovery() {
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2">
-                        {lead.tags.map(t => (
-                          <span key={t} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-600">
+                        {lead.tags.map((t, idx) => (
+                          <span key={`${t}-${idx}`} className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-600">
                             {t}
                           </span>
                         ))}

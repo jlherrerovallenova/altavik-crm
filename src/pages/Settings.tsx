@@ -83,6 +83,9 @@ const Settings: React.FC = () => {
   // Estados para Clientes
   const [isImportLeadsModalOpen, setIsImportLeadsModalOpen] = useState(false);
   const [isExportLeadsModalOpen, setIsExportLeadsModalOpen] = useState(false);
+  const [leadsForSettings, setLeadsForSettings] = useState<any[]>([]);
+  const [leadToDeleteSettings, setLeadToDeleteSettings] = useState<string>('');
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
 
   // Estados de Formulario de Perfil
   const [fullName, setFullName] = useState(profile?.full_name || '');
@@ -117,6 +120,24 @@ const Settings: React.FC = () => {
         }
       };
       fetchPropertiesList();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'clients') {
+      const fetchLeadsList = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('leads')
+            .select('id, name, email')
+            .order('name', { ascending: true });
+          if (error) throw error;
+          setLeadsForSettings(data || []);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchLeadsList();
     }
   }, [activeTab]);
 
@@ -295,6 +316,45 @@ const Settings: React.FC = () => {
       await showAlert({ title: 'Error', message: 'Hubo un error al intentar borrar la vivienda.' });
     } finally {
       setIsDeletingSingle(false);
+    }
+  };
+
+
+  const handleDeleteLead = async () => {
+    if (!leadToDeleteSettings) return;
+
+    const lead = leadsForSettings.find(l => l.id === leadToDeleteSettings);
+    
+    const confirmed = await showConfirm({
+      title: 'Eliminar Cliente',
+      message: `¿Estás seguro de que deseas eliminar permanentemente a "${lead?.name}"? Se borrará también su historial de actividad.`,
+      confirmText: 'Sí, eliminar permanentemente',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) return;
+
+    setIsDeletingLead(true);
+    try {
+      // 1. Borrar historial (lead_history)
+      await supabase.from('lead_history').delete().eq('lead_id', leadToDeleteSettings);
+      
+      // 2. Borrar tareas (agenda)
+      await supabase.from('agenda').delete().eq('lead_id', leadToDeleteSettings);
+
+      // 3. Borrar el lead
+      const { error } = await supabase.from('leads').delete().eq('id', leadToDeleteSettings);
+      if (error) throw error;
+      
+      await showAlert({ title: 'Éxito', message: 'Cliente y su historial eliminados correctamente.' });
+      setLeadToDeleteSettings('');
+      setLeadsForSettings(prev => prev.filter(l => l.id !== leadToDeleteSettings));
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    } catch (error) {
+      console.error('Error al intentar borrar lead:', error);
+      await showAlert({ title: 'Error', message: 'Hubo un error al intentar borrar el cliente.' });
+    } finally {
+      setIsDeletingLead(false);
     }
   };
 
@@ -823,6 +883,39 @@ const Settings: React.FC = () => {
                   >
                     Exportar DB
                   </button>
+                </div>
+
+                {/* Card: Borrar Cliente */}
+                <div className="bg-red-50 p-5 rounded-2xl border border-red-200 transition-colors group flex flex-col gap-4">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-12 h-12 rounded-xl bg-red-100/80 text-red-600 flex items-center justify-center shrink-0">
+                      <Trash2 size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-800 text-sm">Eliminar Cliente Específico</h3>
+                      <p className="text-xs text-red-600/80 mt-0.5">Te permite borrar permanentemente un contacto y todo su historial del sistema.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full pl-0 sm:pl-[60px]">
+                    <select
+                      value={leadToDeleteSettings}
+                      onChange={(e) => setLeadToDeleteSettings(e.target.value)}
+                      className="flex-1 w-full p-3 bg-white border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 font-medium text-slate-700 text-sm"
+                    >
+                      <option value="">-- Selecciona un cliente para borrar --</option>
+                      {leadsForSettings.map(l => (
+                        <option key={l.id} value={l.id}>{l.name} {l.email ? `(${l.email})` : ''}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleDeleteLead}
+                      disabled={!leadToDeleteSettings || isDeletingLead}
+                      className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white font-bold rounded-xl shadow-sm shadow-red-100 hover:bg-red-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isDeletingLead ? <Loader2 size={18} className="animate-spin" /> : 'Borrar Permanentemente'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -43,28 +43,40 @@ ${emailBody}
 `;
 
   try {
-    // Usamos gemini-pro-latest: Alias estable detectado en la cuenta del usuario para evitar errores 404 y saturación
-    const response = await ai.models.generateContent({
-      model: 'gemini-pro-latest',
-      contents: prompt,
+    const modelId = 'gemini-pro-latest';
+    console.log(`🤖 Gemini Service: Generando contenido con modelo ${modelId}...`);
+    
+    // El SDK @google/genai con este patrón para evitar hangs
+    const result = await ai.models.generateContent({
+      model: modelId,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         temperature: 0.1,
-        // Usamos la directiva nativa del SDK para forzar JSON (Soportada en la v2.5+)
         responseMimeType: "application/json"
       }
     });
 
-    // En el nuevo SDK @google/genai, .text es una propiedad, no una función (como era en el antiguo SDK).
-    let textOutput = response.text;
+    console.log("📡 Gemini Service: Respuesta recibida del SDK.");
+    
+    // Verificamos si la respuesta tiene el formato esperado
+    const textOutput = result.text;
     
     if (!textOutput) {
-       throw new Error("Gemini no ha devuelto información.");
+       console.error("❌ Gemini Service: La respuesta no contiene texto:", result);
+       throw new Error("Gemini no ha devuelto información legible.");
     }
     
+    console.log("📄 Gemini Service: Raw Output:", textOutput);
+
     // Limpiamos la respuesta en caso de que la IA envuelva el resultado en ```json ... ```
     const cleanOutput = textOutput.replace(/```json\n?|```/gi, '').trim();
     
-    return JSON.parse(cleanOutput) as GeminiExtractedLead;
+    try {
+      return JSON.parse(cleanOutput) as GeminiExtractedLead;
+    } catch (parseError) {
+      console.error("❌ Gemini Service: Error parseando JSON:", cleanOutput);
+      throw new Error("La respuesta de la IA no es un JSON válido.");
+    }
 
   } catch (error: any) {
     console.error("Fallo durante la extracción del SDK de IA:", error);
