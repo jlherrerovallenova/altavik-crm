@@ -339,7 +339,7 @@ export default function Dashboard() {
         ))}
 
         {/* MAIN BENTO: AGENDA WIDGET */}
-        <div className="col-span-12 lg:col-span-8 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm flex flex-col overflow-hidden group">
+        <div className="col-span-12 lg:col-span-8 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200 shadow-sm flex flex-col overflow-hidden group">
           <div className="p-6 border-b border-slate-100/50 flex flex-col gap-5">
             <div className="flex justify-between items-center">
               <div>
@@ -439,7 +439,7 @@ export default function Dashboard() {
         <div className="col-span-12 lg:col-span-4 space-y-5 flex flex-col">
           
           {/* RECENT LEADS BENTO */}
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col">
+          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200 shadow-sm flex-1 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-100/50 flex justify-between items-center">
               <div>
                 <h3 className="font-black text-slate-800 text-sm tracking-tight flex items-center gap-2">
@@ -526,7 +526,7 @@ function StatCard({ title, value, subtitle, icon, isTrend, trendValue, onClick }
   return (
     <div
       onClick={onClick}
-      className={`bg-white p-5 rounded-3xl border border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] transition-all duration-300 flex flex-col justify-between h-full group hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 cursor-pointer overflow-hidden relative active:scale-95`}
+      className={`bg-white p-5 rounded-3xl border border-slate-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] transition-all duration-300 flex flex-col justify-between h-full group hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 cursor-pointer overflow-hidden relative active:scale-95`}
     >
       <div className="absolute -right-2 -top-2 w-20 h-20 bg-slate-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700" />
       <div className="flex justify-between items-start mb-4 relative z-10">

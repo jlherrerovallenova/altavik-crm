@@ -476,7 +476,7 @@ export default function Inventory() {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="animate-spin text-altavik-600" size={40} />
@@ -486,7 +486,7 @@ export default function Inventory() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white border-b border-slate-100">
+                <tr className="bg-white border-b border-slate-200">
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Nº Orden</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Portal</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Planta/Letra</th>
@@ -644,7 +644,7 @@ export default function Inventory() {
 
         {/* Paginación */}
         {filteredProperties.length > itemsPerPage && (
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-200 flex items-center justify-between">
             <div className="text-sm text-slate-500 font-medium">
               Mostrando <span className="text-slate-900 font-bold">{startIndex + 1}</span> a <span className="text-slate-900 font-bold">{Math.min(startIndex + itemsPerPage, filteredProperties.length)}</span> de <span className="text-slate-900 font-bold">{filteredProperties.length}</span> viviendas
             </div>

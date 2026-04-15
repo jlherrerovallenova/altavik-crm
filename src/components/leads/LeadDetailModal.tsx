@@ -697,47 +697,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
 
-                    {/* LISTADO DE ACCIONES PENDIENTES */}
-                    {tasks.filter(t => !t.completed).length > 0 && (
-                      <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <Clock size={10} /> Acciones Programadas ({tasks.filter(t => !t.completed).length})
-                        </p>
-                        {tasks.filter(t => !t.completed).map(task => (
-                          <div key={task.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group">
-                            <div className="flex items-center gap-3">
-                              <button 
-                                onClick={() => toggleTaskStatus(task)}
-                                className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center text-transparent hover:border-emerald-500 hover:text-emerald-500 transition-all"
-                              >
-                                <Check size={12} strokeWidth={3} />
-                              </button>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                    task.type === 'Llamada' ? 'bg-blue-50 text-blue-600' :
-                                    task.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600' :
-                                    'bg-slate-50 text-slate-500'
-                                  }`}>
-                                    {task.type}
-                                  </span>
-                                  <h5 className="text-[12px] font-bold text-slate-700">{task.title}</h5>
-                                </div>
-                                <p className="text-[10px] text-slate-400 font-medium">
-                                  {new Date(task.due_date).toLocaleDateString('es-ES')} a las {new Date(task.due_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
-                              <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 mt-4">
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                           {editingTaskId ? <Pencil size={12} className="text-amber-500" /> : <Plus size={12} className="text-blue-500" />}
@@ -812,6 +772,46 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         </div>
                       </div>
                     </div>
+
+                    {/* LISTADO DE ACCIONES PENDIENTES */}
+                    {tasks.filter(t => !t.completed).length > 0 && (
+                      <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Clock size={10} /> Acciones Programadas ({tasks.filter(t => !t.completed).length})
+                        </p>
+                        {tasks.filter(t => !t.completed).map(task => (
+                          <div key={task.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group">
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => toggleTaskStatus(task)}
+                                className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center text-transparent hover:border-emerald-500 hover:text-emerald-500 transition-all"
+                              >
+                                <Check size={12} strokeWidth={3} />
+                              </button>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                    task.type === 'Llamada' ? 'bg-blue-50 text-blue-600' :
+                                    task.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600' :
+                                    'bg-slate-50 text-slate-500'
+                                  }`}>
+                                    {task.type}
+                                  </span>
+                                  <h5 className="text-[12px] font-bold text-slate-700">{task.title}</h5>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium">
+                                  {new Date(task.due_date).toLocaleDateString('es-ES')} a las {new Date(task.due_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
+                              <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </section>
 
                   {/* NOTAS INTERNAS */}

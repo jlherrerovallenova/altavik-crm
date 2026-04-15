@@ -13,6 +13,7 @@ interface Property {
   sup_util: number;
   dormitorios: number;
   banos: number;
+  orientacion: string;
   ficha_url?: string;
 }
 
@@ -31,20 +32,26 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
   const [portal, setPortal] = useState('');
   const [planta, setPlanta] = useState('');
   const [letra, setLetra] = useState('');
+  const [orientacion, setOrientacion] = useState('');
+  const [dormitorios, setDormitorios] = useState('');
 
   const uniquePortals = useMemo(() => Array.from(new Set(properties.map(p => p.portal).filter(Boolean))).sort(), [properties]);
   const uniquePlantas = useMemo(() => Array.from(new Set(properties.map(p => p.planta).filter(Boolean))).sort(), [properties]);
   const uniqueLetras = useMemo(() => Array.from(new Set(properties.map(p => p.letra).filter(Boolean))).sort(), [properties]);
+  const uniqueOrientaciones = useMemo(() => Array.from(new Set(properties.map(p => p.orientacion).filter(Boolean))).sort(), [properties]);
+  const uniqueDormitorios = useMemo(() => Array.from(new Set(properties.map(p => p.dormitorios.toString()).filter(Boolean))).sort((a,b) => parseInt(a)-parseInt(b)), [properties]);
 
   const filteredProperties = useMemo(() => {
     return properties.filter(p => {
       const matchPortal = !portal || p.portal === portal;
       const matchPlanta = !planta || p.planta === planta;
       const matchLetra = !letra || p.letra === letra;
+      const matchOrientacion = !orientacion || p.orientacion === orientacion;
+      const matchDormitorios = !dormitorios || p.dormitorios.toString() === dormitorios;
       const isAvailable = p.estado_vivienda === 'DISPONIBLE';
-      return matchPortal && matchPlanta && matchLetra && isAvailable;
+      return matchPortal && matchPlanta && matchLetra && matchOrientacion && matchDormitorios && isAvailable;
     });
-  }, [properties, portal, planta, letra]);
+  }, [properties, portal, planta, letra, orientacion, dormitorios]);
 
   const toggleProperty = (id: string) => {
     if (alreadySelected.includes(id)) return;
@@ -74,7 +81,7 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900">Seleccionar Viviendas</h2>
-              <p className="text-xs text-slate-500 font-medium">Filtra por portal, altura y letra para añadir fichas</p>
+              <p className="text-xs text-slate-500 font-medium">Filtra por portal, altura, letra, orientación y dormitorios</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm">
@@ -129,8 +136,38 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
             </div>
           </div>
 
+          <div className="flex-1 min-w-[140px] space-y-1.5">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Orientación</label>
+            <div className="relative">
+              <select 
+                value={orientacion} 
+                onChange={e => setOrientacion(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer"
+              >
+                <option value="">Todas</option>
+                {uniqueOrientaciones.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-[140px] space-y-1.5">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Dormitorios</label>
+            <div className="relative">
+              <select 
+                value={dormitorios} 
+                onChange={e => setDormitorios(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-altavik-500/20 outline-none appearance-none cursor-pointer"
+              >
+                <option value="">Todos</option>
+                {uniqueDormitorios.map(d => <option key={d} value={d}>{d} Dorm.</option>)}
+              </select>
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
+            </div>
+          </div>
+
           <button 
-            onClick={() => { setPortal(''); setPlanta(''); setLetra(''); }}
+            onClick={() => { setPortal(''); setPlanta(''); setLetra(''); setOrientacion(''); setDormitorios(''); }}
             className="px-4 py-2.5 text-slate-400 hover:text-red-500 font-bold text-xs transition-colors"
           >
             Resetear

@@ -349,7 +349,7 @@ export default function Leads() {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="grid md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
+            <div className="grid md:grid-cols-[24fr_12fr_20fr_10fr_14fr_12fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
               <div
                 className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`}
                 onClick={() => handleSort('name')}
@@ -379,7 +379,7 @@ export default function Leads() {
                 <div
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
-                  className={`grid grid-cols-1 md:grid-cols-[22fr_12fr_26fr_10fr_12fr_10fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} ${isSelected ? 'bg-blue-50/80 ring-1 ring-blue-100/50 z-10 sticky' : 'hover:bg-slate-50/80'} transition-all duration-150`}
+                  className={`grid grid-cols-1 md:grid-cols-[24fr_12fr_20fr_10fr_14fr_12fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} ${isSelected ? 'bg-blue-50/80 ring-1 ring-blue-100/50 z-10 sticky' : 'hover:bg-slate-50/80'} transition-all duration-150`}
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-700 flex items-center justify-center font-bold text-sm border border-altavik-100 shrink-0">
