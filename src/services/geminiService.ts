@@ -42,44 +42,73 @@ ${emailBody}
 --- FIN DEL CORREO ---
 `;
 
-  try {
-    const modelId = 'gemini-pro-latest';
-    console.log(`🤖 Gemini Service: Generando contenido con modelo ${modelId}...`);
-    
-    // El SDK @google/genai con este patrón para evitar hangs
-    const result = await ai.models.generateContent({
-      model: modelId,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        temperature: 0.1,
-        responseMimeType: "application/json"
-      }
-    });
+  const maxRetries = 3;
+  let attempt = 0;
 
-    console.log("📡 Gemini Service: Respuesta recibida del SDK.");
-    
-    // Verificamos si la respuesta tiene el formato esperado
-    const textOutput = result.text;
-    
-    if (!textOutput) {
-       console.error("❌ Gemini Service: La respuesta no contiene texto:", result);
-       throw new Error("Gemini no ha devuelto información legible.");
-    }
-    
-    console.log("📄 Gemini Service: Raw Output:", textOutput);
-
-    // Limpiamos la respuesta en caso de que la IA envuelva el resultado en ```json ... ```
-    const cleanOutput = textOutput.replace(/```json\n?|```/gi, '').trim();
-    
+  while (attempt < maxRetries) {
     try {
-      return JSON.parse(cleanOutput) as GeminiExtractedLead;
-    } catch (parseError) {
-      console.error("❌ Gemini Service: Error parseando JSON:", cleanOutput);
-      throw new Error("La respuesta de la IA no es un JSON válido.");
-    }
+      const modelId = 'gemini-pro-latest';
+      console.log(`🤖 Gemini Service: Intento ${attempt + 1}/${maxRetries} usando modelo ${modelId}...`);
+      
+      const result = await ai.models.generateContent({
+        model: modelId,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          temperature: 0.1,
+          responseMimeType: "application/json"
+        }
+      });
 
-  } catch (error: any) {
-    console.error("Fallo durante la extracción del SDK de IA:", error);
-    throw new Error(`Error técnico del SDK AI: ${error.message}`);
+      console.log("📡 Gemini Service: Respuesta recibida del SDK.");
+      
+      const textOutput = result.text;
+      
+      if (!textOutput) {
+         console.error("❌ Gemini Service: La respuesta no contiene texto:", result);
+         throw new Error("Gemini no ha devuelto información legible.");
+      }
+      
+      console.log("📄 Gemini Service: Raw Output:", textOutput);
+
+      const cleanOutput = textOutput.replace(/```json\n?|```/gi, '').trim();
+      
+      try {
+        return JSON.parse(cleanOutput) as GeminiExtractedLead;
+      } catch (parseError) {
+        console.error("❌ Gemini Service: Error parseando JSON:", cleanOutput);
+        throw new Error("La respuesta de la IA no es un JSON válido.");
+      }
+
+    } catch (error: any) {
+      // Intentar extraer el mensaje de error independientemente de si es un objeto o un string
+      const errorMessage = typeof error.message === 'string' ? error.message : JSON.stringify(error);
+      const statusCode = error.status || error.code || (typeof error.message === 'string' && error.message.includes('503') ? '503' : '');
+      
+      const isOverloaded = statusCode === 'UNAVAILABLE' || 
+                          statusCode === 503 || 
+                          statusCode === '503' ||
+                          errorMessage.includes("503") || 
+                          errorMessage.includes("UNAVAILABLE") || 
+                          errorMessage.includes("high demand") ||
+                          errorMessage.includes("Resource has been exhausted");
+
+      if (isOverloaded && attempt < maxRetries - 1) {
+        attempt++;
+        const delay = attempt * 2000;
+        console.warn(`⚠️ Gemini Service: El modelo está saturado. Reintentando en ${delay}ms... (Intento ${attempt}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      console.error("Fallo durante la extracción del SDK de IA:", error);
+      // Si el error es el de "high demand", damos un mensaje más amigable en español
+      const userFriendlyError = isOverloaded 
+        ? "El servicio de IA está saturado en este momento. Por favor, espera unos segundos e inténtalo de nuevo."
+        : `Error técnico del SDK AI: ${errorMessage}`;
+        
+      throw new Error(userFriendlyError);
+    }
   }
+  
+  throw new Error("No se pudo procesar el lead tras varios intentos debido a saturación del servicio de IA.");
 }

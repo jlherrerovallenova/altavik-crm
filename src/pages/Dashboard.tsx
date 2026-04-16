@@ -475,35 +475,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* QUICK LINKS BENTO */}
-          <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-900/15 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-              <Target size={120} />
-            </div>
-            <h3 className="font-bold text-sm tracking-widest uppercase opacity-60 mb-4">Módulos Rápidos</h3>
-            <div className="space-y-3 relative z-10">
-              <button
-                onClick={() => navigate('/pipeline')}
-                className="w-full py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur rounded-2xl text-[13px] font-black tracking-tight transition-all flex items-center justify-center gap-3 group border border-white/5"
-              >
-                <Target size={18} className="group-hover:scale-110 transition-transform" /> Pipeline de Ventas
-              </button>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => navigate('/inventory')}
-                  className="py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-[12px] font-bold transition-all flex items-center justify-center gap-2 border border-white/5"
-                >
-                  <Inbox size={16} /> Stock
-                </button>
-                <button
-                  onClick={() => navigate('/stats')}
-                  className="py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl text-[12px] font-bold transition-all flex items-center justify-center gap-2 border border-white/5"
-                >
-                  <BarChart3 size={16} /> Informes
-                </button>
-              </div>
-            </div>
-          </div>
+
 
           {selectedLeadForFeedback && (
             <FeedbackEmailModal

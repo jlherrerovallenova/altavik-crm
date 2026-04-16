@@ -21,7 +21,8 @@ import {
   Globe,
   Smartphone,
   Users,
-  HelpCircle
+  HelpCircle,
+  Zap
 } from 'lucide-react';
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
@@ -156,6 +157,7 @@ export default function Leads() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
   const [initialMethod, setInitialMethod] = useState<'email' | 'whatsapp'>('email');
+  const [initialTemplate, setInitialTemplate] = useState<'first_contact' | undefined>(undefined);
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -423,8 +425,21 @@ export default function Leads() {
                   </div>
 
                   <div className="flex items-center justify-start gap-1 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setInitialMethod('whatsapp');
+                        setInitialTemplate('first_contact');
+                        setEmailLead(lead);
+                      }} 
+                      className="p-1 px-1.5 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors flex items-center gap-1 group/btn"
+                      title="WhatsApp Primer Contacto"
+                    >
+                      <Zap size={12} fill="currentColor" className="text-altavik-500" />
+                      <span className="text-[9px] font-black uppercase hidden group-hover/btn:inline">Primer Contacto</span>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); setInitialTemplate(undefined); openComposer(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setInitialTemplate(undefined); openComposer(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
                     <ChevronRight strokeWidth={2.5} size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
                   </div>
                 </div>
@@ -499,14 +514,15 @@ export default function Leads() {
       {emailLead && (
         <EmailComposerModal
           isOpen={!!emailLead}
-          onClose={() => setEmailLead(null)}
+          onClose={() => { setEmailLead(null); setInitialTemplate(undefined); }}
           leadId={emailLead.id}
-          leadName={emailLead.name}
+          leadName={emailLead.name!}
           leadEmail={emailLead.email}
           leadPhone={emailLead.phone}
           availableDocs={availableDocs}
           onSentSuccess={() => { showMsg('success', 'Mensaje enviado', 'Registrado correctamente.'); }}
           initialMethod={initialMethod}
+          initialTemplate={initialTemplate}
         />
       )}
 

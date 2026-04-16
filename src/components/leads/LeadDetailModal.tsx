@@ -5,7 +5,7 @@ import {
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
   ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle, StickyNote, Check, Home
+  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap
 } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
@@ -56,6 +56,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
+  const [firstContactTemplateActive, setFirstContactTemplateActive] = useState(false);
   const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
@@ -470,6 +471,17 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </button>
                     <button 
                       onClick={() => {
+                        setEmailModalMethod('whatsapp');
+                        setFirstContactTemplateActive(true);
+                        setIsEmailModalOpen(true);
+                      }} 
+                      className="flex items-center gap-1.5 p-1 px-2.5 bg-altavik-600 text-white rounded shadow-sm hover:bg-altavik-700 transition-all font-black text-[9px] uppercase tracking-wider active:scale-95"
+                      title="Primer Contacto WhatsApp"
+                    >
+                      <Zap size={10} fill="currentColor" /> Primer Contacto
+                    </button>
+                    <button 
+                      onClick={() => {
                         setEmailModalMethod('email');
                         setIsEmailModalOpen(true);
                       }} 
@@ -869,14 +881,18 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       {isEmailModalOpen && (
         <EmailComposerModal
           isOpen={isEmailModalOpen}
-          onClose={() => setIsEmailModalOpen(false)}
+          onClose={() => {
+            setIsEmailModalOpen(false);
+            setFirstContactTemplateActive(false);
+          }}
           leadId={lead.id}
           leadName={formData.name}
           leadEmail={formData.email}
           leadPhone={formData.phone}
           availableDocs={availableDocs}
-          onSentSuccess={fetchHistory}
           initialMethod={emailModalMethod}
+          initialTemplate={firstContactTemplateActive ? 'first_contact' : undefined}
+          onSentSuccess={fetchHistory}
         />
       )}
 
