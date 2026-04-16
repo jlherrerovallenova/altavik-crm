@@ -102,7 +102,7 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-white font-sans text-slate-900 overflow-hidden">
+    <div className="flex h-screen bg-transparent font-sans text-slate-900 overflow-hidden">
       <ConnectionStatus />
 
       {/* Panel de depuración ultra-intrusivo para ver qué crashea la conexión, oculto en prod */}
@@ -125,7 +125,7 @@ export default function MainLayout() {
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl 
+        fixed inset-y-0 left-0 z-40 w-64 glass-card bg-slate-900/95 text-slate-300 flex flex-col shadow-2xl border-r border-white/5
         transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
@@ -186,9 +186,9 @@ export default function MainLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shadow-sm z-40 relative flex-shrink-0">
+        <header className="h-20 glass-card bg-white/60 backdrop-blur-md border-b border-white/40 flex items-center justify-between px-4 md:px-8 z-40 relative flex-shrink-0">
           {/* IZQUIERDA: Menú móvil */}
           <div className="flex items-center w-1/3">
             <button
@@ -302,9 +302,8 @@ export default function MainLayout() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto bg-slate-50/30 relative">
-          <div className="max-w-[1720px] mx-auto p-4 md:p-8 pb-10">
-            {/* Pasamos el término de búsqueda a las rutas hijas si fuera necesario */}
+        <div className="flex-1 overflow-auto bg-transparent relative">
+          <div className="p-10 pb-20">
             <Outlet context={{ searchTerm }} />
           </div>
         </div>

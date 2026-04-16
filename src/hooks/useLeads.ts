@@ -1,6 +1,7 @@
 // src/hooks/useLeads.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { useRealtimeSync } from './useRealtimeSync';
 import type { Database } from '../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -21,6 +22,9 @@ interface FetchLeadsParams {
 
 export function useLeads(params: FetchLeadsParams) {
   const { page, pageSize, searchTerm, statusFilter, sourceFilter, sortField = 'created_at', sortDirection = 'desc' } = params;
+  
+  // Sincronización en tiempo real
+  useRealtimeSync('leads', LEADS_QUERY_KEY);
 
   return useQuery({
     queryKey: [...LEADS_QUERY_KEY, params],
@@ -29,11 +33,11 @@ export function useLeads(params: FetchLeadsParams) {
       const to = from + pageSize - 1;
 
       let query = supabase
-        .from('leads' as any)
+        .from('leads')
         .select('*', { count: 'exact' });
 
       // Apply sorting
-      query = query.order(sortField as any, { ascending: sortDirection === 'asc' });
+      query = query.order(sortField as keyof Lead, { ascending: sortDirection === 'asc' });
 
       // Apply search
       if (searchTerm) {
@@ -66,8 +70,8 @@ export function useUpdateLead() {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: LeadUpdate }) => {
       const { data, error } = await supabase
-        .from('leads' as any)
-        .update(updates as any)
+        .from('leads')
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -87,7 +91,7 @@ export function useCreateLead() {
 
   return useMutation({
     mutationFn: async (newLead: LeadInsert) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('leads')
         .insert([newLead])
         .select()
@@ -107,7 +111,7 @@ export function useDeleteLead() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('leads')
         .delete()
         .eq('id', id);

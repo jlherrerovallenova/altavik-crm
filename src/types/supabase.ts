@@ -329,6 +329,47 @@ export interface Database {
           paid_date?: string | null
         }
       }
+      incoming_emails: {
+        Row: {
+          id: string
+          created_at: string
+          subject: string
+          sender_name: string
+          sender_email: string
+          body: string
+          date_received: string
+          is_read: boolean
+          is_processed: boolean
+          tags: string[]
+          lead_id: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          subject: string
+          sender_name: string
+          sender_email: string
+          body: string
+          date_received: string
+          is_read?: boolean
+          is_processed?: boolean
+          tags?: string[]
+          lead_id?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          subject?: string
+          sender_name?: string
+          sender_email?: string
+          body?: string
+          date_received?: string
+          is_read?: boolean
+          is_processed?: boolean
+          tags?: string[]
+          lead_id?: string | null
+        }
+      }
     }
   }
 }

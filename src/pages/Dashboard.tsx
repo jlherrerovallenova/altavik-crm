@@ -29,6 +29,9 @@ import { useDialog } from '../context/DialogContext';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 import FeedbackEmailModal from '../components/leads/FeedbackEmailModal';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
 
 // --- TIPOS ---
 type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
@@ -281,34 +284,36 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+    <div className="h-full flex flex-col space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 relative">
+      
+      {/* DECORATIVE BACKGROUND ELEMENTS */}
+      <div className="absolute top-[-5%] left-[-2%] w-96 h-96 bg-altavik-200/15 rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-indigo-200/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+
       
       {/* HEADER SECTION (Top Bento Row) */}
-      <div className="flex flex-col sm:flex-row justify-between items-end sm:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="p-1.5 bg-altavik-600 rounded-lg shadow-sm">
-              <LayoutDashboard size={20} className="text-white" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
-          </div>
-          <p className="text-slate-500 text-sm font-medium">Resumen comercial de <span className="text-altavik-600">Terravall</span></p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/agenda')}
-            className="group flex items-center gap-2 bg-white text-slate-700 border border-slate-200/60 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-all transform active:scale-95"
-          >
-            <Calendar size={16} className="group-hover:text-altavik-600 transition-colors" /> Nueva Tarea
-          </button>
-          <button
-            onClick={() => navigate('/leads')}
-            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all transform active:scale-95"
-          >
-            <Plus size={18} /> Nuevo Lead
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="Panel de Control"
+        icon={<LayoutDashboard size={24} />}
+        subtitle={
+          <>Resumen comercial de <span className="text-altavik-600 font-bold ml-1">Terravall</span></>
+        }
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/agenda')}
+            >
+              <Calendar size={18} /> Nueva Tarea
+            </Button>
+            <Button
+              onClick={() => navigate('/leads')}
+            >
+              <Plus size={18} /> Nuevo Lead
+            </Button>
+          </>
+        }
+      />
 
       {/* BENTO GRID */}
       <div className="grid grid-cols-12 gap-5 flex-1">
@@ -320,35 +325,42 @@ export default function Dashboard() {
             value={stats.totalLeads.toString()}
             subtitle="Base de datos"
             icon={<Users className="text-slate-900" size={18} />}
-            gradient="from-white to-slate-50"
+            color="slate"
             onClick={() => navigate('/leads')}
           />
         </div>
-        {stats.topSources.map((source, idx) => (
-          <div key={idx} className="col-span-12 md:col-span-4 lg:col-span-3">
-            <StatCard
-              title={`Origen: ${source.name}`}
-              value={source.count.toString()}
-              subtitle={`${source.percentage}% del volumen`}
-              icon={getSourceIcon(source.name)}
-              isTrend={true}
-              trendValue={`+${Math.floor(Math.random() * 8) + 2}%`}
-              onClick={() => navigate(`/leads?source=${encodeURIComponent(source.name)}`)}
-            />
-          </div>
-        ))}
+        {stats.topSources.map((source, idx) => {
+          const colors = ['indigo', 'emerald', 'amber', 'rose'];
+          return (
+            <div key={idx} className="col-span-12 md:col-span-4 lg:col-span-3">
+              <StatCard
+                title={`Origen: ${source.name}`}
+                value={source.count.toString()}
+                subtitle={`${source.percentage}% del volumen`}
+                icon={getSourceIcon(source.name)}
+                isTrend={true}
+                trendValue={`+${Math.floor(Math.random() * 8) + 2}%`}
+                color={colors[idx % colors.length]}
+                onClick={() => navigate(`/leads?source=${encodeURIComponent(source.name)}`)}
+              />
+            </div>
+          );
+        })}
 
         {/* MAIN BENTO: AGENDA WIDGET */}
-        <div className="col-span-12 lg:col-span-8 bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200 shadow-sm flex flex-col overflow-hidden group">
-          <div className="p-6 border-b border-slate-100/50 flex flex-col gap-5">
+        <Card variant="glass" noPadding className="col-span-12 lg:col-span-8 flex flex-col group">
+          <div className="p-8 border-b border-slate-100/80 flex flex-col gap-6">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="font-black text-slate-800 flex items-center gap-2 text-lg">
-                  <Clock size={20} className="text-altavik-500" />
+                <h3 className="font-black text-slate-950 flex items-center gap-2.5 text-xl tracking-tight">
+                  <div className="p-2 bg-altavik-50 rounded-xl">
+                    <Clock size={22} className="text-altavik-600" />
+                  </div>
                   Agenda Comercial
                 </h3>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Seguimiento de acciones pendientes</p>
+                <p className="text-xs text-slate-500 font-bold mt-1.5 ml-1">Seguimiento de acciones prioritarias</p>
               </div>
+
               <button
                 onClick={() => navigate('/agenda')}
                 className="text-[10px] font-black uppercase tracking-wider text-altavik-600 hover:text-altavik-700 transition-all bg-altavik-50 px-4 py-2 rounded-xl border border-altavik-100/50 hover:bg-altavik-100"
@@ -433,13 +445,14 @@ export default function Dashboard() {
               ))
             )}
           </div>
-        </div>
+        </Card>
 
         {/* RIGHT BENTO: SIDEBAR MODULES */}
-        <div className="col-span-12 lg:col-span-4 space-y-5 flex flex-col">
+        <div className="col-span-12 lg:col-span-4 space-y-6 flex flex-col">
           
           {/* RECENT LEADS BENTO */}
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200 shadow-sm flex-1 overflow-hidden flex flex-col">
+          <Card variant="white" noPadding className="flex-1 flex flex-col group">
+
             <div className="p-6 border-b border-slate-100/50 flex justify-between items-center">
               <div>
                 <h3 className="font-black text-slate-800 text-sm tracking-tight flex items-center gap-2">
@@ -473,7 +486,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
 
 
@@ -494,33 +507,86 @@ export default function Dashboard() {
 
 // --- SUBCOMPONENTES ---
 
-function StatCard({ title, value, subtitle, icon, isTrend, trendValue, onClick }: any) {
+function StatCard({ title, value, subtitle, icon, isTrend, trendValue, onClick, color = 'slate' }: any) {
+  const themes: any = {
+    slate: {
+      bg: 'bg-white',
+      border: 'border-slate-200/60',
+      shadow: 'shadow-slate-200/40',
+      iconBg: 'bg-slate-50',
+      iconColor: 'text-slate-600',
+      textMain: 'text-slate-950',
+      accent: 'text-slate-400'
+    },
+    indigo: {
+      bg: 'bg-indigo-50/40',
+      border: 'border-indigo-100',
+      shadow: 'shadow-indigo-500/10',
+      iconBg: 'bg-white shadow-sm',
+      iconColor: 'text-indigo-600',
+      textMain: 'text-indigo-950',
+      accent: 'text-indigo-400'
+    },
+    emerald: {
+      bg: 'bg-emerald-50/40',
+      border: 'border-emerald-100',
+      shadow: 'shadow-emerald-500/10',
+      iconBg: 'bg-white shadow-sm',
+      iconColor: 'text-emerald-600',
+      textMain: 'text-emerald-950',
+      accent: 'text-emerald-400'
+    },
+    amber: {
+      bg: 'bg-amber-50/40',
+      border: 'border-amber-100',
+      shadow: 'shadow-amber-500/10',
+      iconBg: 'bg-white shadow-sm',
+      iconColor: 'text-amber-600',
+      textMain: 'text-amber-950',
+      accent: 'text-amber-400'
+    },
+    rose: {
+      bg: 'bg-rose-50/40',
+      border: 'border-rose-100',
+      shadow: 'shadow-rose-500/10',
+      iconBg: 'bg-white shadow-sm',
+      iconColor: 'text-rose-600',
+      textMain: 'text-rose-950',
+      accent: 'text-rose-400'
+    }
+  };
+
+  const theme = themes[color] || themes.slate;
+
   return (
     <div
       onClick={onClick}
-      className={`bg-white p-5 rounded-3xl border border-slate-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)] transition-all duration-300 flex flex-col justify-between h-full group hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 cursor-pointer overflow-hidden relative active:scale-95`}
+      className={`${theme.bg} p-6 rounded-[2rem] border ${theme.border} shadow-lg ${theme.shadow} transition-all duration-500 flex flex-col justify-between h-full group hover:shadow-2xl hover:-translate-y-1.5 cursor-pointer overflow-hidden relative active:scale-95`}
     >
-      <div className="absolute -right-2 -top-2 w-20 h-20 bg-slate-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700" />
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-100 group-hover:bg-altavik-50 group-hover:border-altavik-100 transition-colors">
+      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      
+      <div className="flex justify-between items-start mb-5 relative z-10">
+        <div className={`p-3 ${theme.iconBg} rounded-2xl border border-transparent group-hover:scale-110 transition-transform duration-500`}>
           {icon}
         </div>
         {isTrend && (
-          <div className="bg-green-50 text-green-600 text-[10px] px-3 py-1 rounded-full font-black flex items-center gap-1 border border-green-100">
-            <ArrowUpRight size={12} /> {trendValue}
+          <div className="bg-white/80 backdrop-blur shadow-sm text-green-600 text-[10px] px-3 py-1.5 rounded-full font-black flex items-center gap-1 border border-green-100">
+            <ArrowUpRight size={12} strokeWidth={3} /> {trendValue}
           </div>
         )}
       </div>
+      
       <div className="relative z-10">
-        <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mb-0.5">{title}</p>
+        <p className={`${theme.accent} font-black text-[10px] uppercase tracking-[0.1em] mb-1`}>{title}</p>
         <div className="flex items-baseline gap-2">
-          <h4 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h4>
-          <span className="text-[10px] text-slate-400 font-semibold">{subtitle}</span>
+          <h4 className={`text-4xl font-black ${theme.textMain} tracking-tighter`}>{value}</h4>
+          <span className={`text-[11px] ${theme.accent} font-bold`}>{subtitle}</span>
         </div>
       </div>
     </div>
   );
 }
+
 
 function TabButton({ label, active, onClick, count, variant }: any) {
   const countColor = variant === 'overdue' ? 'bg-red-500' : variant === 'warning' ? 'bg-orange-500' : 'bg-altavik-500';

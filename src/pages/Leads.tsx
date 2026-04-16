@@ -31,6 +31,9 @@ import { AppNotification } from '../components/AppNotification';
 import { useDocuments } from '../hooks/useDocuments';
 import { useLeads } from '../hooks/useLeads';
 import { CustomSelect, IdealistaIcon } from '../components/Shared';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { PageHeader } from '../components/ui/PageHeader';
 import type { Database } from '../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -238,37 +241,36 @@ export default function Leads() {
   const totalPages = Math.ceil(totalLeads / ITEMS_PER_PAGE);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-full">
+    <>
+      <PageHeader 
+        title="Mis Clientes"
+        icon={<Users strokeWidth={3} size={24} />}
+        subtitle={
+          <>
+            <span className="tabular-nums font-black text-altavik-700">
+              {totalLeads}
+            </span> 
+            prospectos registrados {hasActiveFilters && `(filtrados)`}
+          </>
+        }
+        actions={
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            size="lg"
+          >
+            <UserPlus strokeWidth={3} size={18} /> Nuevo Cliente
+          </Button>
+        }
+      />
 
-      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Clientes</h1>
-            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-                {totalLeads}
-              </span> 
-              prospectos {hasActiveFilters && `(filtrados)`}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-slate-200 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center"
-            >
-              <UserPlus strokeWidth={2.5} size={18} /> <span className="inline">Nuevo Cliente</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-3 items-center bg-white p-3 rounded-xl border border-slate-200">
+      <Card variant="glass" noPadding className="mb-6">
+        <div className="flex flex-col lg:flex-row gap-3 items-center p-3">
           <div className="relative flex-1 w-full group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" strokeWidth={2.5} size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" strokeWidth={2.5} size={18} />
             <input
               type="text"
               placeholder="Buscar por nombre, email o teléfono..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 transition-all outline-none shadow-sm"
+              className="w-full pl-12 pr-4 py-3 bg-white/50 border border-slate-200/50 rounded-xl text-sm focus:ring-4 focus:ring-altavik-500/10 focus:border-altavik-500 transition-all outline-none"
               value={searchTerm}
               onChange={handleSearch}
             />
@@ -315,19 +317,21 @@ export default function Leads() {
             />
 
             {hasActiveFilters && (
-              <button
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={clearFilters}
-                className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0"
+                className="shrink-0 aspect-square p-0 w-11 h-11"
                 title="Limpiar filtros"
               >
-                <FilterX strokeWidth={2.5} size={18} />
-              </button>
+                <FilterX strokeWidth={3} size={20} />
+              </Button>
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px] flex flex-col relative z-10">
+      <Card noPadding className="min-h-[500px] flex flex-col relative z-20">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
             <Loader2 className="animate-spin" size={40} />
@@ -491,7 +495,7 @@ export default function Leads() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       <CreateLeadModal
         isOpen={isCreateModalOpen}
@@ -534,6 +538,6 @@ export default function Leads() {
           onClose={() => setNotification({ ...notification, show: false })}
         />
       )}
-    </div>
+    </>
   );
 }

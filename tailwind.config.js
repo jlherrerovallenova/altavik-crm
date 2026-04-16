@@ -28,7 +28,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
       },
       // Eliminamos los bordes exagerados (4xl) del diseño anterior en los nuevos componentes
     },

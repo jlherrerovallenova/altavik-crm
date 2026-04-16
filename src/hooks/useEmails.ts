@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { useRealtimeSync } from './useRealtimeSync';
 
 export interface IncomingEmail {
   id: string;
@@ -19,6 +20,9 @@ export interface IncomingEmail {
 export const EMAILS_QUERY_KEY = ['incoming_emails'];
 
 export function useEmails() {
+  // Sincronización en tiempo real para correos entrantes
+  useRealtimeSync('incoming_emails', EMAILS_QUERY_KEY);
+
   return useQuery({
     queryKey: EMAILS_QUERY_KEY,
     queryFn: async () => {

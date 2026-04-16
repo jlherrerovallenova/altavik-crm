@@ -1,6 +1,7 @@
 // src/hooks/useAgenda.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { useRealtimeSync } from './useRealtimeSync';
 import type { Database } from '../types/supabase';
 
 // Tipo enriquecido con nombre para mostrar en UI
@@ -13,6 +14,9 @@ type AgendaUpdate = Database['public']['Tables']['agenda']['Update'];
  * Hook para conseguir todas las tareas de la agenda y sus leads anidados
  */
 export function useAgenda() {
+    // Sincronización en tiempo real para toda la agenda
+    useRealtimeSync('agenda', ['agenda']);
+
     return useQuery({
         queryKey: ['agenda'],
         queryFn: async () => {
@@ -59,7 +63,7 @@ export function useUpdateAgendaItem() {
 
     return useMutation({
         mutationFn: async ({ id, updates }: { id: number; updates: AgendaUpdate }) => {
-            const { error } = await (supabase as any)
+            const { error } = await supabase
                 .from('agenda')
                 .update(updates)
                 .eq('id', id);

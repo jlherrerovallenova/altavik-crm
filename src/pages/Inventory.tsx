@@ -26,6 +26,9 @@ import UploadFichasModal from '../components/inventory/UploadFichasModal';
 import { AppNotification } from '../components/AppNotification';
 import { useDialog } from '../context/DialogContext';
 import PaymentFormModal from '../components/inventory/PaymentFormModal';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 interface Property {
   id: string;
@@ -362,32 +365,31 @@ export default function Inventory() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
-      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventario de Viviendas</h1>
-            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-                {filteredProperties.length}
-              </span> 
-              unidades encontradas
-            </p>
-          </div>
-          <div className="flex items-center justify-end gap-3 w-full md:w-auto">
-            <button
-              onClick={handleExportPDF}
-              disabled={loading || isExporting || filteredProperties.length === 0}
-              className="px-5 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95 shrink-0 flex-1 md:flex-none justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Descargar Listado PDF"
-            >
-              {isExporting ? <Loader2 className="animate-spin" size={18} /> : <FileText size={18} />}
-              <span className="inline">{isExporting ? 'Generando...' : 'Exportar PDF'}</span>
-            </button>
-          </div>
-        </div>
+    <>
+      <PageHeader 
+        title="Inventario de Viviendas"
+        icon={<Home size={24} />}
+        subtitle={
+          <>
+            <span className="tabular-nums font-black text-altavik-700">
+              {filteredProperties.length}
+            </span> 
+            unidades encontradas
+          </>
+        }
+        actions={
+          <Button
+            onClick={handleExportPDF}
+            disabled={loading || isExporting || filteredProperties.length === 0}
+            isLoading={isExporting}
+          >
+            <FileText size={18} /> Exportar PDF
+          </Button>
+        }
+      />
 
-        <div className="flex flex-col lg:flex-row gap-3 items-center bg-white p-3 rounded-xl border border-slate-200">
+      <Card variant="glass" noPadding className="mb-6">
+        <div className="flex flex-col lg:flex-row gap-3 items-center p-3">
           <div className="relative flex-1 w-full group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" size={18} />
             <input
@@ -396,7 +398,7 @@ export default function Inventory() {
               id="main-inventory-search"
               spellCheck="false"
               placeholder="Buscar por Nº orden, planta o letra..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 transition-all outline-none shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white/50 border border-slate-200/50 rounded-xl text-sm focus:ring-4 focus:ring-altavik-500/10 focus:border-altavik-500 transition-all outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -473,7 +475,7 @@ export default function Inventory() {
             </button>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Tabla */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
@@ -746,6 +748,6 @@ export default function Inventory() {
           onClose={() => setNotification({ ...notification, show: false })}
         />
       )}
-    </div>
+    </>
   );
 }
