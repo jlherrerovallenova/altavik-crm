@@ -252,7 +252,7 @@ export default function Leads() {
             <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
               {totalLeads}
             </span> 
-            prospectos registrados {hasActiveFilters && `(filtrados)`}
+            contactos registrados {hasActiveFilters && `(filtrados)`}
           </p>
         }
         actions={
@@ -261,7 +261,7 @@ export default function Leads() {
             size="lg"
           >
             <Plus size={18} strokeWidth={3} />
-            Nuevo Lead
+            Nuevo Contacto
           </Button>
         }
       />
@@ -458,7 +458,7 @@ export default function Leads() {
         {totalLeads > 0 && (
           <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between">
             <span className="text-xs text-slate-500 font-medium text-center md:text-left">
-              Mostrando {leads.length} de {totalLeads} leads
+              Mostrando {leads.length} de {totalLeads} contactos
             </span>
 
             <div className="flex items-center gap-1 md:gap-2">

@@ -221,7 +221,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                 <div className="w-10 h-10 rounded-xl bg-altavik-50 text-altavik-600 flex items-center justify-center">
                     <Plus size={20} />
                 </div>
-                <h2 className="text-xl font-bold text-[#1e293b]">Nuevo Cliente</h2>
+                <h2 className="text-xl font-bold text-[#1e293b]">Nuevo Contacto</h2>
             </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
             <X size={24} />
@@ -357,7 +357,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
               disabled={loading}
               className="flex-1 px-4 py-3 bg-[#334155] text-white font-bold rounded-xl shadow-lg hover:bg-[#1e293b] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Guardar Cliente'}
+              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Guardar Contacto'}
             </button>
           </div>
         </form>

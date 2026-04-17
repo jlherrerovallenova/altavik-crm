@@ -307,7 +307,7 @@ export default function Dashboard() {
             <Button
               onClick={() => navigate('/leads')}
             >
-              <Plus size={18} /> Nuevo Lead
+              <Plus size={18} /> Nuevo Contacto
             </Button>
           </>
         }
@@ -391,7 +391,7 @@ export default function Dashboard() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
-                  placeholder="Buscar lead o tarea..."
+                  placeholder="Buscar contacto o tarea..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-2.5 bg-slate-100/30 border border-slate-200/50 rounded-2xl text-xs font-medium focus:outline-none focus:ring-4 focus:ring-altavik-500/5 focus:bg-white transition-all text-slate-700"
@@ -454,7 +454,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="font-black text-slate-800 text-sm tracking-tight flex items-center gap-2">
                   <TrendingUp size={16} className="text-green-500" />
-                  Nuevos Prospectos
+                  Nuevos Contactos
                 </h3>
                 <p className="text-[10px] text-slate-400 font-medium">Últimas entradas al sistema</p>
               </div>

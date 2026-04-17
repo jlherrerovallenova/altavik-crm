@@ -364,8 +364,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
   const handleDelete = async () => {
     const confirmed = await showConfirm({
-      title: 'Eliminar Cliente',
-      message: '¿Estás seguro de que deseas eliminar este cliente y TODA su agenda asociada? Esta acción es irreversible.',
+      title: 'Eliminar Contacto',
+      message: '¿Estás seguro de que deseas eliminar este contacto y TODA su agenda asociada? Esta acción es irreversible.',
       confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar'
     });
@@ -457,40 +457,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Ficha del Cliente</span>
-                  <div className="flex items-center gap-1.5 ml-1">
-                    <button 
-                      onClick={() => {
-                        setEmailModalMethod('whatsapp');
-                        setIsEmailModalOpen(true);
-                      }} 
-                      className="p-1 px-1.5 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
-                      title="Enviar por WhatsApp"
-                    >
-                      <MessageCircle size={10} strokeWidth={3} />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setEmailModalMethod('whatsapp');
-                        setFirstContactTemplateActive(true);
-                        setIsEmailModalOpen(true);
-                      }} 
-                      className="flex items-center gap-1.5 p-1 px-2.5 bg-altavik-600 text-white rounded shadow-sm hover:bg-altavik-700 transition-all font-black text-[9px] uppercase tracking-wider active:scale-95"
-                      title="Primer Contacto WhatsApp"
-                    >
-                      <Zap size={10} fill="currentColor" /> Primer Contacto
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setEmailModalMethod('email');
-                        setIsEmailModalOpen(true);
-                      }} 
-                      className="p-1 px-1.5 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 transition-colors"
-                      title="Enviar por Email"
-                    >
-                      <Mail size={10} strokeWidth={3} />
-                    </button>
-                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">Ficha del Contacto</span>
                 </div>
               </div>
             </div>
@@ -560,7 +527,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   {/* DATOS DEL LEAD */}
                   <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
-                      <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CLIENTE
+                      <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-3">
@@ -596,7 +563,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
                       <div className="space-y-1 group">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Lead</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Contacto</label>
                         <CustomSelect
                           value={formData.source}
                           onChange={(val) => setFormData({ ...formData, source: val })}
@@ -642,67 +609,55 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </div>
                   </section>
 
+                    {/* ACCIONES DE CONTACTO Y FEEDBACK (RESPONSIVE: 2x2 EN MÓVIL, LÍNEA ÚNICA EN ESCRITORIO) */}
+                    <section className="lg:col-start-1 lg:col-end-13 lg:row-start-2 mt-2">
+                      <div className="bg-white/80 backdrop-blur-md rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-xl p-2 sm:p-3 grid grid-cols-2 lg:flex items-center justify-between gap-2 sm:gap-3">
+                        
+                        {/* WhatsApp (Sólido Verde) */}
+                        <button 
+                          onClick={() => { setEmailModalMethod('whatsapp'); setIsEmailModalOpen(true); }}
+                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-200/50 group"
+                        >
+                          <MessageCircle size={18} strokeWidth={2.5} className="shrink-0" />
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">DOC. WHATSAPP</span>
+                        </button>
 
-                  {/* FEEDBACK & OPINIÓN */}
-                  {(['visiting', 'proposal', 'negotiation', 'closed'].includes(formData.status) || sentHistory.length > 0 || tasks.some(t => t.type === 'Visita' && t.completed) || lead.feedback_rating) && (
-                    <section className={`lg:col-start-1 lg:col-end-8 lg:row-start-2 rounded-2xl p-6 border shadow-sm transition-all hover:shadow-md animate-in slide-in-from-bottom-2 duration-300 flex flex-col justify-center ${
-                      lead.feedback_rating === 'positive' ? 'bg-emerald-50 border-emerald-100' :
-                      lead.feedback_rating === 'neutral' ? 'bg-amber-50 border-amber-100' :
-                      lead.feedback_rating === 'negative' ? 'bg-slate-50 border-slate-200' :
-                      'bg-gradient-to-br from-altavik-50 to-emerald-50 border-altavik-100'
-                    }`}>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-xl shadow-sm border ${
-                            lead.feedback_rating === 'positive' ? 'bg-white text-pink-500 border-pink-100' :
-                            lead.feedback_rating === 'neutral' ? 'bg-white text-amber-500 border-amber-100' :
-                            lead.feedback_rating === 'negative' ? 'bg-white text-slate-400 border-slate-200' :
-                            'bg-white text-altavik-600 border-altavik-100'
-                          }`}>
-                            {lead.feedback_rating === 'positive' ? <Heart size={20} /> :
-                             lead.feedback_rating === 'neutral' ? <HelpCircle size={20} /> :
-                             lead.feedback_rating === 'negative' ? <XCircle size={20} /> :
-                             <MessageSquareQuote size={20} />}
-                          </div>
-                          <div>
-                            <h3 className={`text-xs font-black uppercase tracking-widest ${
-                              lead.feedback_rating === 'positive' ? 'text-emerald-800' :
-                              lead.feedback_rating === 'neutral' ? 'text-amber-800' :
-                              lead.feedback_rating === 'negative' ? 'text-slate-700' :
-                              'text-altavik-800'
-                            }`}>
-                              {lead.feedback_rating === 'positive' ? '¡Opinión Muy Positiva!' :
-                               lead.feedback_rating === 'neutral' ? 'Tiene algunas dudas' :
-                               lead.feedback_rating === 'negative' ? 'No es lo que buscaba' :
-                               'Encuesta de Opinión'}
-                            </h3>
-                            <p className={`text-[10px] font-bold uppercase tracking-tight mt-0.5 ${
-                              lead.feedback_rating ? 'text-slate-500' : 'text-altavik-600/70'
-                            }`}>
-                              {lead.feedback_rating 
-                                ? `Recibida el ${new Date(lead.feedback_responded_at!).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })}` 
-                                : lead.feedback_sent 
-                                  ? `Enviada el ${new Date(lead.feedback_sent_at!).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })}` 
-                                  : 'Disponible para enviar'}
-                            </p>
-                          </div>
-                        </div>
+                        {/* Email (Sólido Azul) */}
+                        <button 
+                          onClick={() => { setEmailModalMethod('email'); setIsEmailModalOpen(true); }}
+                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200/50 group"
+                        >
+                          <Mail size={18} strokeWidth={2.5} className="shrink-0" />
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">DOC. EMAIL</span>
+                        </button>
+
+                        {/* Primer Contacto */}
+                        <button 
+                          onClick={() => { setEmailModalMethod('whatsapp'); setFirstContactTemplateActive(true); setIsEmailModalOpen(true); }}
+                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200 group"
+                        >
+                          <Zap size={16} fill="currentColor" className="text-amber-400 shrink-0" />
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">1er CONTACTO</span>
+                        </button>
+
+                        {/* Opinión */}
                         <button 
                           onClick={() => setIsFeedbackModalOpen(true)}
-                          className={`px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto ${
+                          className={`flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-lg ${
                             lead.feedback_rating
-                            ? 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                             : lead.feedback_sent 
-                              ? 'bg-white text-altavik-600 border border-altavik-200 hover:bg-altavik-50' 
+                              ? 'bg-amber-50 text-amber-700 border border-amber-100 shadow-amber-100' 
                               : 'bg-altavik-600 text-white hover:bg-altavik-700 shadow-altavik-200'
                           }`}
                         >
-                          <Send size={12} />
-                          {lead.feedback_rating ? 'Enviar de nuevo' : lead.feedback_sent ? 'Reenviar Encuesta' : 'Enviar Encuesta VIP'}
+                          <Send size={16} className="shrink-0" />
+                          <span className="whitespace-nowrap">ENCUESTA OPINIÓN</span>
                         </button>
+
                       </div>
                     </section>
-                  )}
+
                   {/* AGENDA DE ACCIONES */}
                   <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
@@ -740,20 +695,20 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
-                              <input
-                                type="time"
-                                value={newTask.time}
-                                onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                                className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
                               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
                               <input
                                 type="date"
                                 value={newTask.date}
                                 onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
+                              <input
+                                type="time"
+                                value={newTask.time}
+                                onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
                                 className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
                               />
                             </div>

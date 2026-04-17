@@ -107,7 +107,7 @@ export default function Discovery() {
           const names = duplicates.map(d => d.name).join(', ');
           const proceed = await showConfirm({
             title: 'Contacto Existente Detectado',
-            message: `Gemini ha encontrado que los datos de este lead coinciden con: ${names}. ¿Quieres marcar el correo como procesado de todas formas?`,
+            message: `Gemini ha encontrado que los datos de este contacto coinciden con: ${names}. ¿Quieres marcar el correo como procesado de todas formas?`,
             confirmText: 'Sí, marcar como procesado',
             cancelText: 'Cancelar'
           });
@@ -144,7 +144,7 @@ export default function Discovery() {
 
       setNotification({
         show: true,
-        title: 'Lead Capturado',
+        title: 'Contacto Capturado',
         message: `${extracted.name} ha sido añadido al CRM.`,
         type: 'success'
       });
@@ -168,7 +168,7 @@ export default function Discovery() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
       <PageHeader 
-        title="Lead Discovery"
+        title="Descubrimiento de Contactos"
         icon={<Sparkles className="text-white" strokeWidth={3} size={24} />}
         subtitle="Correos detectados de potenciales clientes que aún no tienes en tu base de datos."
         actions={
@@ -200,7 +200,7 @@ export default function Discovery() {
               <CheckCircle2 size={32} />
             </div>
             <h3 className="text-lg font-bold text-slate-800 mb-2">¡Todo al día!</h3>
-            <p className="text-sm text-slate-500 max-w-sm mx-auto">No hay correos en tu bandeja de entrada que no estén ya registrados como leads en el CRM.</p>
+            <p className="text-sm text-slate-500 max-w-sm mx-auto">No hay correos en tu bandeja de entrada que no estén ya registrados como contactos en el CRM.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -246,7 +246,7 @@ export default function Discovery() {
                         {processingId === lead.emailId ? (
                            <>Procesando... <Loader2 size={14} className="animate-spin" /></>
                         ) : (
-                           <><UserPlus size={16} /> Capturar Lead</>
+                           <><UserPlus size={16} /> Capturar Contacto</>
                         )}
                       </button>
                     </td>
