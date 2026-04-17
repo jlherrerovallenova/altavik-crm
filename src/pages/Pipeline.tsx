@@ -7,9 +7,12 @@ import {
   Smartphone,
   Users,
   Phone,
-  HelpCircle
+  HelpCircle,
+  TrendingUp
 } from 'lucide-react';
 import { useLeads, useUpdateLead } from '../hooks/useLeads';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 import type { Database } from '../types/supabase';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
 
@@ -107,23 +110,19 @@ export default function Pipeline() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] animate-in fade-in duration-500 max-w-full w-full gap-6">
-      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Fases de Venta</h1>
-            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-                {leads.length}
-              </span> 
-              clientes activos (arrastra las tarjetas para avanzar)
-            </p>
-          </div>
-          <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
-            {/* Empty space matching the height of action buttons in other views */}
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col h-[calc(100vh-100px)] animate-in fade-in duration-500 max-w-[1600px] mx-auto w-full gap-6">
+      <PageHeader 
+        title="Pipeline de Ventas"
+        icon={<TrendingUp className="text-white" strokeWidth={3} size={24} />}
+        subtitle={
+          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+              {leads.length}
+            </span> 
+            clientes activos (arrastra las tarjetas para avanzar)
+          </p>
+        }
+      />
 
       <div className="flex-1 flex gap-1.5 md:gap-2 overflow-hidden pb-4">
         {COLUMNS.map(column => {

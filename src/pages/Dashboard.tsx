@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -22,7 +22,8 @@ import {
   Send,
   Heart,
   HelpCircle,
-  XCircle
+  XCircle,
+  User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -265,15 +266,17 @@ export default function Dashboard() {
     const lower = sourceName.toLowerCase();
     if (lower.includes('idealista')) {
       return (
-        <div className="w-5 h-5 bg-[#deff30] flex items-center justify-center rounded-md shadow-sm border border-black/5">
-          <span className="text-[10px] font-black text-slate-800 leading-none">id</span>
+        <div className="w-[22px] h-[22px] bg-slate-100 flex items-center justify-center rounded-md border border-slate-200">
+          <span translate="no" className="text-[9px] font-black text-slate-500 leading-none select-none">ID</span>
         </div>
       );
     }
-    if (lower.includes('web')) return <Globe className="text-blue-500" size={16} />;
-    if (lower.includes('insta')) return <Smartphone className="text-pink-500" size={16} />;
-    return <Users className="text-slate-400" size={16} />;
+    if (lower.includes('web')) return <Globe />;
+    if (lower.includes('insta')) return <Smartphone />;
+    if (lower.includes('referido')) return <Users />;
+    return <Target />;
   };
+
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -284,17 +287,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-2 duration-700 relative">
-      
-      {/* DECORATIVE BACKGROUND ELEMENTS */}
-      <div className="absolute top-[-5%] left-[-2%] w-96 h-96 bg-altavik-200/15 rounded-full blur-[100px] pointer-events-none -z-10" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-indigo-200/10 rounded-full blur-[120px] pointer-events-none -z-10" />
-
-      
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500 relative">
       {/* HEADER SECTION (Top Bento Row) */}
+
       <PageHeader 
         title="Panel de Control"
-        icon={<LayoutDashboard size={24} />}
+        icon={<LayoutDashboard size={24} strokeWidth={3} />}
         subtitle={
           <>Resumen comercial de <span className="text-altavik-600 font-bold ml-1">Terravall</span></>
         }
@@ -319,12 +317,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-12 gap-5 flex-1">
         
         {/* STATS AREA (Top Row Bento) */}
-        <div className="col-span-12 lg:col-span-3">
+        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
           <StatCard
-            title="Leads Totales"
+            title="TOTAL CLIENTES"
             value={stats.totalLeads.toString()}
-            subtitle="Base de datos"
-            icon={<Users className="text-slate-900" size={18} />}
+            subtitle="Base histórica completa"
+            icon={<Users />}
             color="slate"
             onClick={() => navigate('/leads')}
           />
@@ -332,20 +330,19 @@ export default function Dashboard() {
         {stats.topSources.map((source, idx) => {
           const colors = ['indigo', 'emerald', 'amber', 'rose'];
           return (
-            <div key={idx} className="col-span-12 md:col-span-4 lg:col-span-3">
+            <div key={idx} className="col-span-12 sm:col-span-6 lg:col-span-3">
               <StatCard
-                title={`Origen: ${source.name}`}
+                title={`ORIGEN: ${source.name.toUpperCase()}`}
                 value={source.count.toString()}
-                subtitle={`${source.percentage}% del volumen`}
+                subtitle={`${source.percentage}% del total de registros`}
                 icon={getSourceIcon(source.name)}
-                isTrend={true}
-                trendValue={`+${Math.floor(Math.random() * 8) + 2}%`}
                 color={colors[idx % colors.length]}
                 onClick={() => navigate(`/leads?source=${encodeURIComponent(source.name)}`)}
               />
             </div>
           );
         })}
+
 
         {/* MAIN BENTO: AGENDA WIDGET */}
         <Card variant="glass" noPadding className="col-span-12 lg:col-span-8 flex flex-col group">
@@ -472,8 +469,8 @@ export default function Dashboard() {
                   onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)}
                   className="flex items-center gap-3 p-3 hover:bg-slate-100/50 rounded-2xl transition-all cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-slate-700 font-black text-xs border border-slate-200 group-hover:scale-105 group-hover:border-altavik-200 transition-all duration-300">
-                    {lead.name.substring(0, 2).toUpperCase()}
+                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:scale-105 group-hover:border-altavik-200 transition-all duration-300">
+                    <User size={18} strokeWidth={2.5} />
                   </div>
                   <div className="overflow-hidden">
                     <p className="text-[13px] font-bold text-slate-800 tracking-tight group-hover:text-altavik-700 transition-colors">{lead.name}</p>
@@ -499,7 +496,11 @@ export default function Dashboard() {
             />
           )}
 
-        </div>
+      </div>
+      
+      {/* DECORATIVE BACKGROUND ELEMENTS */}
+      <div className="absolute top-[-5%] left-[-2%] w-96 h-96 bg-altavik-200/15 rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-indigo-200/10 rounded-full blur-[120px] pointer-events-none -z-10" />
       </div>
     </div>
   );
@@ -508,84 +509,39 @@ export default function Dashboard() {
 // --- SUBCOMPONENTES ---
 
 function StatCard({ title, value, subtitle, icon, isTrend, trendValue, onClick, color = 'slate' }: any) {
-  const themes: any = {
-    slate: {
-      bg: 'bg-white',
-      border: 'border-slate-200/60',
-      shadow: 'shadow-slate-200/40',
-      iconBg: 'bg-slate-50',
-      iconColor: 'text-slate-600',
-      textMain: 'text-slate-950',
-      accent: 'text-slate-400'
-    },
-    indigo: {
-      bg: 'bg-indigo-50/40',
-      border: 'border-indigo-100',
-      shadow: 'shadow-indigo-500/10',
-      iconBg: 'bg-white shadow-sm',
-      iconColor: 'text-indigo-600',
-      textMain: 'text-indigo-950',
-      accent: 'text-indigo-400'
-    },
-    emerald: {
-      bg: 'bg-emerald-50/40',
-      border: 'border-emerald-100',
-      shadow: 'shadow-emerald-500/10',
-      iconBg: 'bg-white shadow-sm',
-      iconColor: 'text-emerald-600',
-      textMain: 'text-emerald-950',
-      accent: 'text-emerald-400'
-    },
-    amber: {
-      bg: 'bg-amber-50/40',
-      border: 'border-amber-100',
-      shadow: 'shadow-amber-500/10',
-      iconBg: 'bg-white shadow-sm',
-      iconColor: 'text-amber-600',
-      textMain: 'text-amber-950',
-      accent: 'text-amber-400'
-    },
-    rose: {
-      bg: 'bg-rose-50/40',
-      border: 'border-rose-100',
-      shadow: 'shadow-rose-500/10',
-      iconBg: 'bg-white shadow-sm',
-      iconColor: 'text-rose-600',
-      textMain: 'text-rose-950',
-      accent: 'text-rose-400'
-    }
+  const barColors: any = {
+    slate: 'bg-blue-500',
+    indigo: 'bg-indigo-600',
+    emerald: 'bg-emerald-500',
+    amber: 'bg-orange-500',
+    rose: 'bg-rose-500'
   };
 
-  const theme = themes[color] || themes.slate;
+  const barColor = barColors[color] || barColors.slate;
 
   return (
     <div
       onClick={onClick}
-      className={`${theme.bg} p-6 rounded-[2rem] border ${theme.border} shadow-lg ${theme.shadow} transition-all duration-500 flex flex-col justify-between h-full group hover:shadow-2xl hover:-translate-y-1.5 cursor-pointer overflow-hidden relative active:scale-95`}
+      className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm transition-all duration-300 flex flex-col justify-between h-full min-h-[140px] group hover:shadow-md hover:-translate-y-1 cursor-pointer overflow-hidden relative active:scale-95"
     >
-      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      
-      <div className="flex justify-between items-start mb-5 relative z-10">
-        <div className={`p-3 ${theme.iconBg} rounded-2xl border border-transparent group-hover:scale-110 transition-transform duration-500`}>
-          {icon}
-        </div>
-        {isTrend && (
-          <div className="bg-white/80 backdrop-blur shadow-sm text-green-600 text-[10px] px-3 py-1.5 rounded-full font-black flex items-center gap-1 border border-green-100">
-            <ArrowUpRight size={12} strokeWidth={3} /> {trendValue}
-          </div>
-        )}
-      </div>
-      
-      <div className="relative z-10">
-        <p className={`${theme.accent} font-black text-[10px] uppercase tracking-[0.1em] mb-1`}>{title}</p>
-        <div className="flex items-baseline gap-2">
-          <h4 className={`text-4xl font-black ${theme.textMain} tracking-tighter`}>{value}</h4>
-          <span className={`text-[11px] ${theme.accent} font-bold`}>{subtitle}</span>
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{title}</span>
+        <div className="text-slate-400 group-hover:text-slate-600 transition-colors">
+          {icon && React.cloneElement(icon as React.ReactElement, { size: 22, strokeWidth: 1.5 })}
         </div>
       </div>
+      
+      <div>
+        <h4 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-1">{value}</h4>
+        <p className="text-[11px] text-slate-500 font-medium mt-3">{subtitle}</p>
+      </div>
+
+      {/* Bottom accent bar */}
+      <div className={`absolute bottom-0 left-0 right-0 h-1 ${barColor} opacity-90`} />
     </div>
   );
 }
+
 
 
 function TabButton({ label, active, onClick, count, variant }: any) {

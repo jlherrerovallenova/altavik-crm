@@ -78,10 +78,39 @@ export default function EmailComposerModal({
     return hour < 14 ? 'Buenos días' : 'Buenas tardes';
   };
 
+  const detectGender = (name: string): 'interesado' | 'interesada' => {
+    if (!name) return 'interesado';
+    const firstName = name.split(' ')[0].toLowerCase().trim();
+    
+    // Nombres femeninos comunes que NO terminan en 'a'
+    const femaleExceptions = [
+      'pilar', 'carmen', 'isabel', 'mar', 'belen', 'belén', 'raquel', 'ines', 'inés', 
+      'beatriz', 'consuelo', 'lourdes', 'mercedes', 'dolores', 'concepcion', 'concepción', 
+      'asuncion', 'asunción', 'rosario', 'virtudes', 'amparo', 'remedios'
+    ];
+    // Nombres masculinos comunes que terminan en 'a' (ej. Borja)
+    const maleExceptions = ['borja', 'luca', 'bautista'];
+
+    if (femaleExceptions.includes(firstName)) return 'interesada';
+    if (maleExceptions.includes(firstName)) return 'interesado';
+    
+    // Heurística básica: termina en 'a' -> femenino
+    if (firstName.endsWith('a')) return 'interesada';
+    
+    return 'interesado';
+  };
+
   const getFirstContactTemplate = () => {
     const greeting = getGreeting();
     const firstName = leadName.split(' ')[0];
-    return `${greeting}, ${firstName}\nMi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto con nosotros interesado en la promoción inmobiliaria ALTAVIK en la calle Isaac Pera 20 de Arroyo de la Encomienda.\n\n¿En qué tipología de vivienda está interesado?\n◽ Bajo\n◽ Vivienda altura intermedia\n◽ Ático\n\n¿Qué número de dormitorios necesita?\n◽ 2 dormitorios\n◽ 3 dormitorios`;
+    const genderedInterest = detectGender(leadName);
+    
+    return `${greeting}, ${firstName}
+Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto con nosotros ${genderedInterest} en la promoción inmobiliaria ALTAVIK en la calle Isaac Peral 20 de Arroyo de la Encomienda.
+
+¿En qué tipología de vivienda está ${genderedInterest}? (Bajo, Vivienda altura intermedia, Ático)
+
+¿Qué número de dormitorios necesita?`;
   };
 
   const [message, setMessage] = useState(
@@ -91,23 +120,7 @@ export default function EmailComposerModal({
   );
 
   const applyFirstContactTemplate = () => {
-    const greeting = getGreeting();
-    // Extraemos el primer nombre por cortesía
-    const firstName = leadName.split(' ')[0];
-    
-    const template = `${greeting}, ${firstName}
-Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto con nosotros interesado en la promoción inmobiliaria ALTAVIK en la calle Isaac Pera 20 de Arroyo de la Encomienda.
-
-¿En qué tipología de vivienda está interesado?
-◽ Bajo
-◽ Vivienda altura intermedia
-◽ Ático
-
-¿Qué número de dormitorios necesita?
-◽ 2 dormitorios
-◽ 3 dormitorios`;
-
-    setMessage(template);
+    setMessage(getFirstContactTemplate());
     if (method === 'email') {
       setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
     }

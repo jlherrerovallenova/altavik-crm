@@ -15,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   Euro,
-  PencilRuler
+  PencilRuler,
+  Plus,
+  Download,
+  FileDown
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -365,17 +368,17 @@ export default function Inventory() {
   };
 
   return (
-    <>
+    <div className="max-w-[1600px] mx-auto space-y-6">
       <PageHeader 
         title="Inventario de Viviendas"
-        icon={<Home size={24} />}
+        icon={<Home size={24} strokeWidth={3} />}
         subtitle={
-          <>
-            <span className="tabular-nums font-black text-altavik-700">
+          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
               {filteredProperties.length}
             </span> 
             unidades encontradas
-          </>
+          </p>
         }
         actions={
           <Button
@@ -748,6 +751,6 @@ export default function Inventory() {
           onClose={() => setNotification({ ...notification, show: false })}
         />
       )}
-    </>
+    </div>
   );
 }

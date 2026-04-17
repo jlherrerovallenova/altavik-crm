@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,10 +11,15 @@
     --brand-secondary: #3a516b;
     --brand-accent: #f0f4f8;
     
-    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+    font-family: 'Outfit', sans-serif;
+    font-feature-settings: "cv11", "ss01";
     color-scheme: light;
     background-color: #f8fafc;
     color: #0f172a;
+  }
+
+  * {
+    font-family: 'Outfit', sans-serif !important;
   }
 
   body {
@@ -23,12 +28,14 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     background-image: 
       radial-gradient(at 0% 0%, rgba(107, 148, 185, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 0%, rgba(58, 81, 107, 0.03) 0px, transparent 50%);
     background-attachment: fixed;
   }
 }
+
 
 @layer components {
   .glass-card {

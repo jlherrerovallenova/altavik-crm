@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Mail, MailOpen, Star, Trash, Wand2, Search, Filter, MoreVertical, Reply, CheckCircle2, AlertCircle, Loader2, Send } from 'lucide-react';
 import { extractLeadDataFromEmail, type GeminiExtractedLead } from '../services/geminiService';
@@ -7,6 +6,8 @@ import { useEmails, useUpdateEmail, type IncomingEmail } from '../hooks/useEmail
 import { AppNotification } from '../components/AppNotification';
 import { supabase } from '../lib/supabase';
 import { useDialog } from '../context/DialogContext';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 
 export default function Inbox() {
   const { data: emails = [], isLoading } = useEmails();
@@ -185,41 +186,53 @@ export default function Inbox() {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      
-      {/* LEFT COLUMN: Lista de Correos */}
-      <div className="w-1/3 min-w-[320px] max-w-[400px] border-r border-slate-200 flex flex-col bg-slate-50/50">
-        
-        <div className="p-4 border-b border-slate-200 bg-white">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-slate-800 tracking-tight">Bandeja de Entrada</h2>
-            <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
-              <button 
-                onClick={() => setFilterType('all')}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${filterType === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Todos
-              </button>
-              <button 
-                onClick={() => setFilterType('leads')}
-                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${filterType === 'leads' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <Wand2 size={12} />
-                Leads
-              </button>
+    <div className="flex flex-col h-[calc(100vh-100px)] gap-6 max-w-[1600px] mx-auto w-full">
+      <PageHeader 
+        title="Bandeja de Entrada"
+        icon={<Mail className="text-white" strokeWidth={3} size={24} />}
+        subtitle={
+          <div className="flex bg-white/50 backdrop-blur rounded-xl border border-slate-200/50 overflow-hidden p-0.5 gap-0.5 mt-2">
+            <button 
+              onClick={() => setFilterType('all')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterType === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              Todos
+            </button>
+            <button 
+              onClick={() => setFilterType('leads')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${filterType === 'leads' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Wand2 size={12} />
+              Leads
+            </button>
+          </div>
+        }
+        actions={
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                type="text" 
+                placeholder="Buscar correos..." 
+                className="pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-altavik-500/20 outline-none text-slate-700 w-64 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Buscar correos..." 
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all outline-none text-slate-700"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        }
+      />
+
+      <div className="flex-1 flex bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        
+        {/* LEFT COLUMN: Lista de Correos */}
+        <div className="w-1/3 min-w-[320px] max-w-[400px] border-r border-slate-200 flex flex-col bg-slate-50/50">
+          
+          <div className="p-4 border-b border-slate-200 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">Correos</h2>
+            </div>
           </div>
-        </div>
 
         <div className="flex-1 overflow-y-auto w-full custom-scrollbar">
           {isLoading ? (
@@ -440,5 +453,6 @@ export default function Inbox() {
         )}
       </div>
     </div>
+  </div>
   );
 }

@@ -71,7 +71,7 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] animate-in zoom-in-95 duration-300">
+      <div className="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] animate-in zoom-in-95 duration-300">
         
         {/* Header */}
         <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -182,7 +182,8 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
               <p className="text-slate-400 font-bold">Cargando inventario...</p>
             </div>
           ) : filteredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
               {filteredProperties.map(p => {
                 const isSelected = selectedIds.includes(p.id);
                 const isAlreadyIn = alreadySelected.includes(p.id);

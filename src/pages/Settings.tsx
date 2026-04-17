@@ -1,5 +1,6 @@
 // src/pages/Settings.tsx
 import React, { useState, useEffect } from 'react';
+import { PageHeader } from '../components/ui/PageHeader';
 import {
   Save,
   FileText,
@@ -397,22 +398,11 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
-      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Configuración del Sistema</h1>
-            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1 -ml-1">
-              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100 opacity-0 select-none pointer-events-none w-0 overflow-hidden p-0 m-0">
-                0
-              </span> 
-              <span className="ml-1">Panel central de administración y ajustes globales.</span>
-            </p>
-          </div>
-          <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
-             {/* Espacio reservado para igualar coords */}
-          </div>
-        </div>
-      </div>
+      <PageHeader 
+        title="Configuración del Sistema"
+        icon={<SettingsIcon className="text-white" strokeWidth={3} size={24} />}
+        subtitle="Panel central de administración y ajustes globales para la gestión del CRM."
+      />
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Navegación Lateral (Sidebar) */}

@@ -1,5 +1,7 @@
 // src/pages/Stats.tsx
 import { useState, useEffect } from 'react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 import { 
   XAxis, 
   YAxis, 
@@ -218,49 +220,49 @@ export default function Stats() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
-      <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Estadísticas y Análisis</h1>
-            <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-              <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-                {summaryStats.totalLeads}
-              </span> 
-              clientes analizados
-            </p>
-          </div>
-          
-          <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
+      <PageHeader 
+        title="Estadísticas y Análisis"
+        icon={<PieIcon className="text-white" strokeWidth={3} size={24} />}
+        subtitle={
+          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+              {summaryStats.totalLeads}
+            </span> 
+            clientes analizados
+          </p>
+        }
+        actions={
+          <div className="flex items-center gap-3">
             <select 
               value={timeRange} 
               onChange={(e) => setTimeRange(e.target.value as any)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-altavik-500/20 shadow-sm cursor-pointer"
+              className="bg-white/50 backdrop-blur border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-altavik-500/20 shadow-sm cursor-pointer transition-all"
             >
               <option value="6m">Últimos 6 meses</option>
               <option value="12m">Últimos 12 meses</option>
               <option value="all">Histórico total</option>
             </select>
-            <button 
+            <Button 
+              variant="secondary"
               onClick={handleDownloadPDF}
               disabled={loading || rawLeads.length === 0}
-              className="bg-white border border-slate-200 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-bold shadow-sm active:scale-95"
-              title="Descargar Informe PDF (Horizontal)"
+              title="Descargar Informe PDF"
             >
               <FileText size={18} className="text-red-500" />
               PDF
-            </button>
-            <button 
+            </Button>
+            <Button 
+              variant="secondary"
               onClick={handleDownload}
               disabled={loading || rawLeads.length === 0}
-              className="bg-white border border-slate-200 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-bold shadow-sm active:scale-95"
               title="Descargar CSV"
             >
               <Download size={18} className="text-altavik-500" />
               CSV
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* KPIs Principales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

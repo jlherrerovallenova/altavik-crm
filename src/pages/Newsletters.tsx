@@ -1,5 +1,7 @@
 // src/pages/Newsletters.tsx
 import { useState, useEffect } from 'react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Loader2, Plus, Mail, Clock, Send, Edit, Copy, Trash2 } from 'lucide-react';
@@ -132,29 +134,26 @@ export default function Newsletters() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
-            <div className="flex flex-col gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sticky top-0 z-30">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Campañas de Email</h1>
-                        <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
-                            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
-                                {newsletters.length}
-                            </span> 
-                            campañas creadas
-                        </p>
-                    </div>
-                    
-                    <div className="flex items-center justify-end gap-3 w-full md:w-auto h-[48px]">
-                        <button
-                            onClick={handleCreate}
-                            className="bg-slate-900 text-white font-bold px-5 py-3 rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 active:scale-95 text-sm h-full"
-                        >
-                            <Plus size={18} />
-                            <span>Nueva Campaña</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PageHeader 
+                title="Campañas de Email"
+                icon={<Mail className="text-white" strokeWidth={3} size={24} />}
+                subtitle={
+                    <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+                        <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
+                            {newsletters.length}
+                        </span> 
+                        campañas creadas
+                    </p>
+                }
+                actions={
+                    <Button
+                        onClick={handleCreate}
+                        size="lg"
+                    >
+                        <Plus size={18} strokeWidth={3} /> Nueva Campaña
+                    </Button>
+                }
+            />
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 {newsletters.length === 0 ? (

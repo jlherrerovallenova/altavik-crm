@@ -2,9 +2,9 @@ import React from 'react';
 import { CheckCircle2, AlertCircle, X, Info, ChevronDown, Check } from 'lucide-react';
 
 // Icono personalizado de Idealista
-export const IdealistaIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <div className={`aspect-square bg-[#deff30] flex items-center justify-center rounded shadow-sm border border-black/10 overflow-hidden ${className}`}>
-    <span className="text-[10px] font-black text-slate-900 leading-none mr-[0.5px]">id</span>
+export const IdealistaIcon = ({ className = "" }: { className?: string; size?: number }) => (
+  <div className={`aspect-square bg-[#deff30] flex items-center justify-center rounded-md shadow-sm border border-black/5 overflow-hidden shrink-0 w-5 h-5 ${className}`}>
+    <span translate="no" className="text-[10px] font-bold text-slate-900 leading-none select-none tracking-tighter">id</span>
   </div>
 );
 

@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import CreateTaskModal from '../components/CreateTaskModal';
 import { useDialog } from '../context/DialogContext';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 import type { Database } from '../types/supabase';
 
 // Tipo AgendaItem enriquecido con datos del cliente
@@ -149,49 +151,48 @@ export default function Agenda() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Agenda Global</h1>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden p-1 gap-1">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+      <PageHeader 
+        title="Agenda Global"
+        icon={<CalendarIcon strokeWidth={3} size={24} />}
+        subtitle={
+          <div className="flex bg-white/50 backdrop-blur rounded-xl border border-slate-200/50 overflow-hidden p-0.5 gap-0.5 mt-2">
             <button
               onClick={() => { setFilterStatus('today'); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Hoy
             </button>
             <button
               onClick={() => { setFilterStatus('overdue'); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'overdue' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'overdue' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Vencidas
             </button>
-            <div className="w-px h-4 bg-slate-200 my-auto mx-1"></div>
+            <div className="w-px h-3 bg-slate-200 my-auto mx-0.5"></div>
             <button
               onClick={() => { setFilterStatus('pending'); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'pending' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'pending' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Pendientes
             </button>
             <button
               onClick={() => { setFilterStatus('completed'); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${filterStatus === 'completed' ? 'bg-altavik-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'completed' ? 'bg-altavik-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Completadas
             </button>
           </div>
-
-          <button
+        }
+        actions={
+          <Button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95"
+            size="lg"
           >
-            <Plus size={20} /> <span className="hidden sm:inline">Nueva Tarea</span>
-          </button>
-        </div>
-      </header>
+            <Plus strokeWidth={3} size={18} /> Nueva Tarea
+          </Button>
+        }
+      />
 
       {/* Lista */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[400px]">

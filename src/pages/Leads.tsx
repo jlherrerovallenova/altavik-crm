@@ -21,8 +21,10 @@ import {
   Globe,
   Smartphone,
   Users,
+  User,
   HelpCircle,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
@@ -241,29 +243,30 @@ export default function Leads() {
   const totalPages = Math.ceil(totalLeads / ITEMS_PER_PAGE);
 
   return (
-    <>
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="Mis Clientes"
         icon={<Users strokeWidth={3} size={24} />}
         subtitle={
-          <>
-            <span className="tabular-nums font-black text-altavik-700">
+          <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mt-1">
+            <span className="tabular-nums font-bold text-altavik-600 bg-altavik-50 px-2 py-0.5 rounded-lg border border-altavik-100">
               {totalLeads}
             </span> 
             prospectos registrados {hasActiveFilters && `(filtrados)`}
-          </>
+          </p>
         }
         actions={
           <Button
             onClick={() => setIsCreateModalOpen(true)}
             size="lg"
           >
-            <UserPlus strokeWidth={3} size={18} /> Nuevo Cliente
+            <Plus size={18} strokeWidth={3} />
+            Nuevo Lead
           </Button>
         }
       />
 
-      <Card variant="glass" noPadding className="mb-6">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-6">
         <div className="flex flex-col lg:flex-row gap-3 items-center p-3">
           <div className="relative flex-1 w-full group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" strokeWidth={2.5} size={18} />
@@ -329,7 +332,7 @@ export default function Leads() {
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
       <Card noPadding className="min-h-[500px] flex flex-col relative z-20">
         {loading ? (
@@ -388,8 +391,8 @@ export default function Leads() {
                   className={`grid grid-cols-1 md:grid-cols-[24fr_12fr_20fr_10fr_14fr_12fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} ${isSelected ? 'bg-blue-50/80 ring-1 ring-blue-100/50 z-10 sticky' : 'hover:bg-slate-50/80'} transition-all duration-150`}
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-lg bg-altavik-50 text-altavik-700 flex items-center justify-center font-bold text-sm border border-altavik-100 shrink-0">
-                      {lead.name?.substring(0, 2).toUpperCase() || 'CL'}
+                    <div className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0">
+                      <User size={18} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0 flex items-center">
                       <h3 className="font-bold text-slate-900 text-sm truncate group-hover:text-altavik-700 transition-colors leading-tight">{lead.name}</h3>
@@ -538,6 +541,6 @@ export default function Leads() {
           onClose={() => setNotification({ ...notification, show: false })}
         />
       )}
-    </>
+    </div>
   );
 }

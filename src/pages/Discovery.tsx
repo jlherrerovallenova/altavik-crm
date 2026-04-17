@@ -7,6 +7,8 @@ import { useCreateLead } from '../hooks/useLeads';
 import { useUpdateEmail } from '../hooks/useEmails';
 import { AppNotification } from '../components/AppNotification';
 import { useDialog } from '../context/DialogContext';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/Button';
 
 interface DiscoveredLead {
   emailId: string;
@@ -164,29 +166,27 @@ export default function Discovery() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-             <Sparkles className="text-altavik-500" /> Lead Discovery
-          </h1>
-          <p className="text-slate-500 text-sm font-medium">Correos detectados de potenciales clientes que aún no tienes en tu base de datos.</p>
-        </div>
-        <button 
-          onClick={() => {
-            setIsScanning(true);
-            setTimeout(() => {
-              fetchDiscoveryData();
-              setIsScanning(false);
-            }, 1500);
-          }}
-          disabled={isScanning}
-          className="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg active:scale-95 disabled:opacity-50"
-        >
-          {isScanning ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-          Escanear Bandeja
-        </button>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+      <PageHeader 
+        title="Lead Discovery"
+        icon={<Sparkles className="text-white" strokeWidth={3} size={24} />}
+        subtitle="Correos detectados de potenciales clientes que aún no tienes en tu base de datos."
+        actions={
+          <Button 
+            onClick={() => {
+              setIsScanning(true);
+              setTimeout(() => {
+                fetchDiscoveryData();
+                setIsScanning(false);
+              }, 1500);
+            }}
+            disabled={isScanning}
+          >
+            {isScanning ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+            Escanear Bandeja
+          </Button>
+        }
+      />
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         {loading ? (

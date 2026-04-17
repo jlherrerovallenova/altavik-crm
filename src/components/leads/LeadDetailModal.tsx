@@ -5,7 +5,7 @@ import {
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
   ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap
+  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User
 } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
@@ -35,7 +35,7 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string; 
 };
 
 const SOURCE_CONFIG = [
-  { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
+  { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon },
   { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
   { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
   { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
@@ -445,8 +445,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           {/* HEADER PREMIUM */}
           <div className="px-5 sm:px-8 py-3 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full sm:w-auto">
-              <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 font-bold text-sm tracking-tight border-2 border-slate-800">
-                {formData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 border-2 border-slate-800">
+                <User size={20} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5 min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
