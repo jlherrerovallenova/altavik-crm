@@ -443,7 +443,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
         <div className="bg-[#f8fafc] w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
           
           {/* HEADER PREMIUM */}
-          <div className="px-5 sm:px-8 py-3 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-5 sm:px-8 py-2.5 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 border-2 border-slate-800">
                 <User size={20} strokeWidth={2.5} />
@@ -522,15 +522,15 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           {/* CONTENIDO PRINCIPAL */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar-hide bg-[#f8fafc]">
             {activeTab === 'ficha' && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                   
                   {/* DATOS DEL LEAD */}
                   <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
                     </h3>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-2">
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
                         <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
@@ -610,8 +610,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   </section>
 
                     {/* ACCIONES DE CONTACTO Y FEEDBACK (RESPONSIVE: 2x2 EN MÓVIL, LÍNEA ÚNICA EN ESCRITORIO) */}
-                    <section className="lg:col-start-1 lg:col-end-13 lg:row-start-2 mt-2">
-                      <div className="bg-white/80 backdrop-blur-md rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-xl p-2 sm:p-3 grid grid-cols-2 lg:flex items-center justify-between gap-2 sm:gap-3">
+                    <section className="lg:col-start-1 lg:col-end-13 lg:row-start-2">
+                      <div className="bg-white/80 backdrop-blur-md rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-xl p-1.5 sm:p-2 grid grid-cols-2 lg:flex items-center justify-between gap-2 sm:gap-3">
                         
                         {/* WhatsApp (Sólido Verde) */}
                         <button 
@@ -660,12 +660,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
                   {/* AGENDA DE ACCIONES */}
                   <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
 
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                      <div className="flex items-center justify-between mb-4">
+                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                      <div className="flex items-center justify-between mb-3">
                         <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                           {editingTaskId ? <Pencil size={12} className="text-amber-500" /> : <Plus size={12} className="text-blue-500" />}
                           {editingTaskId ? 'Editar Acción' : 'Nueva Acción en Agenda'}
@@ -677,7 +677,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2.5">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
@@ -782,7 +782,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                   </section>
 
                   {/* NOTAS INTERNAS */}
-                  <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
+                  <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col -mt-1">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
                     </h3>

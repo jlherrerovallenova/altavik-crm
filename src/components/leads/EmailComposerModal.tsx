@@ -75,7 +75,9 @@ export default function EmailComposerModal({
   const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
   const getGreeting = () => {
     const hour = new Date().getHours();
-    return hour < 14 ? 'Buenos días' : 'Buenas tardes';
+    if (hour >= 6 && hour < 14) return 'Buenos días';
+    if (hour >= 14 && hour < 20) return 'Buenas tardes';
+    return 'Buenas noches';
   };
 
   const detectGender = (name: string): 'interesado' | 'interesada' => {
@@ -116,7 +118,7 @@ Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto co
   const [message, setMessage] = useState(
     initialTemplate === 'first_contact' 
       ? getFirstContactTemplate()
-      : `${getGreeting()}, ${leadName}.\n\nLo primero quisiera agradecer su visita y el interés por la promoción.\n\nSegún acordamos, adjunto la documentación sobre la promoción RESIDENCIAL ALTAVIK.\n\nQuedo a tu disposición para cualquier duda.\n\nAtentamente\n\n_________________`
+      : `${getGreeting()}, ${leadName.split(' ')[0]}.\n\nQuisiera agradecer su interés por la promoción.\nSegún hemos acordado, adjunto le envío la documentación sobre la promoción RESIDENCIAL ALTAVIK.\nQuedo a su disposición para cualquier duda.\n\nAtentamente`
   );
 
   const applyFirstContactTemplate = () => {

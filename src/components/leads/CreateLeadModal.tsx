@@ -216,7 +216,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
       <div className="bg-[#f8fafc] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+        <div className="px-5 sm:px-8 py-2.5 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-altavik-50 text-altavik-600 flex items-center justify-center">
                     <Plus size={20} />
@@ -228,7 +228,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
           </button>
         </div>
 
-        <div className="p-6 space-y-4 overflow-y-auto max-h-[80vh] custom-scrollbar">
+        <div className="p-5 space-y-3.5 overflow-y-auto max-h-[80vh] custom-scrollbar">
           {/* Quick Paste Area */}
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
              <button 
@@ -264,7 +264,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
              )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
           {errorMsg && (
             <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 border border-red-100">
               <AlertCircle size={18} className="shrink-0" />
@@ -272,7 +272,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo <span className="text-red-500">*</span></label>
             <input
               type="text"
@@ -285,7 +285,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
               <input
                 type="email"
@@ -295,7 +295,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
               <div className="relative w-full group/phone">
                 <input
@@ -320,7 +320,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
               <CustomSelect
                 value={formData.source}
@@ -334,7 +334,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
               />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notas Internas / Mensaje</label>
             <textarea
               className="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm font-medium text-slate-700 h-28 resize-none shadow-inner italic"
