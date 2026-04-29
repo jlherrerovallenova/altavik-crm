@@ -3,6 +3,7 @@ import imaps from 'imap-simple';
 import { simpleParser } from 'mailparser';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
 
 dotenv.config();
 
@@ -139,7 +140,7 @@ async function syncEmails() {
                     emailData.tags.push('Web', 'Escaneable IA');
                 }
 
-                // Verificar si ya existe
+                // Verificar si ya existe en emails
                 const { data: existing } = await supabase
                     .from('incoming_emails')
                     .select('id')
@@ -148,14 +149,77 @@ async function syncEmails() {
                     .limit(1);
 
                 if (!existing || existing.length === 0) {
-                    const { error: insertError } = await supabase
+                    const { error: insertError, data: insertedEmailData } = await supabase
                         .from('incoming_emails')
-                        .insert([emailData]);
+                        .insert([emailData])
+                        .select('id')
+                        .single();
                     
                     if (insertError) {
                         console.error(`❌ Error al insertar email de ${emailData.sender_email}:`, insertError.message);
                     } else {
                         syncedCount++;
+
+                        // --- AUTOMATIZACIÓN IA: CONVERTIR EN LEAD AUTOMÁTICAMENTE ---
+                        if (emailData.tags.includes('Escaneable IA') && process.env.VITE_GEMINI_API_KEY) {
+                            try {
+                                console.log(`🪄 Procesando email con Gemini para autogenerar Lead...`);
+                                const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
+                                
+                                const prompt = \`
+Eres un asistente comercial inmobiliario de Altavik CRM. Extrae los datos del lead potencial de este correo.
+Devuelve EXCLUSIVAMENTE UN JSON, sin formato markdown.
+FORMATO PERFECTO:
+{ "name": "Nombre extraído (o 'Desconocido')", "phone": "Teléfono (o 'No proporcionado')", "email": "Email (o 'No proporcionado')", "source": "Idealista / Web / ...", "notes": "- Notas..." }
+--- CORREO ---
+Remitente: \${emailData.sender_name} <\${emailData.sender_email}>
+\${emailData.body}
+\`;
+
+                                const response = await ai.models.generateContent({
+                                    model: 'gemini-2.5-flash',
+                                    contents: prompt,
+                                    config: { temperature: 0.1, responseMimeType: "application/json" }
+                                });
+
+                                const textOutput = response.text;
+                                if (textOutput) {
+                                    const extracted = JSON.parse(textOutput);
+                                    
+                                    // Verificamos si el lead ya existe por email o telefono (si los hay)
+                                    let leadExists = false;
+                                    if (extracted.email !== 'No proporcionado') {
+                                        const { data: exEmail } = await supabase.from('leads').select('id').eq('email', extracted.email).limit(1);
+                                        if (exEmail && exEmail.length > 0) leadExists = true;
+                                    }
+                                    if (!leadExists && extracted.phone !== 'No proporcionado') {
+                                        const { data: exPhone } = await supabase.from('leads').select('id').eq('phone', extracted.phone).limit(1);
+                                        if (exPhone && exPhone.length > 0) leadExists = true;
+                                    }
+
+                                    if (!leadExists && extracted.name !== 'Desconocido') {
+                                        console.log(`✅ Lead extraído exitosamente: ${extracted.name} (${extracted.source}). Insertando en CRM...`);
+                                        await supabase.from('leads').insert([{
+                                            name: extracted.name,
+                                            email: extracted.email !== 'No proporcionado' ? extracted.email : null,
+                                            phone: extracted.phone !== 'No proporcionado' ? extracted.phone : null,
+                                            source: extracted.source + ' (Auto IA)',
+                                            status: 'new',
+                                            notes: \`[Importado Automáticamente vía Smart Inbox]\n\n\${extracted.notes}\`
+                                        }]);
+                                        
+                                        // Marcamos el email original como procesado
+                                        if (insertedEmailData?.id) {
+                                            await supabase.from('incoming_emails').update({ is_processed: true }).eq('id', insertedEmailData.id);
+                                        }
+                                    } else {
+                                        console.log(`⚠️ El lead ya existía en la base de datos o carecía de datos suficientes, omitiendo auto-inserción.`);
+                                    }
+                                }
+                            } catch (aiErr) {
+                                console.error('⚠️ Error en la auto-extracción de IA:', aiErr.message);
+                            }
+                        }
                     }
                 } else {
                     skipCount++;

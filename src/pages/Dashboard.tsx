@@ -23,6 +23,7 @@ import {
   Heart,
   HelpCircle,
   XCircle,
+  Wand2,
   User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -67,9 +68,10 @@ export default function Dashboard() {
 
   // Estado para la búsqueda del cliente y el tab activo
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'radar' | 'feedback'>('futuras');
+  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'radar' | 'feedback' | 'inboxia'>('futuras');
   const [criticalLeads, setCriticalLeads] = useState<any[]>([]);
   const [feedbackLeads, setFeedbackLeads] = useState<any[]>([]);
+  const [autoImportedLeads, setAutoImportedLeads] = useState<any[]>([]);
   const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<any | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -207,6 +209,16 @@ export default function Dashboard() {
 
         setFeedbackLeads(processedFeedback);
       }
+
+      // 5. CARGA DE LEADS AUTOGENERADOS POR IA (Nuevos contactos Smart Inbox)
+      const { data: iaData } = await supabase
+        .from('leads')
+        .select('id, name, source, email, phone, status, created_at')
+        .like('source', '%(Auto IA)%')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (iaData) setAutoImportedLeads(iaData);
 
     } catch (error) {
       console.error("Error general cargando dashboard:", error);
@@ -368,7 +380,7 @@ export default function Dashboard() {
 
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               {/* TABS BENTO STYLE */}
-              <div className="flex p-1 bg-slate-100/50 backdrop-blur rounded-2xl w-full sm:w-auto">
+              <div className="flex p-1 bg-slate-100/50 backdrop-blur rounded-2xl w-full sm:w-auto overflow-x-auto custom-scrollbar">
                 <TabButton label="Próximas" active={activeTab === 'futuras'} onClick={() => setActiveTab('futuras')} />
                 <TabButton 
                   label="Caducadas" 
@@ -382,6 +394,13 @@ export default function Dashboard() {
                   count={feedbackLeads.length} 
                   active={activeTab === 'feedback'} 
                   onClick={() => setActiveTab('feedback')} 
+                  variant="primary" 
+                />
+                <TabButton 
+                  label="Nuevos (IA)" 
+                  count={autoImportedLeads.length} 
+                  active={activeTab === 'inboxia'} 
+                  onClick={() => setActiveTab('inboxia')} 
                   variant="primary" 
                 />
               </div>
@@ -422,6 +441,29 @@ export default function Dashboard() {
                       setIsFeedbackModalOpen(true);
                     }} 
                   />
+                ))
+              )
+            ) : activeTab === 'inboxia' ? (
+              autoImportedLeads.length === 0 ? (
+                <EmptyState icon={<Wand2 />} title="Bandeja IA Limpia" subtitle="No hay clientes importados automáticamente de momento." />
+              ) : (
+                autoImportedLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
+                  <div key={lead.id} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} className="group relative bg-white border border-slate-100 hover:border-indigo-200 shadow-sm hover:shadow-md p-4 rounded-2xl transition-all cursor-pointer flex items-start gap-4 mx-4 my-2">
+                    <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                      <Wand2 size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-sm font-bold text-slate-800 truncate">{lead.name}</h4>
+                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-wider rounded-md">Smart Inbox</span>
+                      </div>
+                      <p className="text-xs font-medium text-slate-500 line-clamp-1">{lead.source}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[10px] font-bold text-slate-400 mb-1">{formatDateTime(lead.created_at)}</p>
+                      <button className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100/50 shadow-sm transition-all group-hover:bg-indigo-600 group-hover:text-white">Abrir Ficha</button>
+                    </div>
+                  </div>
                 ))
               )
             ) : filteredAgenda.length === 0 ? (
