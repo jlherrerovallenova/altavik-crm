@@ -107,18 +107,31 @@ export default function EmailComposerModal({
     const firstName = leadName.split(' ')[0];
     const genderedInterest = detectGender(leadName);
     
-    return `${greeting}, ${firstName}
-Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto con nosotros ${genderedInterest} en la promoción inmobiliaria ALTAVIK en la calle Isaac Peral 20 de Arroyo de la Encomienda.
+    return `¡${greeting}, ${firstName}!
 
-¿En qué tipología de vivienda está ${genderedInterest}? (Bajo, Vivienda altura intermedia, Ático)
+Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
 
-¿Qué número de dormitorios necesita?`;
+Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
+
+1️⃣ ¿Qué tipo de vivienda prefiere? (Bajo, planta intermedia o ático).
+2️⃣ ¿Cuántos dormitorios necesita?
+3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ampliemos la información con todo detalle?
+
+Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
   };
 
   const [message, setMessage] = useState(
     initialTemplate === 'first_contact' 
       ? getFirstContactTemplate()
-      : `${getGreeting()}, ${leadName.split(' ')[0]}.\n\nQuisiera agradecer su interés por la promoción.\nSegún hemos acordado, adjunto le envío la documentación sobre la promoción RESIDENCIAL ALTAVIK.\nQuedo a su disposición para cualquier duda.\n\nAtentamente`
+      : `¡${getGreeting()}, ${leadName.split(' ')[0]}!
+
+Tal y como acabamos de hablar, le envío adjunta toda la información sobre RESIDENCIAL ALTAVIK.
+
+Échele un vistazo tranquilamente y, si tiene cualquier duda o quiere que comentemos algún detalle, estoy a su disposición.
+
+¡Un saludo!
+
+Juan Herrero - TERRAVALL`
   );
 
   const applyFirstContactTemplate = () => {
@@ -240,33 +253,43 @@ Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto co
   };
 
   const saveHistory = async (sentMethod: 'email' | 'whatsapp') => {
-    if (selectedDocs.length === 0) return;
-
     try {
-      const record = {
-        lead_id: leadId,
-        doc_name: selectedDocs.map(d => d.name).join('||'),
-        method: sentMethod,
-        sent_at: new Date().toISOString()
-      };
+      if (selectedDocs.length > 0) {
+        const record = {
+          lead_id: leadId,
+          doc_name: selectedDocs.map(d => d.name).join('||'),
+          method: sentMethod,
+          sent_at: new Date().toISOString()
+        };
 
-      const { error } = await (supabase as any)
-        .from('sent_documents')
-        .insert([record] as any);
+        const { error } = await (supabase as any)
+          .from('sent_documents')
+          .insert([record] as any);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
-      // También registramos en el historial general (Timeline)
+      // Registrar en el historial general (Timeline) independientemente de si hay documentos
+      const description = selectedDocs.length > 0 
+        ? `Documentación enviada via ${sentMethod.toUpperCase()}: ${selectedDocs.map(d => d.name).join(', ')}`
+        : `Mensaje enviado via ${sentMethod.toUpperCase()}`;
+
       await supabase.from('lead_history').insert([{
         lead_id: leadId,
-        event_type: 'document',
-        description: `Documentación enviada via ${sentMethod.toUpperCase()}: ${selectedDocs.map(d => d.name).join(', ')}`,
+        event_type: selectedDocs.length > 0 ? 'document' : 'contact',
+        description: description,
         metadata: { method: sentMethod, docs: selectedDocs.map(d => d.name) }
       }]);
 
+      // Actualizar estado a 'contacted' si actualmente es 'new'
+      const { data: leadData } = await supabase.from('leads').select('status').eq('id', leadId).single();
+      if (leadData && leadData.status === 'new') {
+        await supabase.from('leads').update({ status: 'contacted' }).eq('id', leadId);
+      }
+
       if (onSentSuccess) onSentSuccess();
     } catch (error) {
-      console.error('Error al guardar el historial:', error);
+      console.error('Error al guardar el historial o actualizar estado:', error);
     }
   };
 
@@ -288,35 +311,73 @@ Mi nombre es Juan Herrero de inmobiliaria TERRAVALL. Se ha puesto en contacto co
 
         const htmlDocs = selectedDocs.length > 0
           ? `
-            <div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin-top: 32px; border: 1px solid #e2e8f0; border-left: 4px solid #1d4ed8;">
-              <h3 style="margin-top: 0; margin-bottom: 16px; color: #475569; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
-                Documentos Adjuntos
-              </h3>
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${selectedDocs.map(d => `
-                  <a href="${d.url}" style="display: block; padding: 12px 16px; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #1d4ed8; font-weight: 600; text-decoration: none; font-size: 14px;">
-                    <span style="margin-right: 8px;">📄</span> ${d.name}
+            <div style="margin-top: 32px;">
+              <div style="margin-bottom: 12px;">
+                <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; display: block;">
+                  DOCUMENTACIÓN ADJUNTA (${selectedDocs.length})
+                </span>
+              </div>
+              <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                ${selectedDocs.map((d, i) => `
+                  <a href="${d.url}" style="display: block; padding: 14px 20px; background-color: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'}; color: #1d4ed8; text-decoration: none; border-bottom: ${i === selectedDocs.length - 1 ? 'none' : '1px solid #e2e8f0'};">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse;">
+                      <tr>
+                        <td width="32" style="font-size: 20px; vertical-align: middle;">📄</td>
+                        <td style="font-size: 14px; font-weight: 600; color: #334155; vertical-align: middle; padding-left: 8px;">
+                          ${d.name}
+                        </td>
+                        <td align="right" style="font-size: 12px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; vertical-align: middle;">
+                          Ver documento
+                        </td>
+                      </tr>
+                    </table>
                   </a>
                 `).join('')}
               </div>
             </div>`
           : '';
 
-        // Construimos el cuerpo HTML incluyendo la firma al final
+        // Construimos el cuerpo HTML con un diseño premium
         const htmlFullMessage = `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0; padding: 10px 0; color: #1e293b;">
-            <div style="font-size: 15px; line-height: 1.7; color: #334155;">
-              ${message.replace(/\n/g, '<br>')}
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; }
+            </style>
+          </head>
+          <body style="background-color: #f1f5f9; padding: 40px 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+              <!-- Header Corporativo -->
+              <div style="background-color: #1e293b; padding: 30px 20px; text-align: center;">
+                <div style="color: #ffffff; font-size: 20px; font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase;">
+                  ALTAVIK <span style="color: #10b981;">•</span> TERRAVALL
+                </div>
+              </div>
+
+              <div style="padding: 40px;">
+                <div style="font-size: 16px; line-height: 1.8; color: #334155;">
+                  ${message.replace(/\n/g, '<br>')}
+                </div>
+                
+                ${htmlDocs}
+                
+                <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #f1f5f9;">
+                  ${signatureHtml}
+                </div>
+              </div>
+
+              <!-- Footer Legal -->
+              <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #f1f5f9;">
+                <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                  Este mensaje y cualquier documento adjunto son confidenciales y están dirigidos exclusivamente a su destinatario. Si lo ha recibido por error, por favor notifíquelo y elimine el mensaje.<br>
+                  <strong style="color: #64748b; margin-top: 10px; display: block;">Residencial ALTAVIK</strong>
+                </div>
+              </div>
             </div>
-            ${htmlDocs}
-            <div style="margin-top: 40px; border-top: 2px solid #f1f5f9; padding-top: 30px;">
-              ${signatureHtml}
-            </div>
-            <div style="margin-top: 30px; font-size: 11px; color: #94a3b8; line-height: 1.5;">
-              Este mensaje y cualquier documento adjunto son confidenciales y están dirigidos exclusivamente a su destinatario.<br>
-              <strong>Residencial ALTAVIK</strong>
-            </div>
-          </div>
+          </body>
+          </html>
         `;
 
         const { data, error } = await supabase.functions.invoke('send-email', {

@@ -21,10 +21,11 @@ import {
   Globe,
   Smartphone,
   Users,
-  User,
   HelpCircle,
   Zap,
-  Plus
+  Plus,
+  MapPin,
+  User
 } from 'lucide-react';
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
@@ -113,6 +114,17 @@ const SourceIcon = ({ source }: { source: string | null }) => {
           <Users strokeWidth={2.5} size={11} className="text-emerald-600" />
         </div>
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Amigo</span>
+      </div>
+    );
+  }
+
+  if (lower.includes('valla')) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title="Valla">
+        <div className="w-5 h-5 bg-orange-50 flex items-center justify-center rounded border border-orange-100 shadow-sm">
+          <MapPin strokeWidth={2.5} size={11} className="text-orange-500" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Valla</span>
       </div>
     );
   }
@@ -315,7 +327,7 @@ export default function Leads() {
                    { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
                    { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
                    { id: 'Llamada', label: 'Llamada', icon: Phone, color: 'text-green-500' },
-                   { id: 'Otro', label: 'Otro', icon: HelpCircle, color: 'text-slate-500' }
+                   { id: 'Valla', label: 'Valla', icon: MapPin, color: 'text-orange-500' }
               ]}
             />
 

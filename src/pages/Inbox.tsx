@@ -280,8 +280,8 @@ export default function Inbox() {
                     </span>
                   )}
 
-                  {mail.tags.map(t => (
-                    <span key={t} className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${t === 'Escaneable IA' ? 'bg-indigo-100 text-indigo-700' : t === 'Procesado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                  {Array.from(new Set(mail.tags)).map((t, index) => (
+                    <span key={`${t}-${index}`} className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${t === 'Escaneable IA' ? 'bg-indigo-100 text-indigo-700' : t === 'Procesado' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                       {t === 'Escaneable IA' && <Wand2 size={10} className="inline mr-1" />}
                       {t === 'Procesado' && <CheckCircle2 size={10} className="inline mr-1" />}
                       {t}

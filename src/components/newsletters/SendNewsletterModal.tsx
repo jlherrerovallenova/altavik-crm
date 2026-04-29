@@ -21,8 +21,8 @@ const PHASES: { value: PhaseType; label: string }[] = [
     { value: 'contacted', label: 'Contactado' },
     { value: 'qualified', label: 'Cualificado' },
     { value: 'visiting', label: 'Visitando' },
-    { value: 'proposal', label: 'Propuesta' },
-    { value: 'negotiation', label: 'Negociación' },
+
+
     { value: 'closed', label: 'Cerrado/Ganado' },
     { value: 'lost', label: 'Perdido' },
 ];

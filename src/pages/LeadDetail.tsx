@@ -30,8 +30,8 @@ const STATUS_OPTIONS = [
   { value: 'new', label: 'Nuevo' },
   { value: 'contacted', label: 'Contactado' },
   { value: 'qualified', label: 'Cualificado' },
-  { value: 'proposal', label: 'Propuesta Enviada' },
-  { value: 'negotiation', label: 'En Negociación' },
+
+
   { value: 'closed', label: 'Cerrado (Ganado)' },
   { value: 'lost', label: 'Perdido' },
 ];

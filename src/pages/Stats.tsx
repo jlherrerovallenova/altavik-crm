@@ -34,7 +34,8 @@ const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'
 
 export default function Stats() {
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<'6m' | '12m' | 'all'>('6m');
+  type TimeRange = '1w' | '1m' | '3m' | '6m' | '12m' | 'all';
+  const [timeRange, setTimeRange] = useState<TimeRange>('1m');
   const [leadsData, setLeadsData] = useState<any[]>([]);
   const [sourceData, setSourceData] = useState<any[]>([]);
   const [summaryStats, setSummaryStats] = useState({
@@ -47,7 +48,13 @@ export default function Stats() {
 
   useEffect(() => {
     fetchStats();
-  }, [timeRange]);
+  }, []);
+
+  useEffect(() => {
+    if (rawLeads.length > 0) {
+      processLeadsData(rawLeads, timeRange);
+    }
+  }, [timeRange, rawLeads]);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -61,7 +68,7 @@ export default function Stats() {
 
       if (leads) {
         setRawLeads(leads);
-        processLeadsData(leads);
+        processLeadsData(leads, timeRange);
       }
     } catch (err) {
       console.error('Error fetching stats:', err);
@@ -70,44 +77,90 @@ export default function Stats() {
     }
   };
 
-  const processLeadsData = (leads: any[]) => {
+  const processLeadsData = (leads: any[], range: TimeRange) => {
+    const now = new Date();
+    let startDate = new Date(0); // For 'all'
+    
+    if (range === '1w') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    } else if (range === '1m') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    } else if (range === '3m') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    } else if (range === '6m') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+    } else if (range === '12m') {
+      startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    }
+
+    // Filtrar los leads según el rango
+    const currentLeads = leads.filter(l => new Date(l.created_at) >= startDate);
+
     // 1. Resumen general
-    const total = leads.length;
-    const closed = leads.filter(l => l.status === 'closed').length;
+    const total = currentLeads.length;
+    const closed = currentLeads.filter(l => l.status === 'closed').length;
     const conversion = total > 0 ? (closed / total * 100).toFixed(1) : 0;
     
     setSummaryStats({
       totalLeads: total,
       conversionRate: Number(conversion),
-      activeLeads: leads.filter(l => !['closed', 'lost'].includes(l.status)).length,
-      growth: 12.5 // Mock value for now
+      activeLeads: currentLeads.filter(l => !['closed', 'lost'].includes(l.status)).length,
+      growth: 12.5 // Mock value
     });
 
-    // 2. Datos por mes
-    const months: Record<string, number> = {};
-    const now = new Date();
+    // 2. Datos para el gráfico principal
+    let chartData: any[] = [];
     
-    // Inicializar últimos 6 meses
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleString('es-ES', { month: 'short' });
-      months[key] = 0;
-    }
+    if (range === '1w') {
+      const days: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const key = d.toLocaleDateString('es-ES', { weekday: 'short' });
+        days[key] = 0;
+      }
+      currentLeads.forEach(l => {
+        const date = new Date(l.created_at);
+        const key = date.toLocaleDateString('es-ES', { weekday: 'short' });
+        if (days[key] !== undefined) days[key]++;
+      });
+      chartData = Object.entries(days).map(([name, total]) => ({ name, total }));
+    } else if (range === '1m') {
+      const weeks: Record<string, number> = { 'S4': 0, 'S3': 0, 'S2': 0, 'S1': 0 };
+      currentLeads.forEach(l => {
+        const date = new Date(l.created_at);
+        const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
+        if (diffDays <= 7) weeks['S1']++;
+        else if (diffDays <= 14) weeks['S2']++;
+        else if (diffDays <= 21) weeks['S3']++;
+        else weeks['S4']++;
+      });
+      chartData = Object.entries(weeks).map(([name, total]) => ({ name, total })).reverse(); // Orden cronológico
+    } else {
+      let numMonths = 6;
+      if (range === '3m') numMonths = 3;
+      else if (range === '12m') numMonths = 12;
+      else if (range === 'all') numMonths = 12; // Máximo 12 meses en el gráfico para que se lea bien
 
-    leads.forEach(l => {
-      const date = new Date(l.created_at);
-      const isRecent = date > new Date(now.getFullYear(), now.getMonth() - 5, 1);
-      if (isRecent) {
+      const months: Record<string, number> = {};
+      for (let i = numMonths - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = d.toLocaleString('es-ES', { month: 'short' });
+        months[key] = 0;
+      }
+
+      currentLeads.forEach(l => {
+        const date = new Date(l.created_at);
         const key = date.toLocaleString('es-ES', { month: 'short' });
         if (months[key] !== undefined) months[key]++;
-      }
-    });
-
-    setLeadsData(Object.entries(months).map(([name, total]) => ({ name, total })));
+      });
+      chartData = Object.entries(months).map(([name, total]) => ({ name, total }));
+    }
+    
+    setLeadsData(chartData);
 
     // 3. Datos por origen
     const sources: Record<string, number> = {};
-    leads.forEach(l => {
+    currentLeads.forEach(l => {
       const s = l.source || 'Desconocido';
       sources[s] = (sources[s] || 0) + 1;
     });
@@ -238,8 +291,11 @@ export default function Stats() {
               onChange={(e) => setTimeRange(e.target.value as any)}
               className="bg-white/50 backdrop-blur border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-altavik-500/20 shadow-sm cursor-pointer transition-all"
             >
-              <option value="6m">Últimos 6 meses</option>
-              <option value="12m">Últimos 12 meses</option>
+              <option value="1w">Semanal</option>
+              <option value="1m">Mensual</option>
+              <option value="3m">Trimestral</option>
+              <option value="6m">Semestral</option>
+              <option value="12m">Anual</option>
               <option value="all">Histórico total</option>
             </select>
             <Button 

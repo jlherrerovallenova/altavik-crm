@@ -47,7 +47,8 @@ ${emailBody}
 
   while (attempt < maxRetries) {
     try {
-      const modelId = 'gemini-pro-latest';
+      const fallbackModels = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-pro'];
+      const modelId = fallbackModels[attempt % fallbackModels.length];
       console.log(`🤖 Gemini Service: Intento ${attempt + 1}/${maxRetries} usando modelo ${modelId}...`);
       
       const result = await ai.models.generateContent({

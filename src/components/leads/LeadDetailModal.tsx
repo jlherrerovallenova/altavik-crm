@@ -5,7 +5,7 @@ import {
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
   ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User
+  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User, MapPin
 } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
@@ -28,8 +28,8 @@ const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string; 
   contacted:   { dot: 'bg-purple-400',  pill: 'bg-purple-900/40 text-purple-200 border border-purple-700/50', label: 'Contactado', icon: MessageCircle },
   qualified:   { dot: 'bg-altavik-400', pill: 'bg-altavik-900/40 text-altavik-200 border border-altavik-700/50', label: 'Cualificado', icon: CheckCircle2 },
   visiting:    { dot: 'bg-cyan-400',    pill: 'bg-cyan-900/40 text-cyan-200 border border-cyan-700/50',       label: 'Visitando', icon: Compass },
-  proposal:    { dot: 'bg-orange-400',  pill: 'bg-orange-900/40 text-orange-200 border border-orange-700/50', label: 'Propuesta', icon: Smartphone },
-  negotiation: { dot: 'bg-amber-400',   pill: 'bg-amber-900/40 text-amber-200 border border-amber-700/50',   label: 'Negociación', icon: RotateCcw },
+
+
   closed:      { dot: 'bg-slate-400',   pill: 'bg-slate-700/50 text-slate-300 border border-slate-600/50',   label: 'Venta Cerrada', icon: ShoppingCart },
   lost:        { dot: 'bg-red-400',     pill: 'bg-red-900/40 text-red-200 border border-red-700/50',         label: 'Perdido', icon: X },
 };
@@ -39,7 +39,7 @@ const SOURCE_CONFIG = [
   { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
   { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
   { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
-  { id: 'Otro', label: 'Otro', icon: Plus, color: 'text-slate-500' },
+  { id: 'Valla', label: 'Valla', icon: MapPin, color: 'text-orange-500' },
 ];
 
 interface Props {
@@ -609,50 +609,50 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </div>
                   </section>
 
-                    {/* ACCIONES DE CONTACTO Y FEEDBACK (RESPONSIVE: 2x2 EN MÓVIL, LÍNEA ÚNICA EN ESCRITORIO) */}
+                    {/* ACCIONES DE CONTACTO Y FEEDBACK */}
                     <section className="lg:col-start-1 lg:col-end-13 lg:row-start-2">
-                      <div className="bg-white/80 backdrop-blur-md rounded-2xl sm:rounded-[2rem] border border-slate-100 shadow-xl p-1.5 sm:p-2 grid grid-cols-2 lg:flex items-center justify-between gap-2 sm:gap-3">
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 lg:grid-cols-4 gap-2">
                         
-                        {/* WhatsApp (Sólido Verde) */}
+                        {/* WhatsApp */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setIsEmailModalOpen(true); }}
-                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-200/50 group"
+                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
                         >
-                          <MessageCircle size={18} strokeWidth={2.5} className="shrink-0" />
-                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">DOC. WHATSAPP</span>
+                          <MessageCircle size={18} strokeWidth={2.5} />
+                          <span className="text-[9px] font-bold uppercase tracking-widest">WhatsApp</span>
                         </button>
 
-                        {/* Email (Sólido Azul) */}
+                        {/* Email */}
                         <button 
                           onClick={() => { setEmailModalMethod('email'); setIsEmailModalOpen(true); }}
-                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200/50 group"
+                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
                         >
-                          <Mail size={18} strokeWidth={2.5} className="shrink-0" />
-                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">DOC. EMAIL</span>
+                          <Mail size={18} strokeWidth={2.5} />
+                          <span className="text-[9px] font-bold uppercase tracking-widest">Email</span>
                         </button>
 
                         {/* Primer Contacto */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setFirstContactTemplateActive(true); setIsEmailModalOpen(true); }}
-                          className="flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-slate-900 text-white hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200 group"
+                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
                         >
-                          <Zap size={16} fill="currentColor" className="text-amber-400 shrink-0" />
-                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">1er CONTACTO</span>
+                          <Zap size={18} strokeWidth={2.5} />
+                          <span className="text-[9px] font-bold uppercase tracking-widest">1er Contacto</span>
                         </button>
 
                         {/* Opinión */}
                         <button 
                           onClick={() => setIsFeedbackModalOpen(true)}
-                          className={`flex items-center justify-center gap-2 sm:gap-3 h-12 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-lg ${
+                          className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
                             lead.feedback_rating
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                             : lead.feedback_sent 
-                              ? 'bg-amber-50 text-amber-700 border border-amber-100 shadow-amber-100' 
-                              : 'bg-altavik-600 text-white hover:bg-altavik-700 shadow-altavik-200'
+                              ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:border-slate-200'
                           }`}
                         >
-                          <Send size={16} className="shrink-0" />
-                          <span className="whitespace-nowrap">ENCUESTA OPINIÓN</span>
+                          <Send size={18} strokeWidth={2.5} />
+                          <span className="text-[9px] font-bold uppercase tracking-widest">Encuesta</span>
                         </button>
 
                       </div>
@@ -664,7 +664,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
 
-                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100 -mt-[80px] relative z-10">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                           {editingTaskId ? <Pencil size={12} className="text-amber-500" /> : <Plus size={12} className="text-blue-500" />}

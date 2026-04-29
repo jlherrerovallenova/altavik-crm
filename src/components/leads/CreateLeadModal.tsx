@@ -1,6 +1,6 @@
 // src/components/leads/CreateLeadModal.tsx
 import { useState } from 'react';
-import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { CustomSelect, IdealistaIcon } from '../Shared';
@@ -18,7 +18,7 @@ const SOURCE_CONFIG = [
   { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
   { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
   { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
-  { id: 'Otro', label: 'Otro', icon: Plus, color: 'text-slate-500' },
+  { id: 'Valla', label: 'Valla', icon: MapPin, color: 'text-orange-500' },
 ];
 
 export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
@@ -184,8 +184,13 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
         throw new Error('Ya existe un cliente registrado con este email o teléfono.');
       }
 
+      const formatTitleCase = (str: string) => {
+        if (!str) return '';
+        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      };
+
       const payload: any = {
-        name: formData.name,
+        name: formatTitleCase(formData.name.trim()),
         email: formData.email || null,
         phone: formData.phone || null,
         notes: formData.notes || null,

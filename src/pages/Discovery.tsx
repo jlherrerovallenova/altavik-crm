@@ -24,6 +24,7 @@ export default function Discovery() {
   const [loading, setLoading] = useState(true);
   const [discoveredLeads, setDiscoveredLeads] = useState<DiscoveredLead[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [viewMode, setViewMode] = useState<'pending' | 'imported'>('pending');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ show: boolean, title: string, message: string, type: 'success' | 'error' }>({
     show: false, title: '', message: '', type: 'success'
@@ -36,17 +37,16 @@ export default function Discovery() {
   const fetchDiscoveryData = async () => {
     setLoading(true);
     try {
-      // 1. Obtener correos no procesados marcados como posible Lead
+      // 1. Obtener TODOS los correos marcados como posible Lead
       const { data: emails, error: emailError } = await supabase
         .from('incoming_emails')
         .select('*')
-        .eq('is_processed', false)
         .contains('tags', ['Escaneable IA'])
         .order('date_received', { ascending: false });
 
       if (emailError) throw emailError;
 
-      // 2. Obtener todos los emails de leads actuales para filtrar
+      // 2. Obtener todos los emails de leads actuales para cruzar datos
       const { data: leads, error: leadError } = await supabase
         .from('leads')
         .select('email');
@@ -55,9 +55,12 @@ export default function Discovery() {
 
       const existingEmails = new Set(leads.map(l => l.email?.toLowerCase()).filter(Boolean));
 
-      // 3. Filtrar los que NO están en el sistema
-      const filtered = (emails || []).filter(e => !existingEmails.has(e.sender_email?.toLowerCase()))
-        .map(e => ({
+      // 3. Filtrar según la vista seleccionada (pendientes o importados)
+      const filtered = (emails || []).filter(e => {
+        const isExisting = existingEmails.has(e.sender_email?.toLowerCase());
+        const isImported = e.is_processed || isExisting;
+        return viewMode === 'pending' ? !isImported : isImported;
+      }).map(e => ({
           emailId: e.id,
           senderName: e.sender_name,
           senderEmail: e.sender_email,
@@ -77,7 +80,7 @@ export default function Discovery() {
 
   useEffect(() => {
     fetchDiscoveryData();
-  }, []);
+  }, [viewMode]);
 
   const handleProcessLead = async (lead: DiscoveredLead) => {
     console.log("🚀 Iniciando captura de lead desde email:", lead.emailId);
@@ -124,15 +127,22 @@ export default function Discovery() {
         }
       }
 
+      const formatName = (name: string) => {
+        if (!name || name === 'Desconocido') return name;
+        return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      };
+      const formattedName = formatName(extracted.name);
+
       // Crear Lead
       console.log("📝 Registrando lead en la DB...");
       await createLeadMutation.mutateAsync({
-        name: extracted.name,
+        name: formattedName,
         email: extracted.email === 'No proporcionado' ? null : extracted.email,
         phone: extracted.phone === 'No proporcionado' ? null : extracted.phone,
         source: extracted.source,
         notes: extracted.notes,
-        status: 'new'
+        status: 'new',
+        created_at: lead.date
       });
 
       // Actualizar Email
@@ -172,19 +182,35 @@ export default function Discovery() {
         icon={<Sparkles className="text-white" strokeWidth={3} size={24} />}
         subtitle="Correos detectados de potenciales clientes que aún no tienes en tu base de datos."
         actions={
-          <Button 
-            onClick={() => {
-              setIsScanning(true);
-              setTimeout(() => {
-                fetchDiscoveryData();
-                setIsScanning(false);
-              }, 1500);
-            }}
-            disabled={isScanning}
-          >
-            {isScanning ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-            Escanear Bandeja
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              <button 
+                onClick={() => setViewMode('pending')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'pending' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Pendientes
+              </button>
+              <button 
+                onClick={() => setViewMode('imported')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'imported' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Importados
+              </button>
+            </div>
+            <Button 
+              onClick={() => {
+                setIsScanning(true);
+                setTimeout(() => {
+                  fetchDiscoveryData();
+                  setIsScanning(false);
+                }, 1500);
+              }}
+              disabled={isScanning}
+            >
+              {isScanning ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              Escanear Bandeja
+            </Button>
+          </div>
         }
       />
 
@@ -238,17 +264,23 @@ export default function Discovery() {
                       </div>
                     </td>
                     <td className="p-4 text-right">
-                      <button 
-                        onClick={() => handleProcessLead(lead)}
-                        disabled={processingId !== null}
-                        className="bg-white border border-slate-200 text-slate-800 hover:border-altavik-500 hover:text-altavik-600 p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 inline-flex items-center gap-2 text-xs font-bold"
-                      >
-                        {processingId === lead.emailId ? (
-                           <>Procesando... <Loader2 size={14} className="animate-spin" /></>
-                        ) : (
-                           <><UserPlus size={16} /> Capturar Contacto</>
-                        )}
-                      </button>
+                      {viewMode === 'imported' ? (
+                        <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-[11px] uppercase tracking-wider bg-emerald-50 px-3 py-2 rounded-xl">
+                          <CheckCircle2 size={14} /> Importado
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => handleProcessLead(lead)}
+                          disabled={processingId !== null}
+                          className="bg-white border border-slate-200 text-slate-800 hover:border-altavik-500 hover:text-altavik-600 p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 inline-flex items-center gap-2 text-xs font-bold"
+                        >
+                          {processingId === lead.emailId ? (
+                             <>Procesando... <Loader2 size={14} className="animate-spin" /></>
+                          ) : (
+                             <><UserPlus size={16} /> Capturar Contacto</>
+                          )}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

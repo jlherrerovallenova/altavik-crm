@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -15,8 +14,15 @@ const ai = new GoogleGenAI({ apiKey });
 async function listModels() {
   try {
     const response = await ai.models.list();
-    const models = Array.isArray(response) ? response : (response.models || []);
-    console.log("Model Names:", models.map(m => m.name).join(', '));
+    let names = [];
+    if (response.models) {
+      names = response.models.map(m => m.name);
+    } else {
+      for await (const m of response) {
+        names.push(m.name);
+      }
+    }
+    console.log("Model Names:", names.join('\n'));
   } catch (error) {
     console.error("Error listing models:", error);
   }

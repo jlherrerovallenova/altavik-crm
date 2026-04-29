@@ -184,8 +184,13 @@ export default function ImportLeadsModal({ isOpen, onClose, onSuccess }: Props) 
         try {
             if (!user?.id) throw new Error('Sesión no detectada. Recarga la página.');
 
+            const formatTitleCase = (str: string) => {
+                if (!str || str.toLowerCase() === 'sin nombre') return 'Sin Nombre';
+                return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            };
+
             const payloads = parsedData.map(row => ({
-                name: row['NOMBRE'] || 'Sin Nombre',
+                name: formatTitleCase(row['NOMBRE'] || 'Sin Nombre'),
                 email: row['EMAIL'] || null,
                 phone: row['TELEFONO'] || null,
                 notes: row['NOTAS INTERNAS'] || null,
