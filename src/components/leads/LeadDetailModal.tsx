@@ -665,7 +665,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
 
-                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100 -mt-[80px] relative z-10">
+                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100 mt-2 relative z-10">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                           {editingTaskId ? <Pencil size={12} className="text-amber-500" /> : <Plus size={12} className="text-blue-500" />}
