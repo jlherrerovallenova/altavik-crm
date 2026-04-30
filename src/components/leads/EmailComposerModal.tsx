@@ -489,13 +489,6 @@ Juan Herrero - TERRAVALL`
             <div>
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mensaje personalizado</label>
-                <button
-                  type="button"
-                  onClick={applyFirstContactTemplate}
-                  className="text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1.5 px-3 py-1 bg-altavik-50 hover:bg-altavik-100 rounded-lg border border-altavik-100 transition-all active:scale-95"
-                >
-                  <Zap size={12} fill="currentColor" /> Usar Plantilla Primer Contacto
-                </button>
               </div>
               <textarea
                 rows={10}
