@@ -506,36 +506,64 @@ Juan Herrero - TERRAVALL`
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Documentación a enviar</label>
-              <div className="relative">
-                <input type="file" multiple id="customFile" className="hidden" onChange={handleFileUpload} />
-                <label htmlFor="customFile" className="text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-altavik-200 hover:bg-altavik-50 px-3 py-1.5 rounded-md transition-all">
-                  {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo suelto
-                </label>
+          {method === 'email' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Documentación a enviar</label>
+                <div className="relative">
+                  <input type="file" multiple id="customFile" className="hidden" onChange={handleFileUpload} />
+                  <label htmlFor="customFile" className="text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-altavik-200 hover:bg-altavik-50 px-3 py-1.5 rounded-md transition-all">
+                    {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo suelto
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPropertySelectorOpen(true)}
+                  disabled={isGeneratingFichas}
+                  className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-md transition-all ml-2"
+                >
+                  {isGeneratingFichas ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />} Añadir Ficha de Vivienda
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsPropertySelectorOpen(true)}
-                disabled={isGeneratingFichas}
-                className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-md transition-all ml-2"
-              >
-                {isGeneratingFichas ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />} Añadir Ficha de Vivienda
-              </button>
-            </div>
-            
-            {customDocs.length > 0 && (
-              <div className="border border-altavik-200 rounded-lg overflow-hidden mb-3">
-                <div className="bg-altavik-50 px-4 py-2 border-b border-altavik-200 flex justify-between items-center">
-                  <h4 className="text-[10px] font-black text-altavik-700 uppercase tracking-wider">Archivos Locales (Sueltos)</h4>
+              
+              {customDocs.length > 0 && (
+                <div className="border border-altavik-200 rounded-lg overflow-hidden mb-3">
+                  <div className="bg-altavik-50 px-4 py-2 border-b border-altavik-200 flex justify-between items-center">
+                    <h4 className="text-[10px] font-black text-altavik-700 uppercase tracking-wider">Archivos Locales (Sueltos)</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-px bg-slate-100">
+                    {customDocs.map((doc, idx) => {
+                      const isSelected = selectedDocs.find(d => d.url === doc.url);
+                      return (
+                        <button
+                          key={`custom-${idx}`}
+                          type="button"
+                          onClick={() => toggleDoc(doc)}
+                          className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
+                            isSelected
+                              ? 'bg-altavik-50 text-altavik-700'
+                              : 'bg-white text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Paperclip size={13} className={isSelected ? 'text-altavik-500 shrink-0' : 'text-slate-300 shrink-0'} />
+                          <span className="text-xs font-semibold truncate" title={doc.name}>{doc.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Repositorio de Archivos</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-px bg-slate-100">
-                  {customDocs.map((doc, idx) => {
+                  {availableDocs.map((doc, idx) => {
                     const isSelected = selectedDocs.find(d => d.url === doc.url);
                     return (
                       <button
-                        key={`custom-${idx}`}
+                        key={idx}
                         type="button"
                         onClick={() => toggleDoc(doc)}
                         className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
@@ -551,37 +579,11 @@ Juan Herrero - TERRAVALL`
                   })}
                 </div>
               </div>
-            )}
-
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Repositorio de Archivos</h4>
-              </div>
-              <div className="grid grid-cols-2 gap-px bg-slate-100">
-                {availableDocs.map((doc, idx) => {
-                  const isSelected = selectedDocs.find(d => d.url === doc.url);
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => toggleDoc(doc)}
-                      className={`flex items-center gap-2.5 px-4 py-3 text-left transition-all ${
-                        isSelected
-                          ? 'bg-altavik-50 text-altavik-700'
-                          : 'bg-white text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Paperclip size={13} className={isSelected ? 'text-altavik-500 shrink-0' : 'text-slate-300 shrink-0'} />
-                      <span className="text-xs font-semibold truncate" title={doc.name}>{doc.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {availableDocs.length === 0 && (
+                <p className="text-center py-4 text-xs text-slate-400 italic">No hay documentos disponibles en el servidor.</p>
+              )}
             </div>
-            {availableDocs.length === 0 && (
-              <p className="text-center py-4 text-xs text-slate-400 italic">No hay documentos disponibles en el servidor.</p>
-            )}
-          </div>
+          )}
 
 
           {/* FOOTER */}
@@ -614,7 +616,7 @@ Juan Herrero - TERRAVALL`
                   method === 'email' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-altavik-600 hover:bg-altavik-700'
                 }`}
               >
-                {loading ? <Loader2 className="animate-spin" size={16} /> : 'Enviar Documentación'}
+                {loading ? <Loader2 className="animate-spin" size={16} /> : (method === 'whatsapp' ? 'Enviar Mensaje' : 'Enviar Documentación')}
               </button>
             </div>
           </div>
