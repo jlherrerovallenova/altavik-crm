@@ -270,6 +270,8 @@ export default function Leads() {
     }
   };
 
+
+
   const openComposer = (lead: Lead, method: 'email' | 'whatsapp') => {
     setInitialMethod(method);
     setEmailLead(lead);
