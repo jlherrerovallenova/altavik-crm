@@ -186,6 +186,11 @@ ${emailData.body}
                                 if (textOutput) {
                                     const extracted = JSON.parse(textOutput);
                                     
+                                    // Limpiar el número de teléfono (quitar espacios en blanco)
+                                    if (extracted.phone && extracted.phone !== 'No proporcionado') {
+                                        extracted.phone = extracted.phone.replace(/\s+/g, '');
+                                    }
+
                                     // Verificamos si el lead ya existe por email o telefono (si los hay)
                                     let leadExists = false;
                                     if (extracted.email !== 'No proporcionado') {

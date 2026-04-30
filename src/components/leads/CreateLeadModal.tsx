@@ -192,7 +192,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
       const payload: any = {
         name: formatTitleCase(formData.name.trim()),
         email: formData.email || null,
-        phone: formData.phone || null,
+        phone: formData.phone ? formData.phone.replace(/\s+/g, '') : null,
         notes: formData.notes || null,
         source: formData.source,
         status: 'new',

@@ -324,6 +324,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const { created_at_date, statusOriginal, ...restData } = formData;
     const finalData = {
       ...restData,
+      phone: restData.phone ? restData.phone.replace(/\s+/g, '') : null,
       created_at: new Date(`${created_at_date}T12:00:00Z`).toISOString()
     };
 

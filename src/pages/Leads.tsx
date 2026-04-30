@@ -241,7 +241,7 @@ export default function Leads() {
         if (!name && item.USUARIO) name = item.USUARIO.trim();
         let email = item.EMAIL ? item.EMAIL.trim() : null;
         const phoneKey = Object.keys(item).find(k => k.startsWith('TEL'));
-        let phone = phoneKey && item[phoneKey] ? item[phoneKey].trim() : null;
+        let phone = phoneKey && item[phoneKey] ? item[phoneKey].trim().replace(/\s+/g, '') : null;
         let sourceKey = Object.keys(item).find(k => k.startsWith('ORIGEN'));
         let source = sourceKey && item[sourceKey] ? item[sourceKey].trim() : 'Idealista';
         let notes = item['NOTAS INTERNAS'] ? item['NOTAS INTERNAS'].trim() : '';
