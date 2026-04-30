@@ -166,15 +166,15 @@ async function syncEmails() {
                                 console.log(`🪄 Procesando email con Gemini para autogenerar Lead...`);
                                 const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
                                 
-                                const prompt = \`
+                                const prompt = `
 Eres un asistente comercial inmobiliario de Altavik CRM. Extrae los datos del lead potencial de este correo.
 Devuelve EXCLUSIVAMENTE UN JSON, sin formato markdown.
 FORMATO PERFECTO:
 { "name": "Nombre extraído (o 'Desconocido')", "phone": "Teléfono (o 'No proporcionado')", "email": "Email (o 'No proporcionado')", "source": "Idealista / Web / ...", "notes": "- Notas..." }
 --- CORREO ---
-Remitente: \${emailData.sender_name} <\${emailData.sender_email}>
-\${emailData.body}
-\`;
+Remitente: ${emailData.sender_name} <${emailData.sender_email}>
+${emailData.body}
+`;
 
                                 const response = await ai.models.generateContent({
                                     model: 'gemini-2.5-flash',
@@ -205,7 +205,7 @@ Remitente: \${emailData.sender_name} <\${emailData.sender_email}>
                                             phone: extracted.phone !== 'No proporcionado' ? extracted.phone : null,
                                             source: extracted.source + ' (Auto IA)',
                                             status: 'new',
-                                            notes: \`[Importado Automáticamente vía Smart Inbox]\n\n\${extracted.notes}\`
+                                            notes: `[Importado Automáticamente vía Smart Inbox]\n\n${extracted.notes}`
                                         }]);
                                         
                                         // Marcamos el email original como procesado

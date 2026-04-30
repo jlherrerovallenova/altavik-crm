@@ -150,6 +150,8 @@ const SourceIcon = ({ source }: { source: string | null }) => {
   );
 };
 
+import { supabase } from '../lib/supabase';
+
 export default function Leads() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: rawDocs = [] } = useDocuments();
@@ -175,6 +177,7 @@ export default function Leads() {
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
   const [initialMethod, setInitialMethod] = useState<'email' | 'whatsapp'>('email');
   const [initialTemplate, setInitialTemplate] = useState<'first_contact' | undefined>(undefined);
+  const [isImporting, setIsImporting] = useState(false);
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -220,6 +223,51 @@ export default function Leads() {
 
   const showMsg = (type: 'success' | 'error' | 'info', title: string, message: string) => {
     setNotification({ show: true, type, title, message });
+  };
+
+  const handleImportCSV = async () => {
+    try {
+      setIsImporting(true);
+      const res = await fetch('/leads_to_import.json');
+      if (!res.ok) {
+        showMsg('error', 'Error', 'No se encontró el archivo de importación. Genera uno primero.');
+        setIsImporting(false);
+        return;
+      }
+      const jsonData = await res.json();
+      let count = 0;
+      for (const item of jsonData) {
+        let name = item.NOMBRE ? item.NOMBRE.trim() : '';
+        if (!name && item.USUARIO) name = item.USUARIO.trim();
+        let email = item.EMAIL ? item.EMAIL.trim() : null;
+        const phoneKey = Object.keys(item).find(k => k.startsWith('TEL'));
+        let phone = phoneKey && item[phoneKey] ? item[phoneKey].trim() : null;
+        let sourceKey = Object.keys(item).find(k => k.startsWith('ORIGEN'));
+        let source = sourceKey && item[sourceKey] ? item[sourceKey].trim() : 'Idealista';
+        let notes = item['NOTAS INTERNAS'] ? item['NOTAS INTERNAS'].trim() : '';
+        
+        if (!name && !email && !phone) continue;
+        if (!name) name = 'Desconocido';
+        if (name === 'Desconocido' && !email && !notes) continue;
+        
+        let created_at = new Date().toISOString();
+        if (item.ALTA) {
+            const parts = item.ALTA.trim().split('/');
+            if (parts.length === 3) created_at = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`).toISOString();
+        }
+
+        const { error } = await supabase.from('leads').insert([{
+            name, email: email || null, phone: phone || null, source, notes, status: 'new', created_at
+        }]);
+        if (!error) count++;
+      }
+      showMsg('success', 'Importación completada', `Se importaron ${count} nuevos contactos de Idealista.`);
+      refetch();
+    } catch (e) {
+      showMsg('error', 'Error', 'Fallo al importar datos.');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const openComposer = (lead: Lead, method: 'email' | 'whatsapp') => {
@@ -268,13 +316,23 @@ export default function Leads() {
           </p>
         }
         actions={
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            size="lg"
-          >
-            <Plus size={18} strokeWidth={3} />
-            Nuevo Contacto
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              onClick={handleImportCSV}
+              disabled={isImporting}
+            >
+              {isImporting ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+              Importar Idealista CSV
+            </Button>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              size="lg"
+            >
+              <Plus size={18} strokeWidth={3} />
+              Nuevo Contacto
+            </Button>
+          </>
         }
       />
 
