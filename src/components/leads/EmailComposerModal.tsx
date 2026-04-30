@@ -464,7 +464,7 @@ Juan Herrero - TERRAVALL`
             ) : (
               <>
                 <MessageCircle size={14} className="text-emerald-300" />
-                <span>ENVÍO POR WHATSAPP</span>
+                <span>ENVÍO 1er CONTACTO</span>
               </>
             )}
           </div>
