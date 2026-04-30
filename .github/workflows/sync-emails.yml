@@ -3,6 +3,9 @@ name: Sincronización Automática de Leads (Email)
 on:
   workflow_dispatch:
     # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
+  schedule:
+    # Ejecuta automáticamente cada 15 minutos
+    - cron: '*/15 * * * *'
 
 jobs:
   sync:
