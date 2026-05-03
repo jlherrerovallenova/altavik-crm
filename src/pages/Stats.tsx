@@ -30,7 +30,9 @@ import autoTable from 'jspdf-autotable';
 import { supabase } from '../lib/supabase';
 import { StatCard } from '../components/Shared';
 
-const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+// Paleta corporativa Altavik
+const COLORS = ['#6b94b9', '#466383', '#88aec9', '#3a516b', '#abc6d9', '#2d3f54', '#adb5bd'];
+const BRAND_BLUE = '#6b94b9';
 
 export default function Stats() {
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,7 @@ export default function Stats() {
     activeLeads: 0,
     growth: 0
   });
+  const [statusData, setStatusData] = useState<any[]>([]);
   const [rawLeads, setRawLeads] = useState<any[]>([]);
 
   useEffect(() => {
@@ -170,6 +173,19 @@ export default function Stats() {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
     );
+
+    // 4. Datos por estado
+    const statuses: Record<string, number> = {};
+    currentLeads.forEach(l => {
+      const s = STATUS_MAP[l.status] || l.status;
+      statuses[s] = (statuses[s] || 0) + 1;
+    });
+
+    setStatusData(
+      Object.entries(statuses)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+    );
   };
 
   const STATUS_MAP: Record<string, string> = {
@@ -225,9 +241,16 @@ export default function Stats() {
       format: 'a4'
     });
 
+    // Añadir logo si existe (posicionamiento arriba a la derecha)
+    try {
+      doc.addImage('/logo-altavik.png', 'PNG', 245, 10, 35, 15);
+    } catch (e) {
+      console.warn('Logo not found for PDF');
+    }
+
     // Añadir título y fecha
     doc.setFontSize(18);
-    doc.setTextColor(16, 185, 129); // Emerald-500
+    doc.setTextColor(107, 148, 185); // Altavik Blue
     doc.text('Informe Histórico de Clientes - Altavik CRM', 14, 20);
     
     doc.setFontSize(10);
@@ -253,7 +276,7 @@ export default function Stats() {
       startY: 40,
       theme: 'grid',
       headStyles: { 
-        fillColor: [16, 185, 129], 
+        fillColor: [107, 148, 185], 
         textColor: 255, 
         fontSize: 10,
         fontStyle: 'bold' 
@@ -269,6 +292,137 @@ export default function Stats() {
 
     // Guardar PDF
     doc.save(`informe_clientes_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  const handleDownloadStatusPDF = () => {
+    if (rawLeads.length === 0) return;
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Añadir logo (posicionamiento arriba a la derecha)
+    try {
+      doc.addImage('/logo-altavik.png', 'PNG', 245, 10, 35, 15);
+    } catch (e) {
+      console.warn('Logo not found for PDF');
+    }
+
+    // Título elegante
+    doc.setFontSize(22);
+    doc.setTextColor(107, 148, 185); // Altavik Blue
+    doc.text('Resumen Estadístico: Estados por Semana', 14, 25);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    const monthName = new Date().toLocaleString('es-ES', { month: 'long' });
+    doc.text(`Análisis correspondiente al mes de ${monthName.toUpperCase()} ${new Date().getFullYear()}`, 14, 33);
+    doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 38);
+
+    // Línea separadora
+    doc.setDrawColor(241, 245, 249);
+    doc.line(14, 45, 283, 45);
+
+    // Obtener leads del mes actual
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const monthLeads = rawLeads.filter(l => {
+      const d = new Date(l.created_at);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    const weeks = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
+    const statuses = ['new', 'contacted', 'qualified', 'visiting', 'closed', 'lost'];
+    
+    const matrix: Record<string, Record<string, number>> = {};
+    statuses.forEach(s => {
+      matrix[s] = { 'Semana 1': 0, 'Semana 2': 0, 'Semana 3': 0, 'Semana 4': 0 };
+    });
+
+    monthLeads.forEach(l => {
+      const date = new Date(l.created_at);
+      const day = date.getDate();
+      let week = 'Semana 4';
+      if (day <= 7) week = 'Semana 1';
+      else if (day <= 14) week = 'Semana 2';
+      else if (day <= 21) week = 'Semana 3';
+      
+      if (matrix[l.status]) {
+        matrix[l.status][week]++;
+      }
+    });
+
+    // Preparar filas para la tabla
+    const tableColumn = ["ESTADO DEL CLIENTE", "S1 (1-7)", "S2 (8-14)", "S3 (15-21)", "S4 (+22)", "TOTAL MES"];
+    const tableRows = statuses.map(s => {
+      const row = [(STATUS_MAP[s] || s).toUpperCase()];
+      let total = 0;
+      weeks.forEach(w => {
+        const count = matrix[s][w];
+        row.push(count === 0 ? '-' : count.toString());
+        total += count;
+      });
+      row.push(total.toString());
+      return row;
+    });
+
+    // Añadir fila de totales por semana
+    const footerRow = ["TOTAL GENERAL"];
+    let grandTotal = 0;
+    weeks.forEach(w => {
+      let weekTotal = 0;
+      statuses.forEach(s => weekTotal += matrix[s][w]);
+      footerRow.push(weekTotal.toString());
+      grandTotal += weekTotal;
+    });
+    footerRow.push(grandTotal.toString());
+    tableRows.push(footerRow);
+
+    // Generar tabla
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 55,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: [107, 148, 185], 
+        textColor: 255, 
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold', fillColor: [248, 250, 252] },
+        1: { halign: 'center' },
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'center' },
+        5: { halign: 'center', fontStyle: 'bold', fillColor: [241, 245, 249] }
+      },
+      styles: { 
+        fontSize: 11,
+        cellPadding: 6
+      },
+      didParseCell: (data) => {
+        if (data.row.index === tableRows.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [231, 238, 243]; // Altavik-100
+        }
+      }
+    });
+
+    // Resumen final
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('* Este informe es de carácter cuantitativo y no contiene datos personales identificativos.', 14, finalY);
+
+    // Guardar PDF
+    doc.save(`estadisticas_estados_semanal_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -352,23 +506,25 @@ export default function Stats() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Gráfico de Barras: Entradas Mensuales */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Calendar size={18} className="text-altavik-500" />
-              Entradas Mensuales
-            </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Gráfico Principal (2/3 del ancho) */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Calendar size={18} className="text-altavik-500" />
+                Flujo de Entradas
+              </h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Captación por periodo</p>
+            </div>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={leadsData}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor={BRAND_BLUE} stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor={BRAND_BLUE} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -376,22 +532,22 @@ export default function Stats() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+                  tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 12}} 
+                  tick={{fill: '#94a3b8', fontSize: 11}} 
                 />
                 <Tooltip 
                   contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px'}}
-                  cursor={{stroke: '#10b981', strokeWidth: 2}}
+                  cursor={{stroke: BRAND_BLUE, strokeWidth: 2}}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="total" 
-                  stroke="#10b981" 
+                  stroke={BRAND_BLUE} 
                   strokeWidth={3}
                   fillOpacity={1} 
                   fill="url(#colorTotal)" 
@@ -402,23 +558,58 @@ export default function Stats() {
           </div>
         </div>
 
+        {/* Mini Widget Informativo (1/3 del ancho) */}
+        <div className="bg-gradient-to-br from-altavik-600 to-altavik-800 p-6 rounded-2xl shadow-lg text-white flex flex-col justify-between overflow-hidden relative group">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+          <div className="relative z-10">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/70 mb-1">Métrica Destacada</h3>
+            <h2 className="text-2xl font-black mb-4">Rendimiento Mensual</h2>
+            
+            <div className="space-y-4">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <p className="text-[10px] font-bold text-white/60 uppercase">Canal Principal</p>
+                <p className="text-lg font-black">{sourceData[0]?.name || '---'}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <p className="text-[10px] font-bold text-white/60 uppercase">Estado Mayoritario</p>
+                <p className="text-lg font-black">{statusData[0]?.name || '---'}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative z-10 mt-6 pt-6 border-t border-white/10 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-white/60">CONVERSIÓN</span>
+              <span className="text-xl font-black">{summaryStats.conversionRate}%</span>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <TrendingUp size={20} className="text-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gráfico de Tarta: Origen de Clientes */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <PieIcon size={18} className="text-blue-500" />
-              Distribución por Origen
-            </h3>
+            <div>
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <PieIcon size={18} className="text-altavik-500" />
+                Distribución por Origen
+              </h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Procedencia de los leads</p>
+            </div>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={sourceData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={55}
+                  outerRadius={75}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -433,68 +624,167 @@ export default function Stats() {
                   verticalAlign="bottom" 
                   height={36} 
                   iconType="circle"
-                  formatter={(value) => <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{value}</span>}
+                  formatter={(value) => <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Gráfico de Tarta: Estado de Clientes */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Target size={18} className="text-altavik-500" />
+                Estado Actual
+              </h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Ubicación en el funnel</p>
+            </div>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="h-8 text-[10px] font-black tracking-widest gap-1.5 border-slate-200"
+              onClick={handleDownloadStatusPDF}
+            >
+              <Download size={14} />
+              PDF ESTADOS
+            </Button>
+          </div>
+          <div className="h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={75}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {statusData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                   contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  iconType="circle"
+                  formatter={(value) => <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
-      {/* Tabla Detalle Orígenes */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 bg-white">
-          <h3 className="font-bold text-slate-800">Ranking de Canales de Adquisición</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Medio</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contactos</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Participación</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Tendencia</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {sourceData.map((source, index) => (
-                <tr key={source.name} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[index % COLORS.length]}}></div>
-                      <span className="text-sm font-bold text-slate-700">{source.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-slate-600">{source.value}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden w-24">
-                        <div 
-                          className="h-full rounded-full" 
-                          style={{
-                            width: `${(source.value / summaryStats.totalLeads * 100)}%`,
-                            backgroundColor: COLORS[index % COLORS.length]
-                          }}
-                        ></div>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {Math.round(source.value / summaryStats.totalLeads * 100)}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="inline-flex items-center text-altavik-600 bg-altavik-50 px-2 py-1 rounded-full text-[10px] font-bold">
-                      <ArrowUpRight size={12} className="mr-1" />
-                      SUBIENDO
-                    </div>
-                  </td>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
+        {/* Tabla Detalle Orígenes */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 bg-white">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <PieIcon size={18} className="text-altavik-500" />
+              Ranking de Canales
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Medio</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Leads</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Cuota</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {sourceData.map((source, index) => (
+                  <tr key={source.name} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[index % COLORS.length]}}></div>
+                        <span className="text-sm font-bold text-slate-700">{source.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-slate-900">{source.value}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-1000" 
+                            style={{
+                              width: `${(source.value / summaryStats.totalLeads * 100)}%`,
+                              backgroundColor: COLORS[index % COLORS.length]
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-500 min-w-[30px]">
+                          {Math.round(source.value / summaryStats.totalLeads * 100)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Tabla Detalle Estados */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 bg-white">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <Target size={18} className="text-altavik-500" />
+              Desglose por Estado
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Leads</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Cuota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {statusData.map((status, index) => (
+                  <tr key={status.name} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full" style={{backgroundColor: COLORS[(index + 2) % COLORS.length]}}></div>
+                        <span className="text-sm font-bold text-slate-700">{status.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-slate-900">{status.value}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-1000" 
+                            style={{
+                              width: `${(status.value / summaryStats.totalLeads * 100)}%`,
+                              backgroundColor: COLORS[(index + 2) % COLORS.length]
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-500 min-w-[30px]">
+                          {Math.round(status.value / summaryStats.totalLeads * 100)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

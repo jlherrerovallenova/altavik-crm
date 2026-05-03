@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Loader2, UserPlus, Mail, AlertCircle, CheckCircle2, Wand2, Search } from 'lucide-react';
+import { Sparkles, Loader2, UserPlus, Mail, AlertCircle, CheckCircle2, Wand2, Search, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { extractLeadDataFromEmail } from '../services/geminiService';
 import { useCreateLead } from '../hooks/useLeads';
@@ -26,6 +26,7 @@ export default function Discovery() {
   const [isScanning, setIsScanning] = useState(false);
   const [viewMode, setViewMode] = useState<'pending' | 'imported'>('pending');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [notification, setNotification] = useState<{ show: boolean, title: string, message: string, type: 'success' | 'error' }>({
     show: false, title: '', message: '', type: 'success'
   });
@@ -75,8 +76,11 @@ export default function Discovery() {
       console.error("Error en Discovery:", err);
     } finally {
       setLoading(false);
+      setSelectedIds([]); // Limpiar selección al refrescar
     }
   };
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   useEffect(() => {
     fetchDiscoveryData();
@@ -175,6 +179,148 @@ export default function Discovery() {
     }
   };
 
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === discoveredLeads.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(discoveredLeads.map(l => l.emailId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    const confirmed = await showConfirm({
+      title: `¿Eliminar ${selectedIds.length} entradas?`,
+      message: `Vas a eliminar ${selectedIds.length} correos de la lista de descubrimiento. Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar todo',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('incoming_emails')
+        .delete()
+        .in('id', selectedIds);
+
+      if (error) throw error;
+
+      setNotification({
+        show: true,
+        title: 'Entradas eliminadas',
+        message: `Se han eliminado ${selectedIds.length} correos correctamente.`,
+        type: 'success'
+      });
+
+      fetchDiscoveryData();
+    } catch (err: any) {
+      console.error("Error en borrado masivo:", err);
+      setNotification({
+        show: true,
+        title: 'Error',
+        message: 'No se pudieron eliminar algunas entradas.',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteEmail = async (emailId: string) => {
+    const confirmed = await showConfirm({
+      title: '¿Eliminar entrada?',
+      message: 'Esta acción eliminará el correo de la lista de descubrimiento. No se creará ningún contacto.',
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('incoming_emails')
+        .delete()
+        .eq('id', emailId);
+
+      if (error) throw error;
+
+      setNotification({
+        show: true,
+        title: 'Entrada eliminada',
+        message: 'El correo ha sido descartado del sistema.',
+        type: 'success'
+      });
+
+      fetchDiscoveryData();
+    } catch (err: any) {
+      console.error("Error al eliminar email:", err);
+      setNotification({
+        show: true,
+        title: 'Error',
+        message: 'No se pudo eliminar la entrada.',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleBulkProcessLeads = async () => {
+    if (selectedIds.length === 0) return;
+
+    const confirmed = await showConfirm({
+      title: `¿Capturar ${selectedIds.length} contactos?`,
+      message: `El sistema procesará ${selectedIds.length} correos con Inteligencia Artificial para extraer los datos y crear los contactos automáticamente.`,
+      confirmText: 'Sí, empezar captura',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) return;
+
+    const leadsToProcess = discoveredLeads.filter(l => selectedIds.includes(l.emailId));
+    let successCount = 0;
+    let errorCount = 0;
+
+    setIsScanning(true); // Usamos el estado de scanning para mostrar progreso global
+    
+    for (let i = 0; i < leadsToProcess.length; i++) {
+      const lead = leadsToProcess[i];
+      setProcessingId(lead.emailId);
+      
+      try {
+        await handleProcessLead(lead);
+        successCount++;
+      } catch (err: any) {
+        console.error(`Error procesando lead ${lead.emailId}:`, err);
+        errorCount++;
+      }
+
+      // Si no es el último lead, no ponemos pausa (plan de pago)
+    }
+
+    setIsScanning(false);
+    setProcessingId(null);
+    setSelectedIds([]);
+
+    setNotification({
+      show: true,
+      title: 'Proceso masivo completado',
+      message: `Se han procesado ${leadsToProcess.length} correos. Éxitos: ${successCount}, Errores: ${errorCount}.`,
+      type: successCount > 0 ? 'success' : 'error'
+    });
+
+    fetchDiscoveryData();
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
       <PageHeader 
@@ -183,6 +329,30 @@ export default function Discovery() {
         subtitle="Correos detectados de potenciales clientes que aún no tienes en tu base de datos."
         actions={
           <div className="flex items-center gap-3">
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <Button 
+                  variant="primary" 
+                  size="sm"
+                  onClick={handleBulkProcessLeads}
+                  disabled={isScanning || processingId !== null}
+                  className="bg-altavik-600 hover:bg-altavik-700 text-white h-9 px-4 rounded-lg"
+                >
+                  <UserPlus size={16} />
+                  Capturar ({selectedIds.length})
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={isScanning || processingId !== null}
+                  className="bg-white border-slate-200 text-red-600 hover:bg-red-50 h-9 px-4 rounded-lg"
+                >
+                  <Trash2 size={16} />
+                  Eliminar
+                </Button>
+              </div>
+            )}
             <div className="flex bg-slate-100 p-1 rounded-xl">
               <button 
                 onClick={() => setViewMode('pending')}
@@ -233,6 +403,14 @@ export default function Discovery() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="p-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      checked={discoveredLeads.length > 0 && selectedIds.length === discoveredLeads.length}
+                      onChange={handleSelectAll}
+                      className="rounded border-slate-300 text-altavik-600 focus:ring-altavik-500 cursor-pointer w-4 h-4"
+                    />
+                  </th>
                   <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Contacto / Asunto</th>
                   <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Fecha</th>
                   <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Estado</th>
@@ -241,7 +419,18 @@ export default function Discovery() {
               </thead>
               <tbody>
                 {discoveredLeads.map((lead) => (
-                  <tr key={lead.emailId} className="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
+                  <tr 
+                    key={lead.emailId} 
+                    className={`border-b border-slate-50 transition-colors group ${selectedIds.includes(lead.emailId) ? 'bg-altavik-50/50' : 'hover:bg-slate-50'}`}
+                  >
+                    <td className="p-4">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.includes(lead.emailId)}
+                        onChange={() => handleToggleSelect(lead.emailId)}
+                        className="rounded border-slate-300 text-altavik-600 focus:ring-altavik-500 cursor-pointer w-4 h-4"
+                      />
+                    </td>
                     <td className="p-4">
                       <div className="flex flex-col">
                         <span className="text-sm font-bold text-slate-800">{lead.senderName}</span>
@@ -264,23 +453,35 @@ export default function Discovery() {
                       </div>
                     </td>
                     <td className="p-4 text-right">
-                      {viewMode === 'imported' ? (
-                        <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-[11px] uppercase tracking-wider bg-emerald-50 px-3 py-2 rounded-xl">
-                          <CheckCircle2 size={14} /> Importado
-                        </span>
-                      ) : (
-                        <button 
-                          onClick={() => handleProcessLead(lead)}
-                          disabled={processingId !== null}
-                          className="bg-white border border-slate-200 text-slate-800 hover:border-altavik-500 hover:text-altavik-600 p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 inline-flex items-center gap-2 text-xs font-bold"
-                        >
-                          {processingId === lead.emailId ? (
-                             <>Procesando... <Loader2 size={14} className="animate-spin" /></>
-                          ) : (
-                             <><UserPlus size={16} /> Capturar Contacto</>
-                          )}
-                        </button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {viewMode === 'imported' ? (
+                          <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-[11px] uppercase tracking-wider bg-emerald-50 px-3 py-2 rounded-xl">
+                            <CheckCircle2 size={14} /> Importado
+                          </span>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => handleProcessLead(lead)}
+                              disabled={processingId !== null}
+                              className="bg-white border border-slate-200 text-slate-800 hover:border-altavik-500 hover:text-altavik-600 px-4 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 inline-flex items-center gap-2 text-xs font-bold"
+                            >
+                              {processingId === lead.emailId ? (
+                                <>Procesando... <Loader2 size={14} className="animate-spin" /></>
+                              ) : (
+                                <><UserPlus size={16} /> Capturar</>
+                              )}
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteEmail(lead.emailId)}
+                              disabled={processingId !== null}
+                              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"
+                              title="Eliminar de la lista"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
