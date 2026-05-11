@@ -83,7 +83,7 @@ export default function EmailComposerModal({
 
   // Efecto para inicializar el mensaje con el template por defecto si se solicita
   useEffect(() => {
-    if (initialTemplate === 'first_contact' && templates.length > 0) {
+    if (initialTemplate === 'first_contact' && templates.length > 0 && !selectedTemplateId) {
       const firstContact = templates.find(t => t.name.includes('Primer Contacto')) || templates[0];
       if (firstContact) {
         setSelectedTemplateId(firstContact.id || firstContact.name);
@@ -92,7 +92,7 @@ export default function EmailComposerModal({
           setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
         }
       }
-    } else if (!message) {
+    } else if (!message && templates.length > 0) {
       // Mensaje genérico por defecto
       setMessage(`¡${getGreeting()}, ${leadName.split(' ')[0]}!
 
@@ -104,7 +104,7 @@ Tal y como acabamos de hablar, le envío adjunta toda la información sobre RESI
 
 Juan Herrero - TERRAVALL`);
     }
-  }, [initialTemplate, templates, leadName, method]);
+  }, [initialTemplate, templates, leadName, method, message, selectedTemplateId]);
 
   const applyTemplate = (templateId: string) => {
     const template = templates.find(t => (t.id || t.name) === templateId);

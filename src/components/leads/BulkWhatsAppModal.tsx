@@ -1,6 +1,6 @@
 // src/components/leads/BulkWhatsAppModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, MessageCircle, Send, User, CheckCircle2, ExternalLink, Loader2, Layout } from 'lucide-react';
+import { X, MessageCircle, User, CheckCircle2, ExternalLink, Loader2, Layout } from 'lucide-react';
 import type { Database } from '../../types/supabase';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
 import { parseTemplate, getWhatsAppUrl } from '../../services/whatsappService';
@@ -21,9 +21,10 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
 
   useEffect(() => {
     if (templates.length > 0 && !selectedTemplateId) {
-      setSelectedTemplateId(templates[0].id || templates[0].name);
+      const defaultId = templates[0].id || templates[0].name;
+      setSelectedTemplateId(defaultId);
     }
-  }, [templates]);
+  }, [templates, selectedTemplateId]);
 
   if (!isOpen) return null;
 
