@@ -1,5 +1,5 @@
 // src/components/leads/EmailComposerModal.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Mail,
   MessageCircle,
@@ -8,12 +8,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
-  Zap
+  Zap,
+  Layout
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
+import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
+import { parseTemplate, getWhatsAppUrl, getGreeting } from '../../services/whatsappService';
 
 const shortenUrl = async (url: string) => {
   // Intentamos primero con v.gd
@@ -73,57 +76,25 @@ export default function EmailComposerModal({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 6 && hour < 14) return 'Buenos días';
-    if (hour >= 14 && hour < 20) return 'Buenas tardes';
-    return 'Buenas noches';
-  };
+  const { templates, loading: loadingTemplates } = useWhatsAppTemplates();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
-  const detectGender = (name: string): 'interesado' | 'interesada' => {
-    if (!name) return 'interesado';
-    const firstName = name.split(' ')[0].toLowerCase().trim();
-    
-    // Nombres femeninos comunes que NO terminan en 'a'
-    const femaleExceptions = [
-      'pilar', 'carmen', 'isabel', 'mar', 'belen', 'belén', 'raquel', 'ines', 'inés', 
-      'beatriz', 'consuelo', 'lourdes', 'mercedes', 'dolores', 'concepcion', 'concepción', 
-      'asuncion', 'asunción', 'rosario', 'virtudes', 'amparo', 'remedios'
-    ];
-    // Nombres masculinos comunes que terminan en 'a' (ej. Borja)
-    const maleExceptions = ['borja', 'luca', 'bautista'];
+  const [message, setMessage] = useState('');
 
-    if (femaleExceptions.includes(firstName)) return 'interesada';
-    if (maleExceptions.includes(firstName)) return 'interesado';
-    
-    // Heurística básica: termina en 'a' -> femenino
-    if (firstName.endsWith('a')) return 'interesada';
-    
-    return 'interesado';
-  };
-
-  const getFirstContactTemplate = () => {
-    const greeting = getGreeting();
-    const firstName = leadName.split(' ')[0];
-    const genderedInterest = detectGender(leadName);
-    
-    return `¡${greeting}, ${firstName}!
-
-Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
-
-Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
-
-1️⃣ ¿Qué tipo de vivienda prefiere? (Bajo, planta intermedia o ático).
-2️⃣ ¿Cuántos dormitorios necesita?
-3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ampliemos la información con todo detalle?
-
-Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
-  };
-
-  const [message, setMessage] = useState(
-    initialTemplate === 'first_contact' 
-      ? getFirstContactTemplate()
-      : `¡${getGreeting()}, ${leadName.split(' ')[0]}!
+  // Efecto para inicializar el mensaje con el template por defecto si se solicita
+  useEffect(() => {
+    if (initialTemplate === 'first_contact' && templates.length > 0) {
+      const firstContact = templates.find(t => t.name.includes('Primer Contacto')) || templates[0];
+      if (firstContact) {
+        setSelectedTemplateId(firstContact.id || firstContact.name);
+        setMessage(parseTemplate(firstContact.body, { name: leadName }));
+        if (method === 'email') {
+          setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+        }
+      }
+    } else if (!message) {
+      // Mensaje genérico por defecto
+      setMessage(`¡${getGreeting()}, ${leadName.split(' ')[0]}!
 
 Tal y como acabamos de hablar, le envío adjunta toda la información sobre RESIDENCIAL ALTAVIK.
 
@@ -131,13 +102,18 @@ Tal y como acabamos de hablar, le envío adjunta toda la información sobre RESI
 
 ¡Un saludo!
 
-Juan Herrero - TERRAVALL`
-  );
+Juan Herrero - TERRAVALL`);
+    }
+  }, [initialTemplate, templates, leadName, method]);
 
-  const applyFirstContactTemplate = () => {
-    setMessage(getFirstContactTemplate());
-    if (method === 'email') {
-      setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+  const applyTemplate = (templateId: string) => {
+    const template = templates.find(t => (t.id || t.name) === templateId);
+    if (template) {
+      setSelectedTemplateId(templateId);
+      setMessage(parseTemplate(template.body, { name: leadName }));
+      if (template.name.includes('Primer Contacto') && method === 'email') {
+        setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+      }
     }
   };
 
@@ -403,15 +379,12 @@ Juan Herrero - TERRAVALL`
         setStatus('success');
         setTimeout(onClose, 2000);
       } else {
-        // Lógica WhatsApp (se mantiene igual ya que WhatsApp no soporta firmas HTML/Base64)
+        // Lógica WhatsApp (usando servicio centralizado)
         if (!leadPhone) {
           await showAlert({ title: 'Atención', message: 'El cliente no tiene teléfono configurado.' });
           setLoading(false);
           return;
         }
-
-        let cleanPhone = leadPhone.replace(/\D/g, '');
-        if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
 
         const shortenedDocs = await Promise.all(
           selectedDocs.map(async d => ({
@@ -425,8 +398,7 @@ Juan Herrero - TERRAVALL`
           : '';
 
         const fullMessage = `${message}${docsText}`;
-        const encodedMsg = encodeURIComponent(fullMessage);
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+        const whatsappUrl = getWhatsAppUrl(leadPhone, fullMessage);
 
         window.open(whatsappUrl, '_blank');
         await saveHistory('whatsapp');
@@ -488,10 +460,29 @@ Juan Herrero - TERRAVALL`
 
             <div>
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mensaje personalizado</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {method === 'whatsapp' ? 'Plantilla de WhatsApp' : 'Mensaje personalizado'}
+                </label>
+                {method === 'whatsapp' && (
+                  <div className="flex items-center gap-2">
+                    <Layout size={12} className="text-slate-400" />
+                    <select
+                      value={selectedTemplateId}
+                      onChange={(e) => applyTemplate(e.target.value)}
+                      className="text-[10px] font-bold text-altavik-600 bg-transparent border-none outline-none cursor-pointer hover:text-altavik-700"
+                    >
+                      <option value="">Seleccionar plantilla...</option>
+                      {templates.map(t => (
+                        <option key={t.id || t.name} value={t.id || t.name}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <textarea
-                rows={10}
+                rows={method === 'whatsapp' ? 12 : 10}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-y transition-all"
