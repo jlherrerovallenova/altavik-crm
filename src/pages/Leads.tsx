@@ -197,7 +197,7 @@ export default function Leads() {
         }
       />
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm mb-6">
         <div className="flex flex-col lg:flex-row gap-3 items-center p-3">
           <div className="relative flex-1 w-full group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-altavik-600 transition-colors" strokeWidth={2.5} size={18} />

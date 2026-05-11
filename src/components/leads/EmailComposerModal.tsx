@@ -106,14 +106,46 @@ Juan Herrero - TERRAVALL`);
     }
   }, [initialTemplate, templates, leadName, method, message, selectedTemplateId]);
 
-  const applyTemplate = (templateId: string) => {
+  const applyTemplate = async (templateId: string) => {
     const template = templates.find(t => (t.id || t.name) === templateId);
-    if (template) {
-      setSelectedTemplateId(templateId);
-      setMessage(parseTemplate(template.body, { name: leadName }));
-      if (template.name.includes('Primer Contacto') && method === 'email') {
-        setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+    if (!template) return;
+
+    setSelectedTemplateId(templateId);
+
+    if (template.name === 'Recordatorio de Visita') {
+      // Buscar la última cita de tipo VISITA del lead
+      const { data: agendaItems } = await supabase
+        .from('agenda')
+        .select('*')
+        .eq('lead_id', leadId)
+        .ilike('title', '%visita%')
+        .order('due_date', { ascending: false })
+        .limit(1);
+
+      let fecha_visita = '[fecha]';
+      let hora_visita = '[hora]';
+
+      if (agendaItems && agendaItems.length > 0) {
+        const cita = agendaItems[0];
+        const citaDate = new Date(cita.due_date);
+        fecha_visita = citaDate.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long'
+        });
+        hora_visita = citaDate.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       }
+
+      setMessage(parseTemplate(template.body, { name: leadName }, { fecha_visita, hora_visita }));
+    } else {
+      setMessage(parseTemplate(template.body, { name: leadName }));
+    }
+
+    if (template.name.includes('Primer Contacto') && method === 'email') {
+      setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
     }
   };
 

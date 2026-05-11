@@ -1,0 +1,34 @@
+<h2>Arquitectura de Plantillas Inteligentes</h2>
+<p class="subtitle">¿Cómo quieres gestionar el contenido de los mensajes automáticos?</p>
+
+<div class="options">
+  <div class="option" data-choice="static" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Utilidad Estática (Rápido)</h3>
+      <p>Centralizamos las plantillas en un archivo de código. Es muy estable y fácil de mantener para los desarrolladores.</p>
+      <div class="pros-cons">
+        <div class="pros"><ul><li>Implementación inmediata</li><li>Sin cambios en DB</li></ul></div>
+        <div class="cons"><ul><li>No editable por el usuario</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="db" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Base de Datos (Flexible)</h3>
+      <p>Creamos una tabla de plantillas. Los agentes pueden crear y editar sus propios mensajes desde el panel de ajustes.</p>
+      <div class="pros-cons">
+        <div class="pros"><ul><li>Flexibilidad total</li><li>Campañas personalizadas</li></ul></div>
+        <div class="cons"><ul><li>Requiere interfaz de edición</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="hybrid" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Modelo Híbrido (Recomendado)</h3>
+      <p>Plantillas "de sistema" fijas (Primer contacto, Visita) + Plantillas personalizables para marketing.</p>
+    </div>
+  </div>
+</div>

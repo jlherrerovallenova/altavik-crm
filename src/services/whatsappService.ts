@@ -23,7 +23,11 @@ export const getGreeting = () => {
   return 'Buenas noches';
 };
 
-export const parseTemplate = (body: string, lead: { name: string }, metadata?: { property?: string }) => {
+export const parseTemplate = (
+  body: string,
+  lead: { name: string },
+  metadata?: { property?: string; fecha_visita?: string; hora_visita?: string }
+) => {
   const firstName = lead.name.split(' ')[0];
   const greeting = getGreeting();
   const interested = detectGender(lead.name);
@@ -32,7 +36,9 @@ export const parseTemplate = (body: string, lead: { name: string }, metadata?: {
     .replace(/{nombre}/g, firstName)
     .replace(/{saludo}/g, greeting)
     .replace(/{interesado}/g, interested)
-    .replace(/{propiedad}/g, metadata?.property || 'nuestra promoción');
+    .replace(/{propiedad}/g, metadata?.property || 'nuestra promoción')
+    .replace(/{fecha_visita}/g, metadata?.fecha_visita || '[fecha]')
+    .replace(/{hora_visita}/g, metadata?.hora_visita || '[hora]');
 };
 
 export const getSystemTemplates = (): WhatsAppTemplate[] => [
@@ -45,6 +51,11 @@ export const getSystemTemplates = (): WhatsAppTemplate[] => [
     name: 'Confirmación de Visita',
     category: 'system',
     body: 'Hola {nombre}, le confirmo su visita para conocer {propiedad}. Estaremos encantados de atenderle. ¡Un saludo!'
+  },
+  {
+    name: 'Recordatorio de Visita',
+    category: 'system',
+    body: '{saludo}, {nombre}.\nLe recuerdo la cita que tenemos programada para hoy {fecha_visita} a las {hora_visita} para informarle de la promoción ALTAVIK RESIDENCIAL de Arroyo.\nNuestras oficinas están en Plaza Mayor 8 1ºA. TERRAVALL.\nAtentamente'
   }
 ];
 

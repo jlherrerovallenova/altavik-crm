@@ -1,0 +1,45 @@
+<h2>Diseño Técnico: Sistema Híbrido de WhatsApp</h2>
+<p class="subtitle">Aprobación de arquitectura y flujo de datos</p>
+
+<div class="section">
+  <h3>1. Estructura de Datos</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <pre>
+<b>Tabla: whatsapp_templates</b>
+- id: uuid
+- name: string (ej: "Seguimiento Post-Visita")
+- body: text (con variables: {nombre}, {fecha})
+- category: 'marketing' | 'system'
+- is_active: boolean
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. El "Motor" de Plantillas</h3>
+  <p>Crearemos un <code>useWhatsAppTemplates</code> que:</p>
+  <ul>
+    <li>Carga las plantillas fijas del código (Seguridad 100%).</li>
+    <li>Descarga las plantillas personalizadas de Supabase.</li>
+    <li>Procesa automáticamente variables como el género detectado (interesado/a) y el saludo horario (buenos días/tardes).</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>3. Flujo de Usuario</h3>
+  <div class="mock-nav">
+    Botón "WhatsApp" → Selector de Plantilla → Previsualización → Abrir WhatsApp Web
+  </div>
+</div>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="confirm" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>Aprobar Diseño</h3>
+      <p>Proceder con la creación de la tabla y el servicio de plantillas.</p>
+    </div>
+  </div>
+</div>
