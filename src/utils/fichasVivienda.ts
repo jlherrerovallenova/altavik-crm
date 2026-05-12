@@ -53,7 +53,13 @@ const getBase64Image = (url: string): Promise<{ data: string, width: number, hei
   });
 };
 
-export async function generatePropertyPDFBlob(property: Property): Promise<Blob> {
+export interface MortgageParams {
+  interestRate: number; // ej: 0.035
+  loanYears: number;    // ej: 30
+  entryPct: number;     // ej: 0.20
+}
+
+export async function generatePropertyPDFBlob(property: Property, mortgageParams?: MortgageParams): Promise<Blob> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -251,6 +257,163 @@ export async function generatePropertyPDFBlob(property: Property): Promise<Blob>
     drawFooter();
   };
 
+  // ─── PÁGINA 3: SIMULACIÓN HIPOTECARIA ───────────────────────────────────────
+  const generateMortgagePage = () => {
+    const fmtEur2 = (n: number) =>
+      new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(n);
+    const interestRate = mortgageParams?.interestRate ?? 0.035;
+    const loanYears   = mortgageParams?.loanYears   ?? 30;
+    const entryPct    = mortgageParams?.entryPct    ?? 0.20;
+    const precioVenta = totalWithIVA;
+    const entrada     = precioVenta * entryPct;
+    const capital = precioVenta - entrada;
+    const r = interestRate / 12;
+    const n = loanYears * 12;
+    const monthly = capital * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const dateStr = new Date().toLocaleDateString('es-ES');
+
+    // ── Header blanco con logo (igual que Forma de Pago) ──────────────────────
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, 210, 45, 'F');
+    if (logoAltavik) {
+      const maxW = 45; const ratio = logoAltavik.height / logoAltavik.width;
+      doc.addImage(logoAltavik.data, 'PNG', 15, 10, maxW, maxW * ratio);
+    }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+    doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+    doc.text('PLAN DE FINANCIACIÓN', 195, 25, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+    doc.text(`SIMULACIÓN HIPOTECARIA  |  Viv. No. ${property.n_orden}  |  ${dateStr}`, 195, 32, { align: 'right' });
+
+    // ── Sección título ─────────────────────────────────────────────────────────
+    let y = 54;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+    doc.text('DATOS DE LA OPERACIÓN', 15, y);
+    y += 6;
+
+    // ── Tabla de datos ─────────────────────────────────────────────────────────
+    const tableRows: [string, string][] = [
+      ['Precio Venta', fmtEur2(precioVenta)],
+      [`Entrada Solicitada (${Math.round(entryPct * 100)}%)`, fmtEur2(entrada)],
+      ['Capital a Financiar', fmtEur2(capital)],
+      ['Tipo Interés Aplicado', `${(interestRate * 100).toFixed(2)} %`],
+      ['Plazo del Préstamo', `${loanYears} años`],
+    ];
+    tableRows.forEach(([label, value], i) => {
+      doc.setFillColor(i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 252 : 255);
+      doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]); doc.setLineWidth(0.2);
+      doc.rect(15, y, 180, 13, 'FD');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+      doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+      doc.text(label, 22, y + 8.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(deepBlue[0], deepBlue[1], deepBlue[2]);
+      doc.text(value, 190, y + 8.5, { align: 'right' });
+      y += 13;
+    });
+
+    // ── Banner mensualidad (mismo estilo que el banner de precio) ──────────────
+    y += 12;
+    doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
+    doc.roundedRect(15, y, 180, 32, 4, 4, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('MENSUALIDAD ESTIMADA', 25, y + 11);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+    doc.text(fmtEur2(monthly), 185, y + 22, { align: 'right' });
+
+    // ── Logos Habitarum + Terravall (igual que Forma de Pago) ─────────────────
+    y += 50;
+    if (logoHabitarum) doc.addImage(logoHabitarum.data, 'PNG', 69, y, 25, 8);
+    if (logoTerravall) doc.addImage(logoTerravall.data, 'PNG', 109, y, 32, 8);
+
+    drawFooter();
+  };
+
+  // ─── PÁGINA 4: GASTOS DE COMPRAVENTA ────────────────────────────────────────
+  const generateCostPage = () => {
+    const fmtEur2 = (n: number) =>
+      new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(n);
+    const itpAjd = basePrice * 0.015;
+    const notaria = Math.round(Math.min(Math.max(basePrice * 0.005, 1200), 2500));
+    const registro = Math.round(Math.min(Math.max(basePrice * 0.003, 600), 1400));
+    const gestoria = 450;
+    const tasacion = 400;
+    const total = itpAjd + notaria + registro + gestoria + tasacion;
+
+    // ── Header blanco con logo ─────────────────────────────────────────────────
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, 210, 45, 'F');
+    if (logoAltavik) {
+      const maxW = 45; const ratio = logoAltavik.height / logoAltavik.width;
+      doc.addImage(logoAltavik.data, 'PNG', 15, 10, maxW, maxW * ratio);
+    }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+    doc.setTextColor(blueColor[0], blueColor[1], blueColor[2]);
+    doc.text('GASTOS DE COMPRAVENTA', 195, 25, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+    doc.text('Resumen de impuestos y gastos asociados a la adquisición', 195, 32, { align: 'right' });
+
+    // ── Sección título ─────────────────────────────────────────────────────────
+    let y = 54;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+    doc.text('GASTOS ASOCIADOS A LA OPERACIÓN', 15, y);
+    y += 6;
+
+    // ── Cabecera tabla (azul Altavik) ──────────────────────────────────────────
+    doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
+    doc.rect(15, y, 180, 13, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Concepto', 22, y + 8.5);
+    doc.text('Base / Tipo', 118, y + 8.5);
+    doc.text('Importe', 190, y + 8.5, { align: 'right' });
+    y += 13;
+
+    // ── Filas de datos ─────────────────────────────────────────────────────────
+    const costsRows: [string, string, string][] = [
+      ['I.T.P / A.J.D', '1.50 %', fmtEur2(itpAjd)],
+      ['Notaría (Estimado)', 'Aranceles', fmtEur2(notaria)],
+      ['Registro de la Propiedad', 'Aranceles', fmtEur2(registro)],
+      ['Gestoría Técnica', 'Fijo', fmtEur2(gestoria)],
+      ['Tasación Oficial', 'Fijo Est.', fmtEur2(tasacion)],
+    ];
+    costsRows.forEach(([concepto, base, importe], i) => {
+      doc.setFillColor(i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 252 : 255);
+      doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]); doc.setLineWidth(0.2);
+      doc.rect(15, y, 180, 13, 'FD');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+      doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
+      doc.text(concepto, 22, y + 8.5);
+      doc.setTextColor(softGray[0], softGray[1], softGray[2]);
+      doc.text(base, 118, y + 8.5);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(deepBlue[0], deepBlue[1], deepBlue[2]);
+      doc.text(importe, 190, y + 8.5, { align: 'right' });
+      y += 13;
+    });
+
+    // ── Banner total (igual que banner de precio) ──────────────────────────────
+    y += 12;
+    doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
+    doc.roundedRect(15, y, 180, 32, 4, 4, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL GASTOS COMPRAVENTA (ESTIMADOS)', 25, y + 11);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+    doc.text(fmtEur2(total), 185, y + 22, { align: 'right' });
+
+    // ── Logos ──────────────────────────────────────────────────────────────────
+    y += 50;
+    if (logoHabitarum) doc.addImage(logoHabitarum.data, 'PNG', 69, y, 25, 8);
+    if (logoTerravall) doc.addImage(logoTerravall.data, 'PNG', 109, y, 32, 8);
+
+    drawFooter();
+  };
+
+
   // --- LÓGICA DE UNIÓN ---
   try {
     if (property.ficha_url) {
@@ -268,8 +431,10 @@ export async function generatePropertyPDFBlob(property: Property): Promise<Blob>
         const fichaBytes = await fichaResponse.arrayBuffer();
         const fichaPdf = await PDFDocument.load(fichaBytes);
         
-        // Generar la página de forma de pago en un doc temporal para obtener sus bytes
+        // Generar las páginas de forma de pago + hipoteca + gastos
         generatePaymentFormPage();
+        doc.addPage(); generateMortgagePage();
+        doc.addPage(); generateCostPage();
         const paymentFormBytes = doc.output('arraybuffer');
         const paymentFormPdf = await PDFDocument.load(paymentFormBytes);
 
@@ -279,9 +444,9 @@ export async function generatePropertyPDFBlob(property: Property): Promise<Blob>
         const fichaPages = await mergedPdf.copyPages(fichaPdf, fichaPdf.getPageIndices());
         fichaPages.forEach((page) => mergedPdf.addPage(page));
         
-        // 2. Añadir página de forma de pago DESPUÉS
-        const [paymentPage] = await mergedPdf.copyPages(paymentFormPdf, [0]);
-        mergedPdf.addPage(paymentPage);
+        // 2. Añadir todas las páginas generadas (pago + hipoteca + gastos)
+        const allPaymentPages = await mergedPdf.copyPages(paymentFormPdf, paymentFormPdf.getPageIndices());
+        allPaymentPages.forEach((page) => mergedPdf.addPage(page));
         
         const mergedPdfBytes = await mergedPdf.save();
         return new Blob([mergedPdfBytes], { type: 'application/pdf' });
@@ -313,15 +478,19 @@ export async function generatePropertyPDFBlob(property: Property): Promise<Blob>
           doc.addPage();
         }
         generatePaymentFormPage();
+        doc.addPage(); generateMortgagePage();
+        doc.addPage(); generateCostPage();
       }
     } else {
       // SIN FICHA
       generatePaymentFormPage();
+      doc.addPage(); generateMortgagePage();
+      doc.addPage(); generateCostPage();
     }
   } catch (e) {
     console.error("Error al generar PDF completo, generando solo forma de pago:", e);
-    // Si hubo un error en medio, intentamos asegurar que al menos la forma de pago se genere sola
     generatePaymentFormPage();
+    try { doc.addPage(); generateMortgagePage(); doc.addPage(); generateCostPage(); } catch (_) {}
   }
 
   const finalPdfOutput = doc.output('blob');

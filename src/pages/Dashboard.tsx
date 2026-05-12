@@ -79,7 +79,7 @@ export default function Dashboard() {
     const newStatus = !task.completed;
     if (newStatus) setAgenda(prev => prev.filter(t => t.id !== task.id));
     try {
-      const { error } = await supabase.from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
+      const { error } = await (supabase as any).from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
       if (error) throw error;
     } catch (error) {
       console.error("Error actualizando tarea:", error);

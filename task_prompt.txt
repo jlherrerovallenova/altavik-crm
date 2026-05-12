@@ -1,0 +1,31 @@
+You are implementing Task 2: Create WhatsApp Template Manager Component
+
+## Task Description
+
+Implement `WhatsAppTab.tsx` with:
+- Data fetching for `whatsapp_templates` from Supabase.
+- A split-pane layout (List on left, Editor on right).
+- The editor should handle `name`, `body`, `category`, and `is_active`.
+- **Live Preview**: Use `parseTemplate` from `../../services/whatsappService` to show how the message looks for a "Cliente Ejemplo".
+- **CRUD Logic**:
+  - `handleSave`: Use `supabase.from('whatsapp_templates').upsert()`.
+  - `handleDelete`: Allow deleting only if `category !== 'system'`.
+
+## Context
+
+- Table `whatsapp_templates` schema: `id, name, body, category, is_active, created_at, updated_at`.
+- `category` is 'system' or 'marketing'.
+- `parseTemplate` signature: `parseTemplate(body: string, lead: { name: string }, metadata?: { property?: string; fecha_visita?: string; hora_visita?: string })`.
+- For preview, use `lead: { name: 'Cliente Ejemplo' }`.
+- UI Style: Glassmorphism (slate-50 backgrounds, rounded-2xl borders, emerald/blue accents).
+- Use `lucide-react` icons: `Plus, Save, Trash2, MessageCircle, AlertCircle, CheckCircle2, Loader2, Info`.
+- Use project's `Card` and `Button` components.
+
+## Your Job
+
+1. Implement exactly what the task specifies in `src/components/settings/WhatsAppTab.tsx`.
+2. Verify implementation works (fetch, save, delete, preview).
+3. Commit your work with message: "feat: add WhatsAppTab component for template management".
+4. Self-review and report back.
+
+Work from: C:\Users\María Del Mar Rivas\Desktop\Altavik-CRM

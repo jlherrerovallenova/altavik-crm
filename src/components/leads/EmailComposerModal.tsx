@@ -282,7 +282,7 @@ Juan Herrero - TERRAVALL`);
         ? `Documentación enviada via ${sentMethod.toUpperCase()}: ${selectedDocs.map(d => d.name).join(', ')}`
         : `Mensaje enviado via ${sentMethod.toUpperCase()}`;
 
-      await supabase.from('lead_history').insert([{
+      await (supabase as any).from('lead_history').insert([{
         lead_id: leadId,
         event_type: selectedDocs.length > 0 ? 'document' : 'contact',
         description: description,
@@ -290,9 +290,9 @@ Juan Herrero - TERRAVALL`);
       }]);
 
       // Actualizar estado a 'contacted' si actualmente es 'new'
-      const { data: leadData } = await supabase.from('leads').select('status').eq('id', leadId).single();
+      const { data: leadData } = await (supabase as any).from('leads').select('status').eq('id', leadId).single();
       if (leadData && leadData.status === 'new') {
-        await supabase.from('leads').update({ status: 'contacted' }).eq('id', leadId);
+        await (supabase as any).from('leads').update({ status: 'contacted' }).eq('id', leadId);
       }
 
       if (onSentSuccess) onSentSuccess();

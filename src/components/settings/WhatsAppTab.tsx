@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Save, Trash2, MessageCircle, AlertCircle, CheckCircle2, Loader2, Info, Layout, Power } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Save, Trash2, MessageCircle, CheckCircle2, Loader2, Info, Layout, Power } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { parseTemplate, WhatsAppTemplate } from '../../services/whatsappService';
+import { parseTemplate, type WhatsAppTemplate } from '../../services/whatsappService';
 
 export const WhatsAppTab: React.FC = () => {
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
