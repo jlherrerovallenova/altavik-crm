@@ -10,6 +10,7 @@ import { IntegrationsTab } from '../components/settings/IntegrationsTab';
 import { DocumentsTab } from '../components/settings/DocumentsTab';
 import { InventoryTab } from '../components/settings/InventoryTab';
 import { ClientsTab } from '../components/settings/ClientsTab';
+import { WhatsAppTab } from '../components/settings/WhatsAppTab';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -21,6 +22,7 @@ const Settings: React.FC = () => {
       case 'documents': return <DocumentsTab />;
       case 'inventory': return <InventoryTab />;
       case 'clients': return <ClientsTab />;
+      case 'whatsapp': return <WhatsAppTab />;
       default: return <ProfileTab />;
     }
   };

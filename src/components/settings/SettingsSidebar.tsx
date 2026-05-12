@@ -1,7 +1,7 @@
 import React from 'react';
-import { User, FolderOpen, Settings as SettingsIcon, Home, Users } from 'lucide-react';
+import { User, FolderOpen, Settings as SettingsIcon, Home, Users, MessageCircle } from 'lucide-react';
 
-export type SettingsTab = 'profile' | 'documents' | 'integrations' | 'inventory' | 'clients';
+export type SettingsTab = 'profile' | 'documents' | 'integrations' | 'inventory' | 'clients' | 'whatsapp';
 
 interface SettingsSidebarProps {
   activeTab: SettingsTab;
@@ -15,6 +15,7 @@ export function SettingsSidebar({ activeTab, setActiveTab }: SettingsSidebarProp
     { id: 'integrations', label: 'Integraciones', icon: <SettingsIcon size={16} /> },
     { id: 'inventory', label: 'Viviendas', icon: <Home size={16} /> },
     { id: 'clients', label: 'Clientes', icon: <Users size={16} /> },
+    { id: 'whatsapp', label: 'Plantillas WhatsApp', icon: <MessageCircle size={16} /> },
   ];
 
   return (
