@@ -42,6 +42,7 @@ export default function Discovery() {
       const { data: emails, error: emailError } = await supabase
         .from('incoming_emails')
         .select('*')
+        .not('tags', 'cs', '{"Descartado"}')
         .contains('tags', ['Escaneable IA'])
         .order('date_received', { ascending: false });
 
@@ -208,12 +209,20 @@ export default function Discovery() {
 
     try {
       setLoading(true);
-      const { error } = await supabase
+      // Para borrado masivo, necesitamos actualizar cada uno para añadir el tag
+      const { data: currentEmails } = await supabase
         .from('incoming_emails')
-        .delete()
+        .select('id, tags')
         .in('id', selectedIds);
 
-      if (error) throw error;
+      if (currentEmails) {
+        for (const email of currentEmails) {
+          await supabase
+            .from('incoming_emails')
+            .update({ tags: [...(email.tags || []), 'Descartado'] })
+            .eq('id', email.id);
+        }
+      }
 
       setNotification({
         show: true,
@@ -248,9 +257,16 @@ export default function Discovery() {
     if (!confirmed) return;
 
     try {
+      // Obtener tags actuales
+      const { data: emailData } = await supabase
+        .from('incoming_emails')
+        .select('tags')
+        .eq('id', emailId)
+        .single();
+
       const { error } = await supabase
         .from('incoming_emails')
-        .delete()
+        .update({ tags: [...(emailData?.tags || []), 'Descartado'] })
         .eq('id', emailId);
 
       if (error) throw error;

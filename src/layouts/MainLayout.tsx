@@ -23,8 +23,10 @@ import {
   Clock,
   BarChart3,
   Inbox,
-  Sparkles
+  Sparkles,
+  Command
 } from 'lucide-react';
+import CommandPalette from '../components/ui/CommandPalette';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
 import { useInboxCount } from '../hooks/useInboxCount';
 
@@ -47,6 +49,7 @@ export default function MainLayout() {
   const bellRef = useRef<HTMLDivElement>(null);
   const { todayCount, overdueCount, total: alertTotal } = useAgendaAlerts();
   const { data: inboxCount = 0 } = useInboxCount();
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Cierra el popover al hacer clic fuera
   useEffect(() => {
@@ -57,6 +60,18 @@ export default function MainLayout() {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // 0. Listener para la Magic Bar (Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // 1. PANTALLA DE CARGA
@@ -212,7 +227,20 @@ export default function MainLayout() {
                 className="pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-altavik-500 focus:bg-white transition-all w-48 lg:w-64 placeholder:text-slate-400 font-medium"
               />
             </form>
-            <div className="h-8 w-px bg-slate-200 mx-2 hidden md:block"></div>
+
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-altavik-50 text-slate-400 hover:text-altavik-600 rounded-lg border border-slate-200 transition-all group"
+              title="Magic Bar (Ctrl+K)"
+            >
+              <Command size={16} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Magic Bar</span>
+              <div className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-bold">
+                <span>K</span>
+              </div>
+            </button>
+
+            <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
 
             {/* Campana con badge y popover */}
             <div className="relative" ref={bellRef}>
@@ -300,6 +328,12 @@ export default function MainLayout() {
           </div>
         </div>
       </main>
+
+      {/* Magic Bar Component */}
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen} 
+        onClose={() => setIsCommandPaletteOpen(false)} 
+      />
     </div>
   );
 }
