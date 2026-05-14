@@ -16,7 +16,7 @@ import { useDialog } from '../../context/DialogContext';
 import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
-import { parseTemplate, getWhatsAppUrl, getGreeting } from '../../services/whatsappService';
+import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
 
 const shortenUrl = async (url: string) => {
   // Intentamos primero con v.gd
@@ -430,9 +430,35 @@ Juan Herrero - TERRAVALL`);
           : '';
 
         const fullMessage = `${message}${docsText}`;
-        const whatsappUrl = getWhatsAppUrl(leadPhone, fullMessage);
+        
+        // Intentar usar Cloud API si está configurada
+        const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+        
+        if (isCloudConfigured && selectedTemplateId) {
+          // Si hay plantilla seleccionada, usamos la API oficial
+          // Nota: El templateName debe coincidir con el de Meta.
+          // Por simplicidad, asumimos que el nombre en DB coincide o usamos uno por defecto.
+          const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
+          if (template) {
+            // Extraer variables para la API de Meta (basado en el parser)
+            // Esto es simplificado, en un sistema real se mapearian los componentes de la plantilla de Meta
+            const variables = [leadName.split(' ')[0], getGreeting()];
+            await sendWhatsAppCloudAPI(leadPhone, template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
+              {
+                type: 'body',
+                parameters: variables.map(v => ({ type: 'text', text: v }))
+              }
+            ]);
+          } else {
+            // Fallback a URL si no encontramos el objeto template
+            window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
+          }
+        } else {
+          // Fallback al método tradicional de URL
+          const whatsappUrl = getWhatsAppUrl(leadPhone, fullMessage);
+          window.open(whatsappUrl, '_blank');
+        }
 
-        window.open(whatsappUrl, '_blank');
         await saveHistory('whatsapp');
         setStatus('success');
         setTimeout(onClose, 1000);

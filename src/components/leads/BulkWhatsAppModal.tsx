@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, MessageCircle, User, CheckCircle2, ExternalLink, Loader2, Layout } from 'lucide-react';
 import type { Database } from '../../types/supabase';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
-import { parseTemplate, getWhatsAppUrl } from '../../services/whatsappService';
+import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 
@@ -28,18 +28,69 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
 
   if (!isOpen) return null;
 
-  const handleSendToLead = (lead: Lead) => {
+  const [isSendingAll, setIsSendingAll] = useState(false);
+  const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+
+  const handleSendToLead = async (lead: Lead) => {
     const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
     if (!template) return;
 
     const personalizedMessage = parseTemplate(template.body, { name: lead.name });
-    const whatsappUrl = getWhatsAppUrl(lead.phone || '', personalizedMessage);
     
-    window.open(whatsappUrl, '_blank');
+    try {
+      if (isCloudConfigured) {
+        // Enviar via API oficial
+        const variables = [lead.name.split(' ')[0], getGreeting()];
+        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
+          {
+            type: 'body',
+            parameters: variables.map(v => ({ type: 'text', text: v }))
+          }
+        ]);
+      } else {
+        // Enviar via URL tradicional
+        const whatsappUrl = getWhatsAppUrl(lead.phone || '', personalizedMessage);
+        window.open(whatsappUrl, '_blank');
+      }
 
-    if (!sentLeads.includes(lead.id)) {
-      setSentLeads(prev => [...prev, lead.id]);
+      if (!sentLeads.includes(lead.id)) {
+        setSentLeads(prev => [...prev, lead.id]);
+      }
+    } catch (err) {
+      console.error("Error enviando WhatsApp:", err);
+      alert("Error al enviar el mensaje. Revisa la configuración.");
     }
+  };
+
+  const handleSendAll = async () => {
+    if (!isCloudConfigured) {
+      alert("Debes configurar la WhatsApp Cloud API para usar el envío masivo automático.");
+      return;
+    }
+    
+    const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
+    if (!template) return;
+
+    setIsSendingAll(true);
+    const leadsToSend = leads.filter(l => !sentLeads.includes(l.id) && l.phone);
+
+    for (const lead of leadsToSend) {
+      try {
+        const variables = [lead.name.split(' ')[0], getGreeting()];
+        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
+          {
+            type: 'body',
+            parameters: variables.map(v => ({ type: 'text', text: v }))
+          }
+        ]);
+        setSentLeads(prev => [...prev, lead.id]);
+        // Pequeño delay para no saturar
+        await new Promise(r => setTimeout(r, 500));
+      } catch (err) {
+        console.error(`Error enviando a ${lead.name}:`, err);
+      }
+    }
+    setIsSendingAll(false);
   };
 
   const selectedTemplate = templates.find(t => (t.id || t.name) === selectedTemplateId);
@@ -178,6 +229,25 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
             Se abrirá una nueva pestaña de WhatsApp por cada cliente.
           </p>
           <div className="flex gap-3">
+            {isCloudConfigured && leads.length > sentLeads.length && (
+              <button
+                onClick={handleSendAll}
+                disabled={isSendingAll}
+                className="px-8 py-2.5 bg-emerald-600 text-white font-black text-sm rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-200"
+              >
+                {isSendingAll ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle size={16} />
+                    Enviar a todos automáticamente
+                  </>
+                )}
+              </button>
+            )}
             <button
               onClick={onClose}
               className="px-6 py-2.5 text-slate-500 font-bold text-sm hover:bg-slate-200 rounded-xl transition-all"
