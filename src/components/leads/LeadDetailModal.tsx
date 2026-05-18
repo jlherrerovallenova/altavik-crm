@@ -61,6 +61,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
+  const [waData, setWaData] = useState<any | null>(null);
 
   // Mutations
   const updateMutation = useUpdateLead();
@@ -113,11 +114,25 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   useEffect(() => {
     fetchHistory();
     fetchTasks();
+    fetchWaData();
   }, [lead.id]);
 
   async function fetchHistory() {
     const { data } = await supabase.from('sent_documents').select('*').eq('lead_id', lead.id).order('sent_at', { ascending: false });
     if (data) setSentHistory(data);
+  }
+
+  async function fetchWaData() {
+    const { data } = await (supabase as any)
+      .from('lead_history')
+      .select('metadata, created_at')
+      .eq('lead_id', lead.id)
+      .eq('event_type', 'contact')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (!data) return;
+    const waEntry = data.find((r: any) => r.metadata?.source === 'whatsapp_webhook');
+    if (waEntry) setWaData({ ...waEntry.metadata?.extracted, created_at: waEntry.created_at, raw: waEntry.metadata?.raw_message });
   }
 
   // Cargar tareas de la tabla agenda filtrando por ID del cliente
@@ -781,6 +796,76 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     )}
                   </section>
+
+                  {/* PREFERENCIAS WHATSAPP */}
+                  {waData && (
+                    <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm transition-all hover:shadow-md -mt-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-bold flex items-center gap-2.5 text-slate-500 uppercase tracking-widest">
+                          <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-xl"><MessageCircle size={16} /></div>
+                          Preferencias detectadas por WhatsApp
+                        </h3>
+                        <a
+                          href="/whatsapp"
+                          className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-lg transition-colors"
+                        >
+                          Ver conversación →
+                        </a>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        {/* Tipo de vivienda */}
+                        <div className={`p-3 rounded-xl border-2 text-center ${
+                          waData.tipo_vivienda && waData.tipo_vivienda !== 'no_especificado'
+                            ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50'
+                        }`}>
+                          <div className="text-xl mb-1">
+                            {waData.tipo_vivienda === 'bajo' ? '🏠' :
+                             waData.tipo_vivienda === 'atico' ? '🏙️' :
+                             waData.tipo_vivienda === 'planta_intermedia' ? '🏢' : '❓'}
+                          </div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Tipo vivienda</p>
+                          <p className="text-xs font-bold text-slate-700 capitalize">
+                            {waData.tipo_vivienda === 'no_especificado' ? 'Sin especificar' :
+                             waData.tipo_vivienda === 'planta_intermedia' ? 'Planta intermedia' :
+                             waData.tipo_vivienda || '–'}
+                          </p>
+                        </div>
+                        {/* Dormitorios */}
+                        <div className={`p-3 rounded-xl border-2 text-center ${
+                          waData.dormitorios ? 'border-blue-200 bg-blue-50' : 'border-slate-100 bg-slate-50'
+                        }`}>
+                          <div className="text-xl mb-1">🛏️</div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Dormitorios</p>
+                          <p className="text-xs font-bold text-slate-700">
+                            {waData.dormitorios ? `${waData.dormitorios} dorm.` : 'Sin especificar'}
+                          </p>
+                        </div>
+                        {/* Visita */}
+                        <div className={`p-3 rounded-xl border-2 text-center ${
+                          waData.quiere_visita === true  ? 'border-purple-200 bg-purple-50' :
+                          waData.quiere_visita === false ? 'border-red-100 bg-red-50' : 'border-slate-100 bg-slate-50'
+                        }`}>
+                          <div className="text-xl mb-1">
+                            {waData.quiere_visita === true ? '✅' : waData.quiere_visita === false ? '❌' : '❓'}
+                          </div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Visita</p>
+                          <p className="text-xs font-bold text-slate-700">
+                            {waData.quiere_visita === true ? 'Quiere visita' :
+                             waData.quiere_visita === false ? 'No por ahora' : 'Sin confirmar'}
+                          </p>
+                        </div>
+                      </div>
+                      {waData.summary && (
+                        <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">💬 Resumen</p>
+                          <p className="text-xs text-slate-600 italic">"{waData.summary}"</p>
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            {new Date(waData.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      )}
+                    </section>
+                  )}
 
                   {/* NOTAS INTERNAS */}
                   <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col -mt-1">
