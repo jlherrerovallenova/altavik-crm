@@ -16,7 +16,7 @@ import { useDialog } from '../../context/DialogContext';
 import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
-import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
+import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI, META_PRIMER_CONTACTO_TEMPLATE, META_PRIMER_CONTACTO_BODY } from '../../services/whatsappService';
 
 const shortenUrl = async (url: string) => {
   // Intentamos primero con v.gd
@@ -246,8 +246,20 @@ Juan Herrero - TERRAVALL`);
   // Eliminada para no saturar EmailJS (Error 422 por payload demasiado grande)
     const getSignatureHtml = (): string => {
     return `
-      <div style="margin-top: 20px;">
-        <img src="data:image/png;base64,${TERRAVALL_LOGO_B64}" alt="Terravall" style="max-width: 250px; height: auto; outline: none; text-decoration: none; display: block;" />
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #1e293b; display: inline-block;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <div style="font-size: 15px; font-weight: 900; color: #1e293b; letter-spacing: 0.08em; text-transform: uppercase;">
+            TERRAVALL
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: #10b981; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 2px;">
+            Residencial Altavik
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #64748b; line-height: 1.6;">
+            <div>📍 Plaza Mayor 8, 1ºA · Valladolid</div>
+            <div>📞 983 34 21 32</div>
+            <div>🌐 <a href="https://residencialaltavik.es" style="color: #1e293b; text-decoration: none;">residencialaltavik.es</a></div>
+          </div>
+        </div>
       </div>
     `;
   };
@@ -418,45 +430,30 @@ Juan Herrero - TERRAVALL`);
           return;
         }
 
-        const shortenedDocs = await Promise.all(
-          selectedDocs.map(async d => ({
-            name: d.name,
-            url: await shortenUrl(d.url)
-          }))
-        );
-
-        const docsText = shortenedDocs.length > 0
-          ? `\n\n*DOCUMENTACIÓN ADJUNTA:*` + shortenedDocs.map(d => `\n\n📄 *${d.name}*\n🔗 ${d.url}`).join('')
-          : '';
-
-        const fullMessage = `${message}${docsText}`;
-        
-        // Intentar usar Cloud API si está configurada
         const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
-        
-        if (isCloudConfigured && selectedTemplateId) {
-          // Si hay plantilla seleccionada, usamos la API oficial
-          // Nota: El templateName debe coincidir con el de Meta.
-          // Por simplicidad, asumimos que el nombre en DB coincide o usamos uno por defecto.
-          const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
-          if (template) {
-            // Extraer variables para la API de Meta (basado en el parser)
-            // Esto es simplificado, en un sistema real se mapearian los componentes de la plantilla de Meta
-            const variables = [leadName.split(' ')[0], getGreeting()];
-            await sendWhatsAppCloudAPI(leadPhone, template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
-              {
-                type: 'body',
-                parameters: variables.map(v => ({ type: 'text', text: v }))
-              }
-            ]);
-          } else {
-            // Fallback a URL si no encontramos el objeto template
-            window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
+
+        if (isCloudConfigured) {
+          try {
+            // ✅ Intento via Cloud API con la plantilla aprobada en Meta
+            await sendWhatsAppCloudAPI(leadPhone, META_PRIMER_CONTACTO_TEMPLATE, 'es');
+          } catch (apiError: any) {
+            // ⚠️ Si la plantilla está PENDING o falla la API, abrimos WhatsApp Web
+            console.warn('Cloud API no disponible, usando fallback URL:', apiError.message);
+            window.open(getWhatsAppUrl(leadPhone, message), '_blank');
           }
         } else {
-          // Fallback al método tradicional de URL
-          const whatsappUrl = getWhatsAppUrl(leadPhone, fullMessage);
-          window.open(whatsappUrl, '_blank');
+          // Fallback directo: abre WhatsApp Web con el mensaje prellenado
+          const shortenedDocs = await Promise.all(
+            selectedDocs.map(async d => ({
+              name: d.name,
+              url: await shortenUrl(d.url)
+            }))
+          );
+          const docsText = shortenedDocs.length > 0
+            ? `\n\n*DOCUMENTACIÓN ADJUNTA:*` + shortenedDocs.map(d => `\n\n📄 *${d.name}*\n🔗 ${d.url}`).join('')
+            : '';
+          const fullMessage = `${message}${docsText}`;
+          window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
         }
 
         await saveHistory('whatsapp');
@@ -521,30 +518,35 @@ Juan Herrero - TERRAVALL`);
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   {method === 'whatsapp' ? 'Plantilla de WhatsApp' : 'Mensaje personalizado'}
                 </label>
-                {method === 'whatsapp' && (
-                  <div className="flex items-center gap-2">
-                    <Layout size={12} className="text-slate-400" />
-                    <select
-                      value={selectedTemplateId}
-                      onChange={(e) => applyTemplate(e.target.value)}
-                      className="text-[10px] font-bold text-altavik-600 bg-transparent border-none outline-none cursor-pointer hover:text-altavik-700"
-                    >
-                      <option value="">Seleccionar plantilla...</option>
-                      {templates.map(t => (
-                        <option key={t.id || t.name} value={t.id || t.name}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
-              <textarea
-                rows={method === 'whatsapp' ? 12 : 10}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-y transition-all"
-              />
+
+              {method === 'whatsapp' ? (
+                // Modo Cloud API: preview read-only de la plantilla aprobada en Meta
+                <div className="mt-1.5 rounded-xl overflow-hidden border border-emerald-200">
+                  {/* Badge Cloud API */}
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border-b border-emerald-200">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Cloud API Activa</span>
+                    <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-mono">{META_PRIMER_CONTACTO_TEMPLATE}</span>
+                  </div>
+                  {/* Texto de la plantilla */}
+                  <div className="px-4 py-4 bg-white">
+                    <p className="text-[11px] text-slate-400 font-medium mb-3 italic">Este mensaje se enviará directamente al cliente sin abrir el navegador:</p>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">{META_PRIMER_CONTACTO_BODY}</p>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-3">📌 Pie de página: <span className="font-semibold">Terravall · Plaza Mayor 8 1ºA · 983342132</span></p>
+                  </div>
+                </div>
+              ) : (
+                // Modo email: textarea editable normal
+                <textarea
+                  rows={10}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-y transition-all"
+                />
+              )}
             </div>
           </div>
 

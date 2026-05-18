@@ -29,6 +29,9 @@ import {
 import CommandPalette from '../components/ui/CommandPalette';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
 import { useInboxCount } from '../hooks/useInboxCount';
+import { useWhatsAppReplies } from '../hooks/useWhatsAppReplies';
+import { DailyBriefingModal, briefingShownToday, markBriefingShown } from '../components/DailyBriefingModal';
+import { MessageSquare } from 'lucide-react';
 
 
 export default function MainLayout() {
@@ -50,6 +53,20 @@ export default function MainLayout() {
   const { todayCount, overdueCount, total: alertTotal } = useAgendaAlerts();
   const { data: inboxCount = 0 } = useInboxCount();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const { replies: waReplies, unseenCount: waUnseen, markAllSeen } = useWhatsAppReplies();
+  const [showBriefing, setShowBriefing] = useState(false);
+
+  // Mostrar briefing una vez al día tras cargar
+  useEffect(() => {
+    if (!session) return;
+    const timer = setTimeout(() => {
+      if (!briefingShownToday()) {
+        setShowBriefing(true);
+        markBriefingShown();
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [session]);
 
   // Cierra el popover al hacer clic fuera
   useEffect(() => {
@@ -167,6 +184,7 @@ export default function MainLayout() {
 
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Comunicaciones</p>
           <SidebarItem to="/discovery" icon={<Sparkles size={18} />} label="Captura Contactos" active={location.pathname === '/discovery'} onClick={closeSidebar} />
+          <SidebarItem to="/whatsapp" icon={<MessageSquare size={18} />} label="WhatsApp" active={location.pathname === '/whatsapp'} onClick={closeSidebar} badge={waUnseen > 0 ? waUnseen : undefined} />
           
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Gestión</p>
           <SidebarItem to="/newsletters" icon={<Mail size={18} />} label="Newsletters" active={location.pathname.startsWith('/newsletters')} onClick={closeSidebar} />
@@ -250,9 +268,9 @@ export default function MainLayout() {
                 title="Notificaciones de agenda"
               >
                 <Bell size={20} />
-                {alertTotal > 0 && (
+                {alertTotal + waUnseen > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white">
-                    {alertTotal > 9 ? '9+' : alertTotal}
+                    {alertTotal + waUnseen > 9 ? '9+' : alertTotal + waUnseen}
                   </span>
                 )}
               </button>
@@ -266,6 +284,27 @@ export default function MainLayout() {
                   </div>
 
                   <div className="p-3 space-y-2">
+                    {/* WhatsApp Replies */}
+                    {waReplies.length > 0 && (
+                      <div
+                        className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 cursor-pointer hover:brightness-95 transition-all"
+                        onClick={() => { setShowBriefing(true); setShowBellPopover(false); markAllSeen(); }}
+                      >
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500">
+                          <MessageSquare size={17} className="text-white" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="text-xs font-bold text-emerald-800">Respuestas WhatsApp</p>
+                          <p className="text-[11px] text-emerald-600">
+                            {waReplies.length} cliente{waReplies.length !== 1 ? 's' : ''} ha{waReplies.length !== 1 ? 'n' : ''} respondido
+                          </p>
+                        </div>
+                        {waUnseen > 0 && (
+                          <span className="text-lg font-black text-emerald-600">{waUnseen}</span>
+                        )}
+                      </div>
+                    )}
+
                     {/* Tareas de hoy */}
                     <Link 
                       to="/agenda?filter=today"
@@ -329,6 +368,15 @@ export default function MainLayout() {
         </div>
       </main>
 
+      {/* Daily Briefing Modal */}
+      {showBriefing && (
+        <DailyBriefingModal
+          waReplies={waReplies}
+          onClose={() => setShowBriefing(false)}
+          onMarkRepliesSeen={markAllSeen}
+        />
+      )}
+
       {/* Magic Bar Component */}
       <CommandPalette 
         isOpen={isCommandPaletteOpen} 
@@ -344,9 +392,10 @@ interface SidebarItemProps {
   label: string;
   active: boolean;
   onClick?: () => void;
+  badge?: number;
 }
 
-function SidebarItem({ to, icon, label, active, onClick }: SidebarItemProps) {
+function SidebarItem({ to, icon, label, active, onClick, badge }: SidebarItemProps) {
   return (
     <Link
       to={to}
@@ -360,7 +409,12 @@ function SidebarItem({ to, icon, label, active, onClick }: SidebarItemProps) {
       `}
     >
       <span className={active ? 'text-altavik-100' : 'text-slate-500 group-hover:text-white'}>{icon}</span>
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="min-w-[18px] h-[18px] bg-emerald-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
     </Link>
   );
 }

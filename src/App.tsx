@@ -20,6 +20,7 @@ const Stats = lazy(() => import('./pages/Stats'));
 const Inbox = lazy(() => import('./pages/Inbox'));
 const Discovery = lazy(() => import('./pages/Discovery'));
 const FeedbackResponse = lazy(() => import('./pages/FeedbackResponse'));
+const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
 
 const PageLoader = () => (
   <div className="w-full h-[60vh] flex flex-col items-center justify-center">
@@ -54,6 +55,7 @@ function App() {
           <Route path="/stats" element={<Suspense fallback={<PageLoader />}><Stats /></Suspense>} />
           <Route path="/inbox" element={<Suspense fallback={<PageLoader />}><Inbox /></Suspense>} />
           <Route path="/discovery" element={<Suspense fallback={<PageLoader />}><Discovery /></Suspense>} />
+          <Route path="/whatsapp" element={<Suspense fallback={<PageLoader />}><WhatsAppInbox /></Suspense>} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

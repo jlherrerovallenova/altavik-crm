@@ -5,6 +5,20 @@ export interface WhatsAppTemplate {
   category: 'system' | 'marketing';
 }
 
+// Nombre exacto de la plantilla aprobada en Meta Business
+export const META_PRIMER_CONTACTO_TEMPLATE = 'plantilla_mensaje_inicial';
+
+// Texto real de la plantilla aprobada (sin variables, estático)
+export const META_PRIMER_CONTACTO_BODY = `Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
+
+Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
+
+1️⃣ ¿Qué tipo de vivienda prefiere? (Bajo, planta intermedia o ático).
+2️⃣ ¿Cuántos dormitorios necesita?
+3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ampliemos la información con todo detalle?
+
+Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
+
 export const detectGender = (name: string): 'interesado' | 'interesada' => {
   if (!name) return 'interesado';
   const firstName = name.split(' ')[0].toLowerCase().trim();
@@ -66,54 +80,35 @@ export const getWhatsAppUrl = (phone: string, message: string) => {
 };
 
 /**
- * Envia un mensaje usando la WhatsApp Cloud API (Oficial/Pago)
- * Nota: Requiere que la plantilla esté aprobada en Meta.
+ * Envia un mensaje usando la WhatsApp Cloud API a través de la Edge Function
+ * (evita el bloqueo CORS del navegador al llamar a Meta directamente)
  */
 export const sendWhatsAppCloudAPI = async (
-  to: string, 
-  templateName: string, 
+  to: string,
+  templateName: string = META_PRIMER_CONTACTO_TEMPLATE,
   languageCode: string = 'es',
   components: any[] = []
 ) => {
-  const PHONE_NUMBER_ID = import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID;
-  const ACCESS_TOKEN = import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  if (!PHONE_NUMBER_ID || !ACCESS_TOKEN) {
-    throw new Error('Configuración de WhatsApp Cloud API incompleta (ID o Token faltante)');
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error('Configuración de Supabase incompleta.');
   }
 
-  let cleanPhone = to.replace(/\D/g, '');
-  if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
-
-  const url = `https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`;
-  
-  const body = {
-    messaging_product: "whatsapp",
-    recipient_type: "individual",
-    to: cleanPhone,
-    type: "template",
-    template: {
-      name: templateName,
-      language: {
-        code: languageCode
-      },
-      components: components
-    }
-  };
-
-  const response = await fetch(url, {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/send-whatsapp`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${ACCESS_TOKEN}`,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ to, templateName, languageCode, components })
   });
 
   const data = await response.json();
-  
+
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Error al enviar mensaje por WhatsApp API');
+    throw new Error(data.error || 'Error al enviar mensaje por WhatsApp');
   }
 
   return data;
