@@ -435,7 +435,7 @@ Juan Herrero - TERRAVALL`);
         if (isCloudConfigured) {
           try {
             // ✅ Intento via Cloud API con la plantilla aprobada en Meta
-            await sendWhatsAppCloudAPI(leadPhone, META_PRIMER_CONTACTO_TEMPLATE, 'es');
+            await sendWhatsAppCloudAPI(leadPhone, META_PRIMER_CONTACTO_TEMPLATE, 'es_ES');
           } catch (apiError: any) {
             // ⚠️ Si la plantilla está PENDING o falla la API, abrimos WhatsApp Web
             console.warn('Cloud API no disponible, usando fallback URL:', apiError.message);

@@ -41,7 +41,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
       if (isCloudConfigured) {
         // Enviar via API oficial
         const variables = [lead.name.split(' ')[0], getGreeting()];
-        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
+        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es_ES', [
           {
             type: 'body',
             parameters: variables.map(v => ({ type: 'text', text: v }))
@@ -77,7 +77,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
     for (const lead of leadsToSend) {
       try {
         const variables = [lead.name.split(' ')[0], getGreeting()];
-        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es', [
+        await sendWhatsAppCloudAPI(lead.phone || '', template.name.toLowerCase().replace(/\s+/g, '_'), 'es_ES', [
           {
             type: 'body',
             parameters: variables.map(v => ({ type: 'text', text: v }))

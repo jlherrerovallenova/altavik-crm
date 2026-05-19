@@ -86,7 +86,7 @@ export const getWhatsAppUrl = (phone: string, message: string) => {
 export const sendWhatsAppCloudAPI = async (
   to: string,
   templateName: string = META_PRIMER_CONTACTO_TEMPLATE,
-  languageCode: string = 'es',
+  languageCode: string = 'es_ES',
   components: any[] = []
 ) => {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

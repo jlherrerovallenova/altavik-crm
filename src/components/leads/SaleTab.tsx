@@ -205,7 +205,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
   const currentStepIdx = SALE_STEPS.findIndex(s => s.key === sale?.sale_status);
   const paidCount = installments.filter(i => i.paid).length;
 
-  const inputCls = 'w-full mt-1 px-3 py-2 bg-slate-50 rounded-lg outline-none text-sm text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all';
+  const inputCls = 'w-full mt-1 px-3 py-2.5 bg-slate-50 rounded-lg outline-none text-sm text-slate-700 border border-slate-100 focus:bg-white focus:border-altavik-500 transition-all';
   const labelCls = 'text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5';
 
   /** Construye el objeto DatosReserva con los datos actuales del estado */
@@ -258,13 +258,15 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             <label className={labelCls}>DNI / NIE / Pasaporte</label>
             <input className={inputCls} value={personalForm.dni} onChange={e => setPersonalForm(f => ({...f, dni: e.target.value}))} placeholder="12345678A" />
           </div>
-          <CustomSelect
-            label="Estado Civil"
-            className="xl:col-span-2"
-            value={personalForm.civil_status}
-            onChange={(val) => setPersonalForm(f => ({...f, civil_status: val}))}
-            options={CIVIL_STATUS_OPTIONS.map(s => ({ id: s, label: s }))}
-          />
+          <div className="xl:col-span-2">
+            <label className={labelCls}>Estado Civil</label>
+            <CustomSelect
+              className="mt-1"
+              value={personalForm.civil_status}
+              onChange={(val) => setPersonalForm(f => ({...f, civil_status: val}))}
+              options={CIVIL_STATUS_OPTIONS.map(s => ({ id: s, label: s }))}
+            />
+          </div>
           <div>
             <label className={labelCls}>Nacionalidad</label>
             <input className={inputCls} value={personalForm.nationality} onChange={e => setPersonalForm(f => ({...f, nationality: e.target.value}))} />
@@ -331,7 +333,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       </section>
 
       {/* ── SECCIÓN 3: Vivienda vinculada ── */}
-      <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+      <section className="bg-white rounded-xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100">
           <Home size={14} className="text-cyan-600" />
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-cyan-600">Vivienda</h3>
