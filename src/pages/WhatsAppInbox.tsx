@@ -44,7 +44,13 @@ export default function WhatsAppInbox() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const addDebug = (msg: string) => {
+    setDebugLog(prev => [...prev.slice(-9), `${new Date().toLocaleTimeString()}: ${msg}`]);
+  };
 
   // Scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
@@ -53,23 +59,48 @@ export default function WhatsAppInbox() {
 
   // Cargar conversaciones
   const fetchConversations = useCallback(async () => {
-    const { data } = await (supabase as any)
-      .from('wa_conversations')
-      .select('*')
-      .order('last_message_at', { ascending: false });
-    setConversations(data || []);
-    setLoadingConvs(false);
+    setLoadingConvs(true);
+    setFetchError(null);
+    try {
+      addDebug('Consultando wa_conversations...');
+      const { data, error: err } = await (supabase as any)
+        .from('wa_conversations')
+        .select('*')
+        .order('last_message_at', { ascending: false });
+      if (err) {
+        console.error('Error fetching conversations:', err);
+        setFetchError(err.message);
+        addDebug(`Error: ${err.message}`);
+        setConversations([]);
+      } else {
+        setConversations(data || []);
+        addDebug(`Cargadas ${data?.length || 0} conversaciones`);
+      }
+    } catch (e: any) {
+      console.error('Except in fetchConversations:', e);
+      setFetchError(e.message || String(e));
+      addDebug(`Excepción: ${e.message || String(e)}`);
+      setConversations([]);
+    } finally {
+      setLoadingConvs(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      addDebug('No hay sesión activa. Esperando login...');
+      return;
+    }
+    addDebug(`Usuario detectado: ${session.user?.email}`);
     fetchConversations();
 
     // Realtime: nuevos mensajes/conversaciones
     const channel = (supabase as any)
       .channel('wa_inbox')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wa_conversations' }, fetchConversations)
-      .subscribe();
+      .subscribe((status: string) => {
+        addDebug(`Realtime wa_inbox estado: ${status}`);
+      });
 
     return () => { (supabase as any).removeChannel(channel); };
   }, [session, fetchConversations]);
@@ -77,13 +108,30 @@ export default function WhatsAppInbox() {
   // Cargar mensajes de una conversación
   const fetchMessages = useCallback(async (convId: string) => {
     setLoadingMsgs(true);
-    const { data } = await (supabase as any)
-      .from('wa_messages')
-      .select('*')
-      .eq('conversation_id', convId)
-      .order('sent_at', { ascending: true });
-    setMessages(data || []);
-    setLoadingMsgs(false);
+    setFetchError(null);
+    try {
+      addDebug(`Cargando mensajes para conv ${convId}...`);
+      const { data, error: err } = await (supabase as any)
+        .from('wa_messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('sent_at', { ascending: true });
+      if (err) {
+        console.error('Error fetching messages:', err);
+        setFetchError(`Error mensajes: ${err.message}`);
+        addDebug(`Error msg: ${err.message}`);
+        setMessages([]);
+      } else {
+        setMessages(data || []);
+        addDebug(`Cargados ${data?.length || 0} mensajes`);
+      }
+    } catch (e: any) {
+      console.error('Except in fetchMessages:', e);
+      setFetchError(`Excepción mensajes: ${e.message || String(e)}`);
+      addDebug(`Excepción msg: ${e.message || String(e)}`);
+    } finally {
+      setLoadingMsgs(false);
+    }
   }, []);
 
   const selectConversation = async (conv: Conversation) => {
@@ -112,7 +160,9 @@ export default function WhatsAppInbox() {
       }, (payload: any) => {
         setMessages(prev => [...prev, payload.new as Message]);
       })
-      .subscribe();
+      .subscribe((status: string) => {
+        addDebug(`Realtime wa_msgs_${conv.id.substring(0,6)} estado: ${status}`);
+      });
 
     return () => { (supabase as any).removeChannel(channel); };
   };
@@ -167,10 +217,12 @@ export default function WhatsAppInbox() {
     }
   };
 
-  const filteredConvs = conversations.filter(c =>
-    c.lead_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.phone.includes(searchTerm)
-  );
+  const filteredConvs = conversations.filter(c => {
+    const name = c.lead_name || '';
+    const phone = c.phone || '';
+    return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           phone.includes(searchTerm);
+  });
 
   const formatTime = (iso: string) => {
     const date = new Date(iso);
@@ -237,10 +289,48 @@ export default function WhatsAppInbox() {
               <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filteredConvs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-slate-400 gap-2">
-              <MessageSquare size={32} className="opacity-30" />
-              <p className="text-sm">Sin conversaciones aún</p>
-              <p className="text-xs text-center px-4">Cuando un cliente responda al WhatsApp aparecerá aquí</p>
+            <div className="flex flex-col items-center justify-center p-6 text-slate-400 gap-4">
+              <div className="flex flex-col items-center justify-center text-center gap-2">
+                <MessageSquare size={32} className="opacity-30 text-emerald-500" />
+                <p className="text-sm font-bold text-slate-700">Sin conversaciones aún</p>
+                <p className="text-xs px-4">Cuando un cliente responda o se registre una plantilla aparecerá aquí</p>
+              </div>
+
+              {/* Panel de diagnóstico integrado en la barra lateral */}
+              <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-mono space-y-2 mt-4 text-left shadow-inner">
+                <p className="font-bold font-sans text-slate-700 border-b pb-1">🔍 Estado de Conexión</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Usuario Auth:</span>
+                    <span className="font-bold text-slate-800 truncate max-w-[150px]">{session?.user?.email || '❌ NO LOGUEADO'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Error query:</span>
+                    <span className={`font-bold truncate max-w-[150px] ${fetchError ? 'text-red-600' : 'text-emerald-600'}`}>{fetchError || 'Ninguno'}</span>
+                  </div>
+                </div>
+                
+                {debugLog.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <p className="text-[10px] text-slate-400 font-sans mb-1">Eventos Recientes:</p>
+                    <div className="bg-white p-1.5 border border-slate-100 rounded max-h-24 overflow-y-auto text-[9px] text-slate-600 space-y-0.5">
+                      {debugLog.map((log, idx) => (
+                        <div key={idx} className="truncate">{log}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="pt-2 flex justify-between items-center">
+                  <button 
+                    onClick={() => { addDebug('Reintentando...'); fetchConversations(); }}
+                    className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-sans font-bold transition-all shadow-sm"
+                  >
+                    🔄 Reintentar
+                  </button>
+                  <span className="text-[9px] text-slate-400 font-sans">v1.1 (Debug)</span>
+                </div>
+              </div>
             </div>
           ) : (
             filteredConvs.map(conv => (

@@ -24,163 +24,346 @@ serve(async (req) => {
   // ── Mensajes entrantes POST ─────────────────────────────────────────────
   if (req.method === 'POST') {
     const bodyText = await req.text()
+    let errorOccurred: any = null
+    let debugInfo: any = {}
 
     const process = (async () => {
       try {
         const body = JSON.parse(bodyText)
-        const value = body.entry?.[0]?.changes?.[0]?.value
+        const change = body.entry?.[0]?.changes?.[0]
+        const value = change?.value
+        const field = change?.field
 
-        // Ignorar actualizaciones de estado (delivered, read, etc.)
-        if (!value?.messages?.[0]) return
+        debugInfo = {
+          hasBody: !!body,
+          changeField: change?.field,
+          hasValue: !!value,
+          hasMessages: !!value?.messages,
+          messagesLength: value?.messages?.length,
+          hasEchoes: !!value?.message_echoes || !!value?.smb_message_echoes,
+          supabaseUrl: SUPABASE_URL,
+          hasSupabaseKey: !!SUPABASE_KEY,
+        }
 
-        const msg = value.messages[0]
-        if (msg.type !== 'text') return
-
-        const fromPhone  = msg.from as string
-        const msgText    = (msg.text?.body ?? '').trim()
-        const waMessageId = msg.id as string
-        if (!msgText) return
-
-        console.log(`📩 Mensaje de ${fromPhone}: "${msgText}"`)
+        if (!SUPABASE_URL || !SUPABASE_KEY) {
+          throw new Error(`Variables de entorno SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY ausentes. URL: "${SUPABASE_URL}", KEY_LEN: ${SUPABASE_KEY?.length ?? 0}`);
+        }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-        const last9 = fromPhone.replace(/\D/g, '').slice(-9)
 
-        // 1. Buscar o crear conversación
-        let conversation: any = null
+        // 1. Caso A: Mensaje entrante (Inbound de cliente)
+        if (value?.messages?.[0]) {
+          const msg = value.messages[0]
+          if (msg.type !== 'text') return
 
-        const { data: existing } = await supabase
-          .from('wa_conversations')
-          .select('*')
-          .ilike('phone', `%${last9}%`)
-          .limit(1)
-          .maybeSingle()
+          const fromPhone  = msg.from as string
+          const msgText    = (msg.text?.body ?? '').trim()
+          const waMessageId = msg.id as string
+          if (!msgText) return
 
-        if (existing) {
-          conversation = existing
-          // Actualizar última actividad
-          await supabase
+          console.log(`📩 Mensaje inbound de ${fromPhone}: "${msgText}"`)
+          const last9 = fromPhone.replace(/\D/g, '').slice(-9)
+
+          // ── DETECTAR DUPLICADOS DE METADATA (RETRIES) ──
+          const { data: existingMsg } = await supabase
+            .from('wa_messages')
+            .select('id')
+            .eq('wa_message_id', waMessageId)
+            .limit(1)
+            .maybeSingle()
+
+          if (existingMsg) {
+            console.log(`⚠️ Mensaje con ID ${waMessageId} ya existe en DB. Posible reintento de Meta. Omitiendo procesamiento y respuesta.`)
+            return
+          }
+
+          // Buscar o crear conversación
+          let conversation: any = null
+
+          const { data: existing, error: errExisting } = await supabase
             .from('wa_conversations')
-            .update({
-              last_message_at: new Date().toISOString(),
-              last_message_preview: msgText.substring(0, 80),
-              unread_count: (existing.unread_count ?? 0) + 1,
-              status: 'open'
-            })
-            .eq('id', existing.id)
-        } else {
-          // Buscar lead por teléfono para obtener su nombre
-          const { data: leads } = await supabase
-            .from('leads')
-            .select('id, name')
+            .select('*')
             .ilike('phone', `%${last9}%`)
             .limit(1)
+            .maybeSingle()
+          if (errExisting) throw new Error(`Error buscando conversacion existente: ${errExisting.message}`)
 
-          const lead = leads?.[0]
+          if (existing) {
+            conversation = existing
+            // Actualizar última actividad
+            const { error: errUpdate } = await supabase
+              .from('wa_conversations')
+              .update({
+                last_message_at: new Date().toISOString(),
+                last_message_preview: msgText.substring(0, 80),
+                unread_count: (existing.unread_count ?? 0) + 1,
+                status: 'open'
+              })
+              .eq('id', existing.id)
+            if (errUpdate) throw new Error(`Error actualizando conversacion existente: ${errUpdate.message}`)
+          } else {
+            // Buscar lead por teléfono para obtener su nombre
+            const { data: leads, error: errLeads } = await supabase
+              .from('leads')
+              .select('id, name')
+              .ilike('phone', `%${last9}%`)
+              .limit(1)
+            if (errLeads) throw new Error(`Error buscando lead para conversacion: ${errLeads.message}`)
 
-          const { data: newConv } = await supabase
-            .from('wa_conversations')
-            .insert([{
-              phone: fromPhone,
-              lead_id: lead?.id ?? null,
-              lead_name: lead?.name ?? `+${fromPhone}`,
-              last_message_at: new Date().toISOString(),
-              last_message_preview: msgText.substring(0, 80),
-              unread_count: 1,
-              status: 'open'
-            }])
-            .select()
-            .single()
+            const lead = leads?.[0]
 
-          conversation = newConv
-        }
+            const { data: newConv, error: errNewConv } = await supabase
+              .from('wa_conversations')
+              .insert([{
+                phone: fromPhone,
+                lead_id: lead?.id ?? null,
+                lead_name: lead?.name ?? `+${fromPhone}`,
+                last_message_at: new Date().toISOString(),
+                last_message_preview: msgText.substring(0, 80),
+                unread_count: 1,
+                status: 'open'
+              }])
+              .select()
+              .single()
+            if (errNewConv) throw new Error(`Error creando nueva conversacion: ${errNewConv.message}`)
 
-        if (!conversation) {
-          console.error('No se pudo crear/encontrar conversación')
-          return
-        }
+            conversation = newConv
+          }
 
-        // 2. Guardar mensaje en wa_messages (evita duplicados por wa_message_id)
-        await supabase
-          .from('wa_messages')
-          .upsert([{
-            conversation_id: conversation.id,
-            wa_message_id: waMessageId,
-            direction: 'inbound',
-            content: msgText,
-            type: 'text',
-            status: 'delivered',
-            sent_at: new Date(parseInt(msg.timestamp) * 1000).toISOString()
-          }], { onConflict: 'wa_message_id', ignoreDuplicates: true })
+          if (!conversation) {
+            console.error('No se pudo crear/encontrar conversación')
+            return
+          }
 
-        // 3. Actualizar lead si existe (extracción IA + historial)
-        if (conversation.lead_id) {
-          const extracted = await extractWithGemini(msgText)
-
-          const fecha = new Date().toLocaleDateString('es-ES')
-          const notaWA = [
-            `━━━ Respuesta WhatsApp (${fecha}) ━━━`,
-            extracted.tipo_vivienda !== 'no_especificado' ? `Tipo vivienda: ${extracted.tipo_vivienda}` : null,
-            extracted.dormitorios ? `Dormitorios: ${extracted.dormitorios}` : null,
-            extracted.quiere_visita === true  ? '✅ Quiere concertar visita' : null,
-            extracted.quiere_visita === false ? '❌ No quiere visita de momento' : null,
-            `Resumen: ${extracted.summary}`,
-          ].filter(Boolean).join('\n')
-
-          const { data: lead } = await supabase.from('leads').select('notes, status').eq('id', conversation.lead_id).single()
-          const newNotes = lead?.notes ? `${notaWA}\n\n${lead.notes}` : notaWA
-          const newStatus = ['new', 'contacted'].includes(lead?.status ?? '') ? 'qualified' : lead?.status
-
-          await supabase.from('leads').update({ notes: newNotes, status: newStatus }).eq('id', conversation.lead_id)
-
-          await supabase.from('lead_history' as any).insert([{
-            lead_id: conversation.lead_id,
-            event_type: 'contact',
-            description: `Respuesta WhatsApp: ${extracted.summary}`,
-            metadata: { source: 'whatsapp_webhook', from: fromPhone, extracted, raw_message: msgText }
-          }])
-
-          // 4. Auto-respuesta al cliente
-          const replyText = extracted.quiere_visita
-            ? `¡Muchas gracias por su respuesta! Hemos anotado sus preferencias. Le llamaremos pronto para concertar la visita. ¡Un cordial saludo! — Terravall`
-            : `¡Muchas gracias por su respuesta! Hemos anotado sus preferencias y le prepararemos las mejores opciones. ¡Un cordial saludo! — Terravall`
-
-          const sent = await sendWhatsAppReply(fromPhone, replyText)
-
-          // Guardar la respuesta automática también en wa_messages
-          if (sent) {
-            await supabase.from('wa_messages').insert([{
+          // Guardar mensaje en wa_messages (evita duplicados por wa_message_id)
+          const { error: errUpsertMsg } = await supabase
+            .from('wa_messages')
+            .upsert([{
               conversation_id: conversation.id,
+              wa_message_id: waMessageId,
+              direction: 'inbound',
+              content: msgText,
+              type: 'text',
+              status: 'delivered',
+              sent_at: new Date(parseInt(msg.timestamp) * 1000).toISOString()
+            }], { onConflict: 'wa_message_id', ignoreDuplicates: true })
+          if (errUpsertMsg) throw new Error(`Error al insertar/actualizar mensaje inbound: ${errUpsertMsg.message}`)
+
+          // Actualizar lead si existe (extracción IA + historial)
+          if (conversation.lead_id) {
+            const extracted = await extractWithGemini(msgText)
+
+            const fecha = new Date().toLocaleDateString('es-ES')
+            let notaWA = ''
+            if (extracted.contiene_preferencias) {
+              notaWA = [
+                `━━━ Preferencias WhatsApp (${fecha}) ━━━`,
+                extracted.tipo_vivienda !== 'no_especificado' ? `Tipo vivienda: ${extracted.tipo_vivienda}` : null,
+                extracted.dormitorios ? `Dormitorios: ${extracted.dormitorios}` : null,
+                extracted.quiere_visita === true  ? '✅ Quiere concertar visita' : null,
+                extracted.quiere_visita === false ? '❌ No quiere visita de momento' : null,
+                `Resumen: ${extracted.summary}`,
+              ].filter(Boolean).join('\n')
+            } else {
+              notaWA = `━━━ Mensaje WhatsApp (${fecha}) ━━━\nMensaje: ${msgText}\nResumen: ${extracted.summary}`
+            }
+
+            const { data: lead } = await supabase.from('leads').select('notes, status').eq('id', conversation.lead_id).single()
+            const newNotes = lead?.notes ? `${notaWA}\n\n${lead.notes}` : notaWA
+            
+            // Solo marcar como qualified si aportó preferencias
+            const newStatus = (extracted.contiene_preferencias && ['new', 'contacted'].includes(lead?.status ?? '')) 
+              ? 'qualified' 
+              : lead?.status
+
+            await supabase.from('leads').update({ notes: newNotes, status: newStatus }).eq('id', conversation.lead_id)
+
+            await supabase.from('lead_history' as any).insert([{
+              lead_id: conversation.lead_id,
+              event_type: 'contact',
+              description: `Respuesta WhatsApp: ${extracted.summary}`,
+              metadata: { source: 'whatsapp_webhook', from: fromPhone, extracted, raw_message: msgText }
+            }])
+
+            // Auto-respuesta inteligente al cliente
+            let replyText = ''
+            if (extracted.es_saludo && !extracted.contiene_preferencias) {
+              replyText = `¡Hola! Bienvenido a Inmobiliaria TERRAVALL. ¿En qué podemos ayudarle hoy? Si está interesado en la promoción ALTAVIK, coméntenos brevemente qué tipo de vivienda prefiere (bajo, planta intermedia o ático) y cuántos dormitorios necesita para ofrecerle las mejores opciones.`
+            } else if (extracted.contiene_preferencias) {
+              replyText = extracted.quiere_visita
+                ? `¡Muchas gracias por su respuesta! Hemos anotado sus preferencias. Le llamaremos pronto para concertar la visita. ¡Un cordial saludo! — Terravall`
+                : `¡Muchas gracias por su respuesta! Hemos anotado sus preferencias y le prepararemos las mejores opciones. ¡Un cordial saludo! — Terravall`
+            } else {
+              replyText = `¡Muchas gracias por su mensaje! En breve un asesor de Inmobiliaria TERRAVALL se pondrá en contacto con usted para facilitarle toda la información sobre la promoción ALTAVIK.`
+            }
+
+            const sent = await sendWhatsAppReply(fromPhone, replyText)
+
+            // Guardar la respuesta automática también en wa_messages
+            if (sent) {
+              await supabase.from('wa_messages').insert([{
+                conversation_id: conversation.id,
+                direction: 'outbound',
+                content: replyText,
+                type: 'text',
+                status: 'sent',
+              }])
+              await supabase.from('wa_conversations').update({
+                last_message_preview: `Tú: ${replyText.substring(0, 60)}...`,
+              }).eq('id', conversation.id)
+            }
+          }
+
+          console.log('✅ Mensaje inbound procesado correctamente')
+        }
+        // 2. Caso B: Eco de mensaje saliente (Outbound enviado por el negocio desde otro dispositivo)
+        else if (value?.message_echoes?.[0] || (field === 'smb_message_echoes' && value?.smb_message_echoes)) {
+          const echo = value.message_echoes?.[0] || value.smb_message_echoes
+          const type = echo.type
+          if (type !== 'text') return
+
+          const msgText = (echo.text?.body ?? '').trim()
+          const waMessageId = echo.id || echo.message_id
+          if (!msgText || !waMessageId) return
+
+          // Identificar número del cliente
+          const businessPhone = value.metadata?.display_phone_number?.replace(/\D/g, '')
+          let customerPhone = ''
+
+          if (echo.to) {
+            const cleanTo = echo.to.replace(/\D/g, '')
+            if (cleanTo !== businessPhone) {
+              customerPhone = echo.to
+            }
+          }
+          if (!customerPhone && echo.from) {
+            const cleanFrom = echo.from.replace(/\D/g, '')
+            if (cleanFrom !== businessPhone) {
+              customerPhone = echo.from
+            }
+          }
+          if (!customerPhone) {
+            customerPhone = echo.to || echo.from
+          }
+
+          if (!customerPhone) {
+            console.log('⚠️ No se pudo determinar el teléfono del cliente para el eco')
+            return
+          }
+
+          console.log(`📩 Eco outbound para ${customerPhone}: "${msgText}"`)
+          const last9 = customerPhone.replace(/\D/g, '').slice(-9)
+
+          // Buscar o crear conversación
+          let conversation: any = null
+
+          const { data: existing, error: errExisting } = await supabase
+            .from('wa_conversations')
+            .select('*')
+            .ilike('phone', `%${last9}%`)
+            .limit(1)
+            .maybeSingle()
+          if (errExisting) throw new Error(`Error buscando conversacion existente para eco: ${errExisting.message}`)
+
+          if (existing) {
+            conversation = existing
+            // Actualizar última actividad y resetear contador de no leídos
+            const { error: errUpdate } = await supabase
+              .from('wa_conversations')
+              .update({
+                last_message_at: new Date().toISOString(),
+                last_message_preview: `Tú: ${msgText.substring(0, 70)}`,
+                unread_count: 0, // Al responder nosotros, leemos los mensajes
+                status: 'open'
+              })
+              .eq('id', existing.id)
+            if (errUpdate) throw new Error(`Error actualizando conversacion para eco: ${errUpdate.message}`)
+          } else {
+            // Buscar lead por teléfono
+            const { data: leads, error: errLeads } = await supabase
+              .from('leads')
+              .select('id, name')
+              .ilike('phone', `%${last9}%`)
+              .limit(1)
+            if (errLeads) throw new Error(`Error buscando lead para eco: ${errLeads.message}`)
+
+            const lead = leads?.[0]
+
+            const { data: newConv, error: errNewConv } = await supabase
+              .from('wa_conversations')
+              .insert([{
+                phone: customerPhone,
+                lead_id: lead?.id ?? null,
+                lead_name: lead?.name ?? `+${customerPhone}`,
+                last_message_at: new Date().toISOString(),
+                last_message_preview: `Tú: ${msgText.substring(0, 70)}`,
+                unread_count: 0,
+                status: 'open'
+              }])
+              .select()
+              .single()
+            if (errNewConv) throw new Error(`Error creando nueva conversacion para eco: ${errNewConv.message}`)
+
+            conversation = newConv
+          }
+
+          if (!conversation) {
+            console.error('No se pudo crear/encontrar conversación para eco')
+            return
+          }
+
+          // Guardar mensaje outbound en wa_messages
+          const sentAt = echo.timestamp ? new Date(parseInt(echo.timestamp) * 1000).toISOString() : new Date().toISOString()
+          const { error: errUpsertMsg } = await supabase
+            .from('wa_messages')
+            .upsert([{
+              conversation_id: conversation.id,
+              wa_message_id: waMessageId,
               direction: 'outbound',
-              content: replyText,
+              content: msgText,
               type: 'text',
               status: 'sent',
-            }])
-            await supabase.from('wa_conversations').update({
-              last_message_preview: `Tú: ${replyText.substring(0, 60)}...`,
-            }).eq('id', conversation.id)
-          }
-        }
+              sent_at: sentAt
+            }], { onConflict: 'wa_message_id', ignoreDuplicates: true })
+          if (errUpsertMsg) throw new Error(`Error insertando mensaje de eco: ${errUpsertMsg.message}`)
 
-        console.log('✅ Mensaje procesado correctamente')
+          console.log('✅ Eco outbound procesado correctamente')
+        }
 
       } catch (err) {
         console.error('❌ Error webhook:', err)
+        errorOccurred = err
       }
     })()
 
-    void process
-    return new Response('OK', { status: 200 })
+    await process
+    if (errorOccurred) {
+      return new Response(JSON.stringify({ error: errorOccurred.message || String(errorOccurred), stack: errorOccurred.stack, debugInfo }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+    return new Response(JSON.stringify({ status: 'OK', debugInfo }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   return new Response('Method Not Allowed', { status: 405 })
 })
 
 async function extractWithGemini(messageText: string) {
-  const prompt = `Eres el CRM inmobiliario ALTAVIK. Analiza la respuesta del cliente a preguntas sobre vivienda.
-Devuelve SOLO JSON sin markdown:
-{"tipo_vivienda":"bajo|planta_intermedia|atico|no_especificado","dormitorios":<número o null>,"quiere_visita":<true|false|null>,"summary":"<1-2 frases>"}
-Mensaje: "${messageText.replace(/"/g, "'")}"`
+  const prompt = `Eres el CRM inmobiliario ALTAVIK. Analiza el mensaje del cliente de WhatsApp y extrae cualquier preferencia de vivienda o intención de visita.
+Devuelve SOLO un objeto JSON estructurado sin formato markdown ni código:
+{
+  "es_saludo": <true|false (si el mensaje es solo un saludo como Hola, Buenas, etc. sin aportar información)>,
+  "contiene_preferencias": <true|false (si el mensaje contiene información sobre dormitorios, tipo de vivienda o deseos de visita)>,
+  "tipo_vivienda": "bajo|planta_intermedia|atico|no_especificado",
+  "dormitorios": <número o null>,
+  "quiere_visita": <true|false|null>,
+  "summary": "<resumen de 1-2 frases>"
+}
+Mensaje a analizar: "${messageText.replace(/"/g, "'")}"`
 
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -194,7 +377,7 @@ Mensaje: "${messageText.replace(/"/g, "'")}"`
     if (match) raw = match[0]
     return JSON.parse(raw)
   } catch {
-    return { tipo_vivienda: 'no_especificado', dormitorios: null, quiere_visita: null, summary: messageText }
+    return { es_saludo: false, contiene_preferencias: false, tipo_vivienda: 'no_especificado', dormitorios: null, quiere_visita: null, summary: messageText }
   }
 }
 
