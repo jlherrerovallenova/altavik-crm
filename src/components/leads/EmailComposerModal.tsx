@@ -296,7 +296,7 @@ Juan Herrero - TERRAVALL`);
 
       await (supabase as any).from('lead_history').insert([{
         lead_id: leadId,
-        event_type: selectedDocs.length > 0 ? 'document' : 'contact',
+        event_type: selectedDocs.length > 0 ? 'document' : sentMethod,
         description: description,
         metadata: { method: sentMethod, docs: selectedDocs.map(d => d.name) }
       }]);

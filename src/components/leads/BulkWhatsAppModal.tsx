@@ -4,6 +4,8 @@ import { X, MessageCircle, User, CheckCircle2, ExternalLink, Loader2, Layout } f
 import type { Database } from '../../types/supabase';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
 import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 
@@ -15,6 +17,7 @@ interface BulkWhatsAppModalProps {
 }
 
 export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: BulkWhatsAppModalProps) {
+  const { session } = useAuth();
   const { templates, loading } = useWhatsAppTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [sentLeads, setSentLeads] = useState<string[]>([]);
@@ -47,10 +50,34 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
             parameters: variables.map(v => ({ type: 'text', text: v }))
           }
         ]);
+
+        await supabase.from('lead_history').insert([{
+          lead_id: lead.id,
+          user_id: session?.user.id,
+          event_type: 'whatsapp',
+          description: `Mensaje de WhatsApp oficial enviado (Plantilla: ${template.name})`,
+          metadata: { 
+            method: 'whatsapp', 
+            template_name: template.name, 
+            type: 'outbound_bulk'
+          }
+        }]);
       } else {
         // Enviar via URL tradicional
         const whatsappUrl = getWhatsAppUrl(lead.phone || '', personalizedMessage);
         window.open(whatsappUrl, '_blank');
+
+        await supabase.from('lead_history').insert([{
+          lead_id: lead.id,
+          user_id: session?.user.id,
+          event_type: 'whatsapp',
+          description: `Intento de envío manual de WhatsApp via web (Plantilla: ${template.name})`,
+          metadata: { 
+            method: 'whatsapp', 
+            template_name: template.name, 
+            type: 'outbound_manual'
+          }
+        }]);
       }
 
       if (!sentLeads.includes(lead.id)) {
@@ -84,6 +111,19 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
           }
         ]);
         setSentLeads(prev => [...prev, lead.id]);
+
+        await supabase.from('lead_history').insert([{
+          lead_id: lead.id,
+          user_id: session?.user.id,
+          event_type: 'whatsapp',
+          description: `Mensaje de WhatsApp oficial enviado (Envío Masivo, Plantilla: ${template.name})`,
+          metadata: { 
+            method: 'whatsapp', 
+            template_name: template.name, 
+            type: 'outbound_bulk_all'
+          }
+        }]);
+
         // Pequeño delay para no saturar
         await new Promise(r => setTimeout(r, 500));
       } catch (err) {

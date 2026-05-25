@@ -208,6 +208,26 @@ export default function WhatsAppInbox() {
           .from('wa_conversations')
           .update({ last_message_preview: `Tú: ${text.substring(0, 60)}`, last_message_at: new Date().toISOString() })
           .eq('id', selectedConv.id);
+
+        if (selectedConv.lead_id) {
+          try {
+            await (supabase as any).from('lead_history').insert([{
+              lead_id: selectedConv.lead_id,
+              user_id: session?.user?.id,
+              event_type: 'whatsapp',
+              description: `Mensaje enviado vía WhatsApp Business: "${text.substring(0, 120)}${text.length > 120 ? '...' : ''}"`,
+              metadata: { 
+                method: 'whatsapp', 
+                conversation_id: selectedConv.id, 
+                message_preview: text.substring(0, 120),
+                type: 'outbound_reply'
+              }
+            }]);
+          } catch (historyError) {
+            console.error('Error logging whatsapp reply to lead_history:', historyError);
+          }
+        }
+
         fetchConversations();
       }
     } catch (err) {

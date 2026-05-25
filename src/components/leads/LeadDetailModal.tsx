@@ -694,8 +694,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
 
                       <div className="flex flex-col gap-2.5">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
+                        <div className="grid grid-cols-12 gap-3">
+                          <div className="col-span-5 space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
                             <CustomSelect
                               value={newTask.type}
@@ -709,25 +709,23 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                               ]}
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
-                              <input
-                                type="date"
-                                value={newTask.date}
-                                onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                                className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
-                              <input
-                                type="time"
-                                value={newTask.time}
-                                onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                                className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
-                              />
-                            </div>
+                          <div className="col-span-4 space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
+                            <input
+                              type="date"
+                              value={newTask.date}
+                              onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
+                            />
+                          </div>
+                          <div className="col-span-3 space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
+                            <input
+                              type="time"
+                              value={newTask.time}
+                              onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
+                            />
                           </div>
                         </div>
 
