@@ -5,8 +5,10 @@ export interface WhatsAppTemplate {
   category: 'system' | 'marketing';
 }
 
-// Nombre exacto de la plantilla aprobada en Meta Business
+// Nombre exacto de las plantillas aprobadas en Meta Business
 export const META_PRIMER_CONTACTO_TEMPLATE = 'plantilla_mensaje_inicial';
+export const META_SEGUIMIENTO_TEMPLATE     = 'seguimiento_sin_respuesta';
+export const META_CIERRE_TEMPLATE          = 'cierre_solicitud';
 
 // Texto real de la plantilla aprobada (sin variables, estático)
 export const META_PRIMER_CONTACTO_BODY = `Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
