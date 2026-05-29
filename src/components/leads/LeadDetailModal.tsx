@@ -5,7 +5,7 @@ import {
   Clock, Compass, MessageCircle, Calendar as CalendarIcon,
   CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
   ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User, MapPin
+  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User, MapPin, Star
 } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
@@ -94,7 +94,10 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     notes: lead.notes || '',
     is_subscribed: lead.is_subscribed ?? true,
     created_at_date: lead.created_at ? new Date(lead.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
-    statusOriginal: lead.status || 'new'
+    statusOriginal: lead.status || 'new',
+    interest_bedrooms: lead.interest_bedrooms || [],
+    interest_floor: lead.interest_floor || [],
+    client_quality_rating: lead.client_quality_rating || 0
   });
 
   const logEvent = async (type: string, description: string, metadata = {}) => {
@@ -625,14 +628,101 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </div>
                   </section>
 
+                    {/* INTERÉS Y CALIDAD */}
+                    <section className="lg:col-start-1 lg:col-end-8 lg:row-start-2 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {/* INTERÉS */}
+                        <div>
+                          <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
+                            <div className="p-1.5 bg-purple-50 text-purple-600 rounded-xl"><Heart size={16} /></div> INTERÉS
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Dormitorios</label>
+                              <div className="flex flex-wrap gap-2">
+                                {['1', '2', '3', '4'].map(bed => {
+                                  const isSelected = formData.interest_bedrooms.includes(bed);
+                                  return (
+                                    <button
+                                      key={bed}
+                                      onClick={() => {
+                                        const current = formData.interest_bedrooms;
+                                        setFormData({ ...formData, interest_bedrooms: isSelected ? current.filter(v => v !== bed) : [...current, bed] });
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all border ${
+                                        isSelected 
+                                          ? 'bg-purple-100 text-purple-700 border-purple-200 shadow-inner' 
+                                          : 'bg-white text-slate-600 border-slate-200 hover:border-purple-300'
+                                      }`}
+                                    >
+                                      {bed}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Altura</label>
+                              <div className="flex flex-wrap gap-2">
+                                {['Bajo', '1º-2º-3º', 'Atico'].map(floor => {
+                                  const isSelected = formData.interest_floor.includes(floor);
+                                  return (
+                                    <button
+                                      key={floor}
+                                      onClick={() => {
+                                        const current = formData.interest_floor;
+                                        setFormData({ ...formData, interest_floor: isSelected ? current.filter(v => v !== floor) : [...current, floor] });
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all border ${
+                                        isSelected 
+                                          ? 'bg-purple-100 text-purple-700 border-purple-200 shadow-inner' 
+                                          : 'bg-white text-slate-600 border-slate-200 hover:border-purple-300'
+                                      }`}
+                                    >
+                                      {floor}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* CALIDAD DEL CLIENTE */}
+                        <div>
+                          <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
+                            <div className="p-1.5 bg-amber-50 text-amber-500 rounded-xl"><Star size={16} fill="currentColor" /></div> CALIDAD DEL CLIENTE
+                          </h3>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Valoración</label>
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map(rating => (
+                                <button
+                                  key={rating}
+                                  onClick={() => setFormData({ ...formData, client_quality_rating: formData.client_quality_rating === rating ? 0 : rating })}
+                                  className={`p-1.5 rounded-lg transition-all hover:scale-110 ${
+                                    rating <= formData.client_quality_rating ? 'text-amber-400' : 'text-slate-200 hover:text-amber-200'
+                                  }`}
+                                >
+                                  <Star size={28} fill={rating <= formData.client_quality_rating ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                              {formData.client_quality_rating === 0 ? 'Sin valorar' : `${formData.client_quality_rating} de 5 estrellas`}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
                     {/* ACCIONES DE CONTACTO Y FEEDBACK */}
-                    <section className="lg:col-start-1 lg:col-end-13 lg:row-start-2">
+                    <section className="lg:col-start-1 lg:col-end-8 lg:row-start-3">
                       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 lg:grid-cols-4 gap-2">
                         
                         {/* WhatsApp */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
                         >
                           <MessageCircle size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">WhatsApp</span>
@@ -641,7 +731,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         {/* Email */}
                         <button 
                           onClick={() => { setEmailModalMethod('email'); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
                         >
                           <Mail size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">Email</span>
@@ -650,7 +740,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         {/* Primer Contacto */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setFirstContactTemplateActive(true); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
                         >
                           <Zap size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">1er Contacto</span>
@@ -659,7 +749,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         {/* Opinión */}
                         <button 
                           onClick={() => setIsFeedbackModalOpen(true)}
-                          className={`flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
+                          className={`flex flex-col items-center justify-center gap-1 h-14 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
                             lead.feedback_rating
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                             : lead.feedback_sent 
@@ -674,8 +764,10 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     </section>
 
-                  {/* AGENDA DE ACCIONES */}
-                  <section className="lg:col-start-8 lg:col-end-13 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                  {/* COLUMNA DERECHA (Agenda + Notas) */}
+                  <div className="lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:row-span-3 flex flex-col gap-4">
+                    {/* AGENDA DE ACCIONES */}
+                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
@@ -694,8 +786,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
 
                       <div className="flex flex-col gap-2.5">
-                        <div className="grid grid-cols-12 gap-3">
-                          <div className="col-span-5 space-y-1.5">
+                        <div className="grid grid-cols-[1fr_135px_85px] gap-3">
+                          <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
                             <CustomSelect
                               value={newTask.type}
@@ -709,7 +801,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                               ]}
                             />
                           </div>
-                          <div className="col-span-4 space-y-1.5">
+                          <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
                             <input
                               type="date"
@@ -718,7 +810,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                               className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
                             />
                           </div>
-                          <div className="col-span-3 space-y-1.5">
+                          <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
                             <input
                               type="time"
@@ -793,11 +885,26 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                         ))}
                       </div>
                     )}
-                  </section>
+                    </section>
+
+                    {/* NOTAS INTERNAS */}
+                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1">
+                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
+                        <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
+                      </h3>
+                      <textarea 
+                        name="notes" 
+                        value={formData.notes} 
+                        onChange={handleChange}
+                        placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
+                        className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
+                      />
+                    </section>
+                  </div>
 
                   {/* PREFERENCIAS WHATSAPP */}
                   {waData && (
-                    <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm transition-all hover:shadow-md -mt-1">
+                    <section className="lg:col-span-12 lg:row-start-4 bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-bold flex items-center gap-2.5 text-slate-500 uppercase tracking-widest">
                           <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-xl"><MessageCircle size={16} /></div>
@@ -865,19 +972,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                     </section>
                   )}
 
-                  {/* NOTAS INTERNAS */}
-                  <section className="lg:col-span-12 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col -mt-1">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
-                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
-                    </h3>
-                    <textarea 
-                      name="notes" 
-                      value={formData.notes} 
-                      onChange={handleChange}
-                      placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
-                      className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
-                    />
-                  </section>
+
               </div>
             )}
             {activeTab === 'venta' && (

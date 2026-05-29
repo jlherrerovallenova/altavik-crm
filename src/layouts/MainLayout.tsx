@@ -24,7 +24,8 @@ import {
   BarChart3,
   Inbox,
   Sparkles,
-  Command
+  Command,
+  BadgeDollarSign
 } from 'lucide-react';
 import CommandPalette from '../components/ui/CommandPalette';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
@@ -32,6 +33,7 @@ import { useInboxCount } from '../hooks/useInboxCount';
 import { useWhatsAppReplies } from '../hooks/useWhatsAppReplies';
 import { DailyBriefingModal, briefingShownToday, markBriefingShown } from '../components/DailyBriefingModal';
 import { MessageSquare } from 'lucide-react';
+import { DailyTasksModal } from '../components/DailyTasksModal';
 
 
 export default function MainLayout() {
@@ -55,6 +57,7 @@ export default function MainLayout() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { replies: waReplies, unseenCount: waUnseen, markAllSeen } = useWhatsAppReplies();
   const [showBriefing, setShowBriefing] = useState(false);
+  const [isDailyTasksOpen, setIsDailyTasksOpen] = useState(false);
 
   // Mostrar briefing una vez al día tras cargar
   useEffect(() => {
@@ -90,6 +93,21 @@ export default function MainLayout() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // 2. Mostrar tareas del día al arrancar (una vez por sesión)
+  useEffect(() => {
+    if (!session) return;
+    
+    const hasSeenTodayTasks = sessionStorage.getItem('hasSeenDailyTasks');
+    if (!hasSeenTodayTasks) {
+      // Pequeño delay para que no sea tan brusco tras el login
+      const timer = setTimeout(() => {
+        setIsDailyTasksOpen(true);
+        sessionStorage.setItem('hasSeenDailyTasks', 'true');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [session]);
 
   // 1. PANTALLA DE CARGA
   if (loading) {
@@ -179,7 +197,8 @@ export default function MainLayout() {
           <SidebarItem to="/" icon={<LayoutDashboard size={18} />} label="Panel de Control" active={location.pathname === '/'} onClick={closeSidebar} />
           <SidebarItem to="/leads" icon={<Users size={18} />} label="Clientes" active={location.pathname.startsWith('/leads')} onClick={closeSidebar} />
           <SidebarItem to="/inventory" icon={<Map size={18} />} label="Viviendas" active={location.pathname === '/inventory'} onClick={closeSidebar} />
-          <SidebarItem to="/pipeline" icon={<Calendar size={18} />} label="Ventas" active={location.pathname === '/pipeline'} onClick={closeSidebar} />
+          <SidebarItem to="/pipeline" icon={<Calendar size={18} />} label="Fase de Venta" active={location.pathname === '/pipeline'} onClick={closeSidebar} />
+          <SidebarItem to="/sales" icon={<BadgeDollarSign size={18} />} label="Ventas" active={location.pathname === '/sales'} onClick={closeSidebar} />
           <SidebarItem to="/stats" icon={<BarChart3 size={18} />} label="Estadísticas" active={location.pathname === '/stats'} onClick={closeSidebar} />
 
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Comunicaciones</p>
@@ -381,6 +400,12 @@ export default function MainLayout() {
       <CommandPalette 
         isOpen={isCommandPaletteOpen} 
         onClose={() => setIsCommandPaletteOpen(false)} 
+      />
+
+      {/* Daily Tasks Modal */}
+      <DailyTasksModal
+        isOpen={isDailyTasksOpen}
+        onClose={() => setIsDailyTasksOpen(false)}
       />
     </div>
   );

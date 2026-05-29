@@ -69,6 +69,9 @@ export interface Database {
           feedback_sent_at: string | null
           feedback_rating: string | null
           feedback_responded_at: string | null
+          interest_bedrooms: string[] | null
+          interest_floor: string[] | null
+          client_quality_rating: number | null
         }
         Insert: {
           id?: string
@@ -97,6 +100,9 @@ export interface Database {
           property_id?: string | null
           province?: string | null
           sale_status?: string | null
+          interest_bedrooms?: string[] | null
+          interest_floor?: string[] | null
+          client_quality_rating?: number | null
         }
         Update: {
           id?: string
@@ -125,6 +131,9 @@ export interface Database {
           property_id?: string | null
           province?: string | null
           sale_status?: string | null
+          interest_bedrooms?: string[] | null
+          interest_floor?: string[] | null
+          client_quality_rating?: number | null
         }
       }
       inventory: {

@@ -431,28 +431,52 @@ Juan Herrero - TERRAVALL`);
         }
 
         const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+        const shortenedDocs = await Promise.all(
+          selectedDocs.map(async d => ({
+            name: d.name,
+            url: await shortenUrl(d.url)
+          }))
+        );
+        const docsText = shortenedDocs.length > 0
+          ? `\n\n*DOCUMENTACIÓN ADJUNTA:*` + shortenedDocs.map(d => `\n\n📄 *${d.name}*\n🔗 ${d.url}`).join('')
+          : '';
+        const fullMessage = `${message}${docsText}`;
 
         if (isCloudConfigured) {
           try {
-            // ✅ Intento via Cloud API con la plantilla aprobada en Meta
-            await sendWhatsAppCloudAPI(leadPhone, META_PRIMER_CONTACTO_TEMPLATE, 'es_ES');
+            if (selectedTemplateId) {
+              const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
+              if (template) {
+                const firstName = leadName.split(' ')[0] || 'Cliente';
+                const greeting = getGreeting();
+                const variables = [firstName, greeting];
+                
+                const templateIdName = template.name.toLowerCase().replace(/\s+/g, '_');
+                const lang = (template as any).language_code || 'es';
+                
+                const components = templateIdName === 'hello_world' 
+                  ? [] 
+                  : [
+                    {
+                      type: 'body',
+                      parameters: variables.map(v => ({ type: 'text', text: v }))
+                    }
+                  ];
+
+                await sendWhatsAppCloudAPI(leadPhone, templateIdName, lang, components);
+              } else {
+                window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
+              }
+            } else {
+              // ✅ Intento via Cloud API con la plantilla aprobada en Meta
+              await sendWhatsAppCloudAPI(leadPhone, META_PRIMER_CONTACTO_TEMPLATE, 'es_ES');
+            }
           } catch (apiError: any) {
-            // ⚠️ Si la plantilla está PENDING o falla la API, abrimos WhatsApp Web
             console.warn('Cloud API no disponible, usando fallback URL:', apiError.message);
-            window.open(getWhatsAppUrl(leadPhone, message), '_blank');
+            window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
           }
         } else {
           // Fallback directo: abre WhatsApp Web con el mensaje prellenado
-          const shortenedDocs = await Promise.all(
-            selectedDocs.map(async d => ({
-              name: d.name,
-              url: await shortenUrl(d.url)
-            }))
-          );
-          const docsText = shortenedDocs.length > 0
-            ? `\n\n*DOCUMENTACIÓN ADJUNTA:*` + shortenedDocs.map(d => `\n\n📄 *${d.name}*\n🔗 ${d.url}`).join('')
-            : '';
-          const fullMessage = `${message}${docsText}`;
           window.open(getWhatsAppUrl(leadPhone, fullMessage), '_blank');
         }
 

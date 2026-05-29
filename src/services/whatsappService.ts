@@ -1,3 +1,4 @@
+
 export interface WhatsAppTemplate {
   id?: string;
   name: string;
@@ -91,6 +92,9 @@ export const sendWhatsAppCloudAPI = async (
   languageCode: string = 'es_ES',
   components: any[] = []
 ) => {
+  let cleanPhone = to.replace(/\D/g, '');
+  if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
+
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
   const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -104,7 +108,7 @@ export const sendWhatsAppCloudAPI = async (
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ to, templateName, languageCode, components })
+    body: JSON.stringify({ to: cleanPhone, templateName, languageCode, components })
   });
 
   const data = await response.json();
@@ -115,3 +119,5 @@ export const sendWhatsAppCloudAPI = async (
 
   return data;
 };
+
+

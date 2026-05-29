@@ -21,6 +21,7 @@ const Inbox = lazy(() => import('./pages/Inbox'));
 const Discovery = lazy(() => import('./pages/Discovery'));
 const FeedbackResponse = lazy(() => import('./pages/FeedbackResponse'));
 const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
+const Sales = lazy(() => import('./pages/Sales'));
 
 const PageLoader = () => (
   <div className="w-full h-[60vh] flex flex-col items-center justify-center">
@@ -47,6 +48,7 @@ function App() {
           <Route path="/leads" element={<Suspense fallback={<PageLoader />}><Leads /></Suspense>} />
           <Route path="/leads/:id" element={<Suspense fallback={<PageLoader />}><LeadDetail /></Suspense>} />
           <Route path="/pipeline" element={<Suspense fallback={<PageLoader />}><Pipeline /></Suspense>} />
+          <Route path="/sales" element={<Suspense fallback={<PageLoader />}><Sales /></Suspense>} />
           <Route path="/inventory" element={<Suspense fallback={<PageLoader />}><Inventory /></Suspense>} />
           <Route path="/agenda" element={<Suspense fallback={<PageLoader />}><Agenda /></Suspense>} />
           <Route path="/settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
