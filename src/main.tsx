@@ -28,13 +28,17 @@ if (typeof window !== 'undefined') {
   });
 }
 
+import { ClientAuthProvider } from './context/ClientAuthContext'
+
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <DialogProvider>
-          <App />
-        </DialogProvider>
+        <ClientAuthProvider>
+          <DialogProvider>
+            <App />
+          </DialogProvider>
+        </ClientAuthProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

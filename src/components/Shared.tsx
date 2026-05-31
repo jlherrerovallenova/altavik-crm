@@ -153,7 +153,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 py-1">
+          <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 py-1">
             {options.map((option) => (
               <button
                 key={option.id}

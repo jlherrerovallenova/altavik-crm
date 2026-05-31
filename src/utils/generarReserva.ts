@@ -164,7 +164,7 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
 /**
  * Genera el PDF de reserva con jsPDF replicando el contenido del contrato.
  */
-export async function generarReservaPdf(datos: DatosReserva): Promise<void> {
+export async function generarReservaPdf(datos: DatosReserva, download: boolean = true): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const pageW = 210;
@@ -334,5 +334,8 @@ export async function generarReservaPdf(datos: DatosReserva): Promise<void> {
   doc.text('LA PARTE COMPRADORA', pageW - margin - 37, y + 5, { align: 'center' });
   doc.text(compradorLabel, pageW - margin - 37, y + 9, { align: 'center' });
 
-  doc.save(`Reserva_${datos.nombre.replace(/\s+/g, '_')}_${datos.nOrden}.pdf`);
+  if (download) {
+    doc.save(`Reserva_${datos.nombre.replace(/\s+/g, '_')}_${datos.nOrden}.pdf`);
+  }
+  return doc.output('blob');
 }

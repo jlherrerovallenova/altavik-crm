@@ -391,8 +391,8 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     <div className="space-y-5 overflow-y-auto pr-1">
 
       {/* ── SECCIÓN 1: Datos personales del comprador ── */}
-      <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <section className="bg-white rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100 rounded-t-xl">
           <User size={14} className="text-altavik-600" />
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-altavik-600">Datos del Comprador</h3>
         </div>
@@ -439,8 +439,8 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       </section>
 
       {/* ── SECCIÓN 2: Cotitular ── */}
-      <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <section className="bg-white rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100 rounded-t-xl">
           <div className="flex items-center gap-2">
             <Users size={14} className="text-purple-600" />
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-purple-600">Cotitular (Compra Conjunta)</h3>
@@ -532,8 +532,8 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       </button>
 
       {/* ── SECCIÓN 4: Estado del proceso de venta ── */}
-      <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <section className="bg-white rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100 rounded-t-xl">
           <BadgeEuro size={14} className="text-amber-600" />
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-amber-600">Proceso de Venta</h3>
         </div>
@@ -652,8 +652,8 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
 
       {/* ── SECCIÓN: Expediente de Documentos Firmados ── */}
       {sale && (
-        <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in duration-300">
-          <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
+        <section className="bg-white rounded-xl border border-slate-100 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100 rounded-t-xl">
             <div className="flex items-center gap-2">
               <FileText size={14} className="text-emerald-600" />
               <h3 className="text-[11px] font-bold uppercase tracking-widest text-emerald-600">Expediente Digital (Documentos Firmados)</h3>
@@ -1003,6 +1003,35 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                 Descargar DOCX
               </button>
             </div>
+            
+            <button
+              disabled={generatingDoc}
+              onClick={async () => {
+                setGeneratingDoc(true);
+                try {
+                  const d = buildDatos();
+                  if (!d) return;
+                  const blob = await generarReservaPdf(d, false);
+                  const { sendDocumentToSignWell } = await import('../../services/signwellService');
+                  await sendDocumentToSignWell(
+                    blob,
+                    `Reserva_${lead.name.replace(/\s+/g, '_')}_${selectedProperty.n_orden}.pdf`,
+                    lead.name,
+                    lead.email || ''
+                  );
+                  alert('¡Contrato enviado a firmar a través de SignWell correctamente!');
+                  setShowDocModal(false);
+                } catch (error: any) {
+                  alert(error.message || error);
+                } finally {
+                  setGeneratingDoc(false);
+                }
+              }}
+              className="flex items-center justify-center gap-2 w-full py-3 mb-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all active:scale-95 shadow-sm"
+            >
+              {generatingDoc ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Enviar a Firmar (SignWell)
+            </button>
 
             <button
               onClick={() => setShowDocModal(false)}

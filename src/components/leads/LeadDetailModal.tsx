@@ -343,7 +343,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const finalData = {
       ...restData,
       phone: restData.phone ? restData.phone.replace(/\s+/g, '') : null,
-      created_at: new Date(`${created_at_date}T12:00:00Z`).toISOString()
+      created_at: new Date(`${created_at_date}T12:00:00Z`).toISOString(),
+      client_quality_rating: restData.client_quality_rating === 0 ? null : restData.client_quality_rating
     };
 
     // Si el estado ha cambiado, lo registramos en el historial
@@ -459,7 +460,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   return (
     <>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-        <div className="bg-[#f8fafc] w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
+        <div className="bg-white w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
           
           {/* HEADER PREMIUM */}
           <div className="px-5 sm:px-8 py-2.5 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -492,7 +493,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex items-center px-4 sm:px-8 py-2 bg-slate-50 border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
+          <div className="flex items-center px-4 sm:px-8 py-2 bg-white border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
             <button
               onClick={() => setActiveTab('ficha')}
               className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
@@ -539,7 +540,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           </div>
 
           {/* CONTENIDO PRINCIPAL */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar-hide bg-[#f8fafc]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar-hide bg-white">
             {activeTab === 'ficha' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                   

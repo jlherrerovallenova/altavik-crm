@@ -23,6 +23,11 @@ const FeedbackResponse = lazy(() => import('./pages/FeedbackResponse'));
 const WhatsAppInbox = lazy(() => import('./pages/WhatsAppInbox'));
 const Sales = lazy(() => import('./pages/Sales'));
 
+// Client routes
+const ClientLayout = lazy(() => import('./layouts/ClientLayout'));
+const ClientLogin = lazy(() => import('./pages/client/ClientLogin'));
+const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard'));
+
 const PageLoader = () => (
   <div className="w-full h-[60vh] flex flex-col items-center justify-center">
     <Loader2 className="h-10 w-10 text-altavik-600 animate-spin mb-4" />
@@ -42,6 +47,14 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/feedback" element={<Suspense fallback={<PageLoader />}><FeedbackResponse /></Suspense>} />
+      
+      {/* Client Portal Routes */}
+      <Route path="/client/login" element={<Suspense fallback={<PageLoader />}><ClientLogin /></Suspense>} />
+      <Route path="/client" element={<Suspense fallback={<PageLoader />}><ClientLayout /></Suspense>}>
+        <Route index element={<Navigate to="/client/dashboard" replace />} />
+        <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><ClientDashboard /></Suspense>} />
+      </Route>
+
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
