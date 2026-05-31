@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useClientAuth } from '../../context/ClientAuthContext';
 import { supabase } from '../../lib/supabase';
-import { Building2, CreditCard, CalendarDays, CheckCircle2, Circle, Loader2, Euro } from 'lucide-react';
+import { Building2, CreditCard, CalendarDays, CheckCircle2, Circle, Loader2, Euro, FileText, Download, Eye } from 'lucide-react';
+import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import type { Database } from '../../types/supabase';
 
 type InventoryRow = Database['public']['Tables']['inventory']['Row'];
@@ -14,6 +15,9 @@ export default function ClientDashboard() {
   const { client } = useClientAuth();
   const [property, setProperty] = useState<InventoryRow | null>(null);
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
+  const [generatingFicha, setGeneratingFicha] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +45,15 @@ export default function ClientDashboard() {
           .order('installment_number', { ascending: true });
 
         if (instData) setInstallments(instData);
+
+        // Load documents
+        const { data: docData } = await supabase
+          .from('sale_documents')
+          .select('*')
+          .eq('sale_id', client.sale.id)
+          .order('created_at', { ascending: false });
+
+        if (docData) setDocuments(docData);
       } catch (err) {
         console.error('Error loading client dashboard data:', err);
       } finally {
@@ -50,6 +63,62 @@ export default function ClientDashboard() {
 
     loadData();
   }, [client]);
+
+  async function handlePreview(filePath: string) {
+    setLoadingPreview(filePath);
+    try {
+      const { data, error } = await supabase.storage
+        .from('sale-documents')
+        .createSignedUrl(filePath, 600); // 10 minutos de validez
+
+      if (error) throw error;
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Error opening document:', error);
+      alert('Error al abrir el archivo: ' + (error.message || error));
+    } finally {
+      setLoadingPreview(null);
+    }
+  }
+
+  async function handleDownload(filePath: string, name: string) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('sale-documents')
+        .createSignedUrl(filePath, 60);
+
+      if (error) throw error;
+      if (data?.signedUrl) {
+        const link = document.createElement('a');
+        link.href = data.signedUrl;
+        link.target = '_blank';
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error: any) {
+      console.error('Error downloading document:', error);
+      alert('Error al descargar el archivo: ' + (error.message || error));
+    }
+  }
+
+  const handleVerFicha = async () => {
+    if (!property) return;
+    setGeneratingFicha(true);
+    try {
+      const blob = await generatePropertyPDFBlob(property as any);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (e) {
+      console.error(e);
+      alert('Error al generar la ficha y forma de pago');
+    } finally {
+      setGeneratingFicha(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -69,11 +138,24 @@ export default function ClientDashboard() {
     );
   }
 
-  const totalPaid = installments.filter(i => i.paid).reduce((sum, i) => sum + i.amount, 0);
-  const totalPending = installments.filter(i => !i.paid).reduce((sum, i) => sum + i.amount, 0);
+  const totalPriceWithIva = (client.sale?.sale_price || 0) * 1.10;
+  
+  let basePaidAmount = 0;
+  if (client.sale) {
+    if (client.sale.sale_status === 'reserva') {
+      basePaidAmount = client.sale.reservation_amount || 6000;
+    } else {
+      // Si ya firmó contrato o está en mensualidades/escrituración, ya pagó el 10% del total
+      basePaidAmount = totalPriceWithIva * 0.10;
+    }
+  }
+
+  const installmentsPaid = installments.filter(i => i.paid).reduce((sum, i) => sum + i.amount, 0);
+  const totalPaid = basePaidAmount + installmentsPaid;
+  const totalPending = Math.max(0, totalPriceWithIva - totalPaid);
   const totalInstallments = installments.length;
   const paidCount = installments.filter(i => i.paid).length;
-  const progressPercent = totalInstallments > 0 ? (paidCount / totalInstallments) * 100 : 0;
+  const progressPercent = totalPriceWithIva > 0 ? Math.min(100, (totalPaid / totalPriceWithIva) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -115,10 +197,32 @@ export default function ClientDashboard() {
                     <p className="font-medium text-slate-900">{property.trastero || '-'}</p>
                   </div>
                 </div>
-                <div className="pt-4 border-t border-slate-100 mt-4">
-                  <p className="text-sm text-slate-500">Precio Total de Venta</p>
-                  <p className="text-2xl font-bold text-altavik-600">{fmt(client.sale.sale_price)}</p>
+                <div className="pt-4 border-t border-slate-100 mt-4 space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <p className="text-slate-500">Precio Base de la Vivienda</p>
+                    <p className="font-medium text-slate-900">{fmt(client.sale.sale_price)}</p>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <p className="text-slate-500">IVA (10%)</p>
+                    <p className="font-medium text-slate-900">{fmt(client.sale.sale_price * 0.10)}</p>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-100 border-dashed">
+                    <p className="text-sm font-bold text-slate-700">Precio Total de Venta</p>
+                    <p className="text-2xl font-black text-altavik-600">{fmt(client.sale.sale_price * 1.10)}</p>
+                  </div>
                 </div>
+                {(property as any).ficha_url && (
+                  <div className="pt-4 border-t border-slate-100 mt-4">
+                    <button 
+                      onClick={handleVerFicha}
+                      disabled={generatingFicha}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 bg-altavik-50 hover:bg-altavik-100 text-altavik-700 text-sm font-bold rounded-lg transition-all border border-altavik-200 active:scale-95 disabled:opacity-50"
+                    >
+                      {generatingFicha ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                      {generatingFicha ? 'Generando Documento...' : 'Ver Plano y Forma de Pago'}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-slate-500">Cargando detalles de la vivienda...</p>
@@ -134,7 +238,7 @@ export default function ClientDashboard() {
               Resumen de Pagos
             </h2>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-altavik-100 text-altavik-800">
-              {paidCount} de {totalInstallments} cuotas pagadas
+              Estado de los Pagos
             </span>
           </div>
           
@@ -159,6 +263,9 @@ export default function ClientDashboard() {
                   <span className="text-sm font-medium">Total Pagado</span>
                 </div>
                 <p className="text-2xl font-bold text-emerald-700">{fmt(totalPaid)}</p>
+                <p className="text-[10px] text-emerald-600/80 font-medium mt-1">
+                  Incluye {client.sale?.sale_status === 'reserva' ? `reserva de ${fmt(basePaidAmount)}` : `pago a la firma del contrato (${fmt(basePaidAmount)})`}
+                </p>
               </div>
               
               <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
@@ -238,6 +345,59 @@ export default function ClientDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Mis Documentos */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-altavik-600" />
+            Mis Documentos
+          </h2>
+        </div>
+        <div className="p-6">
+          {documents.length === 0 ? (
+            <p className="text-slate-500 text-center py-4">No hay documentos disponibles en este momento.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex flex-col justify-between p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:border-altavik-200 hover:bg-altavik-50/30 transition-all">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-altavik-100 text-altavik-600 flex items-center justify-center shrink-0">
+                      <FileText size={20} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-slate-800 truncate" title={doc.name}>{doc.name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {new Date(doc.created_at).toLocaleDateString('es-ES')} • {(doc.file_size / 1024).toFixed(1)} KB
+                      </p>
+                      <p className="text-[10px] font-black uppercase text-altavik-600 mt-1.5 tracking-widest bg-altavik-100 inline-block px-2 py-0.5 rounded-md">
+                        {doc.document_type.replace(/_/g, ' ')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button 
+                      onClick={() => handlePreview(doc.file_path)}
+                      disabled={loadingPreview === doc.file_path}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-altavik-50 hover:bg-altavik-100 text-altavik-700 border border-altavik-200 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                    >
+                      {loadingPreview === doc.file_path ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+                      Ver
+                    </button>
+                    <button 
+                      onClick={() => handleDownload(doc.file_path, doc.name)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-altavik-600 transition-all shadow-sm active:scale-95"
+                    >
+                      <Download size={14} />
+                      Descargar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

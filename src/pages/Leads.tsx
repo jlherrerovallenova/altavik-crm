@@ -52,7 +52,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '');
   const [sourceFilter, setSourceFilter] = useState<string>(searchParams.get('source') || '');
   const [page, setPage] = useState(1);
-  const [sortField, setSortField] = useState<'name' | 'created_at'>('created_at');
+  const [sortField, setSortField] = useState<'name' | 'created_at' | 'client_quality_rating'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function Leads() {
     setSourceFilter(searchParams.get('source') || '');
   }, [searchParams]);
 
-  const handleSort = (field: 'name' | 'created_at') => {
+  const handleSort = (field: 'name' | 'created_at' | 'client_quality_rating') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -218,7 +218,7 @@ export default function Leads() {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="grid md:grid-cols-[24fr_12fr_20fr_10fr_14fr_12fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
+            <div className="grid md:grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
               <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('name')}>
                 Cliente
                 {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
@@ -227,6 +227,10 @@ export default function Leads() {
               <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('created_at')}>
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
+              </div>
+              <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'client_quality_rating' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('client_quality_rating')}>
+                Valoración
+                {sortField === 'client_quality_rating' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
               <div>Acciones</div>
             </div>

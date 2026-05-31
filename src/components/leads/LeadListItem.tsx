@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Phone, Mail, Zap, MessageCircle, ChevronRight } from 'lucide-react';
+import { User, Phone, Mail, Zap, MessageCircle, ChevronRight, Star } from 'lucide-react';
 import { SourceIcon, StatusBadge, STATUS_CONFIG } from './LeadStatus';
 import type { Database } from '../../types/supabase';
 
@@ -18,7 +18,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose }: LeadListI
   return (
     <div
       onClick={onClick}
-      className={`grid grid-cols-1 md:grid-cols-[24fr_12fr_20fr_10fr_14fr_12fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} ${isSelected ? 'bg-blue-50/80 ring-1 ring-blue-100/50 z-10 sticky' : 'hover:bg-slate-50/80'} transition-all duration-150`}
+      className={`grid grid-cols-1 md:grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-4 items-center cursor-pointer group border-b border-slate-100 border-l-4 ${cfg.border} ${isSelected ? 'bg-blue-50/80 ring-1 ring-blue-100/50 z-10 sticky' : 'hover:bg-slate-50/80'} transition-all duration-150`}
     >
       <div className="flex items-center gap-3.5">
         <div className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0">
@@ -61,18 +61,18 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose }: LeadListI
         </p>
       </div>
 
+      <div className="flex justify-start items-center">
+        {lead.client_quality_rating ? (
+          <div className="flex items-center gap-0.5 text-amber-400">
+            <Star size={12} fill="currentColor" />
+            <span className="text-[10px] font-bold ml-1 text-slate-600">{lead.client_quality_rating}/5</span>
+          </div>
+        ) : (
+          <span className="text-[10px] text-slate-300 italic">N/A</span>
+        )}
+      </div>
+
       <div className="flex items-center justify-start gap-1 transition-opacity">
-        <button 
-          onClick={(e) => { 
-            e.stopPropagation(); 
-            onCompose(lead, 'whatsapp', 'first_contact');
-          }} 
-          className="p-1 px-1.5 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors flex items-center gap-1 group/btn"
-          title="WhatsApp Primer Contacto"
-        >
-          <Zap size={12} fill="currentColor" className="text-altavik-500" />
-          <span className="text-[9px] font-black uppercase hidden group-hover/btn:inline">Primer Contacto</span>
-        </button>
         <button onClick={(e) => { e.stopPropagation(); onCompose(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
         <button onClick={(e) => { e.stopPropagation(); onCompose(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
         <ChevronRight strokeWidth={2.5} size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
