@@ -544,9 +544,11 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
             {activeTab === 'ficha' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                   
-                  {/* DATOS DEL LEAD */}
-                  <section className="lg:col-start-1 lg:col-end-8 lg:row-start-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
+                  {/* COLUMNA IZQUIERDA */}
+                  <div className="lg:col-start-1 lg:col-end-8 lg:row-start-1 lg:row-span-2 flex flex-col gap-4">
+                    {/* DATOS DEL LEAD */}
+                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                      <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
                     </h3>
 
@@ -626,11 +628,11 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                           </label>
                         </div>
                       </div>
-                    </div>
-                  </section>
+                      </div>
+                    </section>
 
                     {/* INTERÉS Y CALIDAD */}
-                    <section className="lg:col-start-1 lg:col-end-8 lg:row-start-2 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {/* INTERÉS */}
                         <div>
@@ -716,8 +718,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     </section>
 
+                  </div>
+
+                  {/* COLUMNA DERECHA */}
+                  <div className="lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:row-span-2 flex flex-col gap-4">
                     {/* ACCIONES DE CONTACTO Y FEEDBACK */}
-                    <section className="lg:col-start-1 lg:col-end-8 lg:row-start-3">
+                    <section>
                       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 lg:grid-cols-4 gap-2">
                         
                         {/* WhatsApp */}
@@ -765,10 +771,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       </div>
                     </section>
 
-                  {/* COLUMNA DERECHA (Agenda + Notas) */}
-                  <div className="lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:row-span-3 flex flex-col gap-4">
-                    {/* AGENDA DE ACCIONES */}
-                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
+                  {/* AGENDA DE ACCIONES */}
+                  <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
@@ -902,6 +906,21 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       />
                     </section>
                   </div>
+
+                  {/* NOTAS INTERNAS */}
+                  <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1 min-h-[150px]">
+                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
+                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
+                    </h3>
+                    <textarea 
+                      name="notes" 
+                      value={formData.notes} 
+                      onChange={handleChange}
+                      placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
+                      className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
+                    />
+                  </section>
+                </div>
 
                   {/* PREFERENCIAS WHATSAPP */}
                   {waData && (

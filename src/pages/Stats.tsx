@@ -1,5 +1,5 @@
 // src/pages/Stats.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { 
@@ -48,6 +48,22 @@ export default function Stats() {
   });
   const [statusData, setStatusData] = useState<any[]>([]);
   const [rawLeads, setRawLeads] = useState<any[]>([]);
+  const [statusMonth, setStatusMonth] = useState<string>('all');
+
+  const availableMonths = useMemo(() => {
+    const monthsMap = new Map<string, string>();
+    rawLeads.forEach(l => {
+      const d = new Date(l.created_at);
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+      if (!monthsMap.has(value)) {
+        monthsMap.set(value, label.charAt(0).toUpperCase() + label.slice(1));
+      }
+    });
+    return Array.from(monthsMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => b.value.localeCompare(a.value));
+  }, [rawLeads]);
 
   useEffect(() => {
     fetchStats();
@@ -57,7 +73,7 @@ export default function Stats() {
     if (rawLeads.length > 0) {
       processLeadsData(rawLeads, timeRange);
     }
-  }, [timeRange, rawLeads]);
+  }, [timeRange, rawLeads, statusMonth]);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -174,9 +190,18 @@ export default function Stats() {
         .sort((a, b) => b.value - a.value)
     );
 
-    // 4. Datos por estado
+    // 4. Datos por estado (afectado por statusMonth)
+    let statusTargetLeads = currentLeads;
+    if (statusMonth !== 'all') {
+      const [year, m] = statusMonth.split('-');
+      statusTargetLeads = leads.filter(l => {
+        const d = new Date(l.created_at);
+        return d.getMonth() === parseInt(m) - 1 && d.getFullYear() === parseInt(year);
+      });
+    }
+
     const statuses: Record<string, number> = {};
-    currentLeads.forEach(l => {
+    statusTargetLeads.forEach(l => {
       const s = STATUS_MAP[l.status] || l.status;
       statuses[s] = (statuses[s] || 0) + 1;
     });
@@ -310,6 +335,20 @@ export default function Stats() {
       console.warn('Logo not found for PDF');
     }
 
+    // Obtener leads del mes seleccionado o el actual si es 'all'
+    const now = new Date();
+    let targetMonth = now.getMonth();
+    let targetYear = now.getFullYear();
+    let displayMonthName = now.toLocaleString('es-ES', { month: 'long' });
+
+    if (statusMonth !== 'all') {
+      const [year, m] = statusMonth.split('-');
+      targetYear = parseInt(year);
+      targetMonth = parseInt(m) - 1;
+      const targetDate = new Date(targetYear, targetMonth, 1);
+      displayMonthName = targetDate.toLocaleString('es-ES', { month: 'long' });
+    }
+
     // Título elegante
     doc.setFontSize(22);
     doc.setTextColor(107, 148, 185); // Altavik Blue
@@ -317,22 +356,16 @@ export default function Stats() {
     
     doc.setFontSize(11);
     doc.setTextColor(100);
-    const monthName = new Date().toLocaleString('es-ES', { month: 'long' });
-    doc.text(`Análisis correspondiente al mes de ${monthName.toUpperCase()} ${new Date().getFullYear()}`, 14, 33);
+    doc.text(`Análisis correspondiente al mes de ${displayMonthName.toUpperCase()} ${targetYear}`, 14, 33);
     doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 38);
 
     // Línea separadora
     doc.setDrawColor(241, 245, 249);
     doc.line(14, 45, 283, 45);
 
-    // Obtener leads del mes actual
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    
     const monthLeads = rawLeads.filter(l => {
       const d = new Date(l.created_at);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
     });
 
     const weeks = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
@@ -641,15 +674,27 @@ export default function Stats() {
               </h3>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Ubicación en el funnel</p>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="h-8 text-[10px] font-black tracking-widest gap-1.5 border-slate-200"
-              onClick={handleDownloadStatusPDF}
-            >
-              <Download size={14} />
-              PDF ESTADOS
-            </Button>
+            <div className="flex items-center gap-2">
+              <select
+                value={statusMonth}
+                onChange={(e) => setStatusMonth(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-altavik-500/20 cursor-pointer"
+              >
+                <option value="all">Global</option>
+                {availableMonths.map(m => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+              </select>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="h-8 text-[10px] font-black tracking-widest gap-1.5 border-slate-200"
+                onClick={handleDownloadStatusPDF}
+              >
+                <Download size={14} />
+                PDF ESTADOS
+              </Button>
+            </div>
           </div>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -701,7 +746,9 @@ export default function Stats() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {sourceData.map((source, index) => (
+                {sourceData.map((source, index, arr) => {
+                  const total = Math.max(1, arr.reduce((acc, curr) => acc + curr.value, 0));
+                  return (
                   <tr key={source.name} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -718,18 +765,18 @@ export default function Stats() {
                           <div 
                             className="h-full rounded-full transition-all duration-1000" 
                             style={{
-                              width: `${(source.value / summaryStats.totalLeads * 100)}%`,
+                              width: `${(source.value / total * 100)}%`,
                               backgroundColor: COLORS[index % COLORS.length]
                             }}
                           ></div>
                         </div>
                         <span className="text-[10px] font-black text-slate-500 min-w-[30px]">
-                          {Math.round(source.value / summaryStats.totalLeads * 100)}%
+                          {Math.round(source.value / total * 100)}%
                         </span>
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
@@ -753,7 +800,9 @@ export default function Stats() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {statusData.map((status, index) => (
+                {statusData.map((status, index, arr) => {
+                  const total = Math.max(1, arr.reduce((acc, curr) => acc + curr.value, 0));
+                  return (
                   <tr key={status.name} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -770,18 +819,18 @@ export default function Stats() {
                           <div 
                             className="h-full rounded-full transition-all duration-1000" 
                             style={{
-                              width: `${(status.value / summaryStats.totalLeads * 100)}%`,
+                              width: `${(status.value / total * 100)}%`,
                               backgroundColor: COLORS[(index + 2) % COLORS.length]
                             }}
                           ></div>
                         </div>
                         <span className="text-[10px] font-black text-slate-500 min-w-[30px]">
-                          {Math.round(status.value / summaryStats.totalLeads * 100)}%
+                          {Math.round(status.value / total * 100)}%
                         </span>
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
