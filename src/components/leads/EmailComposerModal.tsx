@@ -430,7 +430,7 @@ Juan Herrero - TERRAVALL`);
           return;
         }
 
-        const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+        const isCloudConfigured = import.meta.env.VITE_ENABLE_WHATSAPP_CLOUD !== 'false';
         const shortenedDocs = await Promise.all(
           selectedDocs.map(async d => ({
             name: d.name,

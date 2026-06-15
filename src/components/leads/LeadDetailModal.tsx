@@ -413,7 +413,22 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   };
 
   const cleanPhone = formData.phone.replace(/\D/g, '');
-  const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}` : '#';
+
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 14 ? 'Buenos días' : 'Buenas tardes';
+  const waMessage = `${greeting} ${formData.name || ''}:
+
+Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
+
+Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
+
+1️⃣ ¿Qué tipo de vivienda prefiere? (Bajo, planta intermedia o ático).
+2️⃣ ¿Cuántos dormitorios necesita?
+3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ampliemos la información con todo detalle?
+
+Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
+
+  const whatsappUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMessage)}` : '#';
   const mailtoUrl = formData.email ? `mailto:${formData.email}?subject=Información%20Finca%20Altavik` : '#';
 
   const statusCfg = STATUS_CONFIG[formData.status || 'new'] || STATUS_CONFIG['new'];
@@ -906,21 +921,6 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
                       />
                     </section>
                   </div>
-
-                  {/* NOTAS INTERNAS */}
-                  <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1 min-h-[150px]">
-                    <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
-                      <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
-                    </h3>
-                    <textarea 
-                      name="notes" 
-                      value={formData.notes} 
-                      onChange={handleChange}
-                      placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
-                      className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
-                    />
-                  </section>
-                </div>
 
                   {/* PREFERENCIAS WHATSAPP */}
                   {waData && (

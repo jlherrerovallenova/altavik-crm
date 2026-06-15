@@ -32,7 +32,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
   if (!isOpen) return null;
 
   const [isSendingAll, setIsSendingAll] = useState(false);
-  const isCloudConfigured = !!import.meta.env.VITE_WHATSAPP_PHONE_NUMBER_ID && !!import.meta.env.VITE_WHATSAPP_ACCESS_TOKEN;
+  const isCloudConfigured = import.meta.env.VITE_ENABLE_WHATSAPP_CLOUD !== 'false';
 
   const handleSendToLead = async (lead: Lead) => {
     const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
