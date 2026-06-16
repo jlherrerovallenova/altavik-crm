@@ -17,11 +17,13 @@ import {
   X,
   Plus,
   Trash2,
-  Check
+  Check,
+  Wand2
 } from 'lucide-react';
 import { useDialog } from '../context/DialogContext';
 import { useAuth } from '../context/AuthContext';
 import type { Database } from '../types/supabase';
+import { summarizeLeadWithCopilot, type CopilotSummaryResponse } from '../services/aiCopilot';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
 type AgendaItem = Database['public']['Tables']['agenda']['Row'];
@@ -44,6 +46,10 @@ export default function LeadDetail() {
   const [tasks, setTasks] = useState<AgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { showAlert, showConfirm } = useDialog();
+
+  // Estados para Copilot
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [copilotData, setCopilotData] = useState<CopilotSummaryResponse | null>(null);
 
   // Estados para la edición de la ficha
   const [isEditing, setIsEditing] = useState(false);
@@ -101,6 +107,19 @@ export default function LeadDetail() {
       console.error("Error cargando perfil del cliente:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopilotSummarize = async () => {
+    setCopilotLoading(true);
+    try {
+      const data = await summarizeLeadWithCopilot(lead, tasks);
+      setCopilotData(data);
+    } catch (err) {
+      console.error(err);
+      showAlert({ title: 'Error Copilot', message: 'No se pudo generar el resumen. Verifica tu API Key.' });
+    } finally {
+      setCopilotLoading(false);
     }
   };
 
@@ -429,6 +448,41 @@ export default function LeadDetail() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* AI COPILOT SECTION */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
+            <Wand2 className="text-indigo-500" size={20} />
+            Copilot IA
+          </h2>
+          <button
+            onClick={handleCopilotSummarize}
+            disabled={copilotLoading}
+            className="text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
+          >
+            {copilotLoading ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+            Resumir y Recomendar
+          </button>
+        </div>
+        
+        {copilotData && (
+          <div className="bg-white rounded-xl p-5 border border-indigo-100 animate-in fade-in slide-in-from-top-4">
+            <h3 className="text-sm font-bold text-slate-800 mb-2">Resumen Ejecutivo</h3>
+            <p className="text-slate-600 text-sm leading-relaxed mb-4">{copilotData.summary}</p>
+            
+            <h3 className="text-sm font-bold text-slate-800 mb-2">Próximos Pasos Recomendados</h3>
+            <ul className="space-y-2">
+              {copilotData.nextSteps.map((step, idx) => (
+                <li key={idx} className="flex gap-2 text-sm text-slate-600">
+                  <span className="text-indigo-500 font-bold">•</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* AGENDA VINCULADA */}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">mirapinos-crm</string>
+    <string name="title_activity_main">mirapinos-crm</string>
+    <string name="package_name">com.mirapinos.crm</string>
+    <string name="custom_url_scheme">com.mirapinos.crm</string>
+</resources>

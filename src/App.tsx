@@ -1,10 +1,10 @@
-// src/App.tsx
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
+import { initPushNotifications } from './services/pushNotifications';
 
 // Importaciones perezosas
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -43,6 +43,10 @@ const ProtectedRoute = () => {
 };
 
 function App() {
+  useEffect(() => {
+    initPushNotifications();
+  }, []);
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
