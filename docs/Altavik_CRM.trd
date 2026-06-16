@@ -1,0 +1,71 @@
+# Technical Requirements Document (TRD): Altavik CRM 2.0
+
+## 1. Introducción y Arquitectura General
+Altavik CRM 2.0 utiliza una arquitectura **Jamstack**, separando completamente el frontend del backend para maximizar el rendimiento, la seguridad y la escalabilidad.
+- **Frontend:** Single Page Application (SPA) renderizada en el cliente.
+- **Backend:** Arquitectura Serverless y Base de Datos (BaaS) provista por Supabase.
+- **Procesamiento Asíncrono:** Scripts en Node.js para tareas en segundo plano (e.g., sincronización de correos IMAP).
+
+## 2. Stack Tecnológico Detallado
+
+### 2.1. Frontend
+- **Framework Core:** React 19
+- **Lenguaje:** TypeScript estricto.
+- **Bundler / Build Tool:** Vite
+- **Enrutamiento:** React Router DOM (v6+)
+- **Gestión de Estado y Fetching:** React Query (@tanstack/react-query)
+- **Estilos:** Tailwind CSS y Autoprefixer.
+- **Iconografía:** Lucide React.
+- **Gráficos y KPIs:** Recharts.
+
+### 2.2. Backend & Base de Datos (Supabase)
+- **Base de Datos:** PostgreSQL.
+- **Autenticación:** Supabase Auth (Email/Password, JWT).
+- **Almacenamiento (Storage):** Supabase Storage para adjuntos, firmas, PDFs y material gráfico de las propiedades.
+- **Tiempo Real:** Supabase Realtime (suscripciones a canales para actualizaciones del tablero Kanban y chat de WhatsApp).
+- **Seguridad de Datos:** Row Level Security (RLS) configurado por roles (agente, manager, admin).
+
+### 2.3. Integraciones de Terceros (APIs & Servicios)
+- **Email Marketing y Transaccional:**
+  - Envío: Resend API (@emailjs/browser, aunque primará backend para seguridad).
+  - Editor visual: Unlayer (`react-email-editor`).
+  - Recepción/Sincronización: `imap-simple` y `mailparser` (mediante scripts Node).
+- **Generación de Documentos:**
+  - Word: `docxtemplater`, `pizzip`.
+  - PDF: `jspdf`, `jspdf-autotable`, `pdf-lib`.
+- **Comunicaciones:**
+  - WhatsApp: Integración de plantillas (CRM -> Cliente) usando la API de WhatsApp (Meta).
+- **IA (Inteligencia Artificial):**
+  - SDK de Google Generative AI (`@google/genai`) u OpenAI API para el scoring predictivo y resumen de interacciones.
+
+## 3. Modelo de Datos (Esquema Principal)
+*A continuación se describen las entidades principales en PostgreSQL (Supabase):*
+
+- **`users` / `profiles`:** Datos de los agentes y administradores (ID, rol, nombre, email, preferencias).
+- **`leads`:** Fichas de clientes (ID, nombre, email, teléfono, fase_kanban, presupuesto, score_ia, metadata).
+- **`properties`:** Inventario de inmuebles (ID, titulo, precio, ubicacion, caracteristicas, estado_disponibilidad).
+- **`interactions` / `timeline`:** Registro del historial (ID, lead_id, tipo_interaccion [email, whatsapp, llamada, nota], contenido, fecha).
+- **`whatsapp_templates`:** Plantillas dinámicas (ID, name, body, category [system, marketing], is_active, created_at).
+- **`contracts`:** Seguimiento documental (ID, lead_id, property_id, estado_firma, url_pdf).
+
+## 4. Requerimientos de Seguridad
+- **Variables de Entorno:**
+  - `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` son públicas en el frontend.
+  - Las llaves maestras (`SERVICE_ROLE_KEY`, `RESEND_API_KEY`, etc.) residirán EXCLUSIVAMENTE en funciones serverless o scripts de Node.js.
+- **Políticas RLS (Row Level Security):**
+  - Los agentes solo pueden leer/editar sus propios leads (o los de su equipo si es permitido).
+  - Los directores tienen acceso global.
+- **Cumplimiento RGPD:**
+  - Encriptación en reposo y en tránsito (SSL/TLS).
+  - Alojamiento de Supabase en región Frankfurt (Unión Europea).
+  - Los usuarios de tipo "Cliente VIP" acceden únicamente a la vista de portal usando su propio token JWT con acceso restringido a su ID.
+
+## 5. Estrategia de Despliegue y DevOps
+- **Frontend (Producción):** Compilación mediante `npm run build` (`tsc -b && vite build`) y despliegue del directorio `dist` en plataformas CDN globales como Vercel o Netlify.
+- **Base de Datos & Auth:** Gestionado completamente por el proyecto de Supabase en la nube.
+- **Workers/Cron Jobs:**
+  - Los scripts asíncronos (`syncEmails.js`, `emailWorker.js`) requieren un entorno Node.js activo 24/7. Recomendado: Heroku, Railway o Render.
+- **Calidad de Código:** Linter configurado (`eslint`, `typescript-eslint`) para asegurar la coherencia en los commits y CI/CD pipelines.
+
+## 6. APIs Internas y Funciones Edge
+- Las lógicas pesadas o críticas (e.g. validación de pasarelas, matching engine complejo) se manejarán a través de **Supabase Edge Functions** escritas en Deno/TypeScript, para evitar sobrecargar el cliente y esconder la lógica de negocio.

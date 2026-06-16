@@ -1,0 +1,78 @@
+# Product Requirements Document (PRD): Altavik CRM 2.0
+
+## 1. Visión General del Producto
+**Nombre del Producto:** Altavik CRM 2.0
+**Objetivo Principal:** Proveer una plataforma integral (Jamstack) y avanzada de gestión de clientes (CRM) diseñada específicamente para la gestión de ventas inmobiliarias. El sistema centralizará leads, inventario de propiedades, automatización de marketing y analíticas avanzadas, potenciando la productividad de los agentes mediante el uso de Inteligencia Artificial y automatizaciones.
+
+## 2. Audiencia Objetivo
+- **Agentes Inmobiliarios:** Para la gestión diaria de clientes, tareas, comunicaciones (email/WhatsApp) y seguimiento de ventas.
+- **Directores / Managers:** Para obtener visibilidad del rendimiento del equipo, analíticas del embudo de ventas, ROI de marketing y control de inventario.
+- **Clientes (VIP):** Usuarios finales que interactuarán con el Ecosistema VIP Pass (Portal de Cliente) para acceder a contratos, planos, seguimiento de obra y reservas de citas.
+
+## 3. Casos de Uso Principales
+- **Gestión del Ciclo de Vida del Lead:** Captación, seguimiento, cualificación y conversión a venta usando un tablero Kanban y automatizaciones.
+- **Matching Inmobiliario:** Búsqueda y recomendación proactiva cruzando las preferencias del cliente con el inventario disponible.
+- **Gestión Documental:** Generación de contratos y documentos legales dinámicamente con firmas digitales.
+- **Comunicación Omnicanal:** Sincronización bidireccional de correos electrónicos y gestión de mensajes vía WhatsApp con plantillas predefinidas.
+- **Marketing y Campañas:** Creación de newsletters visuales (drag & drop) y segmentación de clientes.
+
+## 4. Requerimientos Funcionales (Core Modules)
+
+### 4.1. Gestión de Leads & Pipeline
+- **Tablero Kanban:** Interfaz de arrastrar y soltar (drag-and-drop) para mover leads entre fases.
+- **Ficha del Cliente (Lead Profile):** Vista detallada que incluye información de contacto, timeline de interacciones y gestor de tareas pendientes.
+- **Cualificación Inteligente (IA):**
+  - Scoring predictivo basado en presupuesto, urgencia y engagement.
+  - Alertas automáticas de cambios de estado (e.g., de "Templado" a "Caliente").
+
+### 4.2. Inventario de Propiedades
+- **Gestión de Stock:** Visualización de disponibilidad en tiempo real y listas de precios.
+- **Documentación de Inmuebles:** Adjuntar anexos, PDFs informativos y material gráfico.
+- **Vinculación:** Asociación directa de propiedades a leads y procesos de venta.
+- **Matching Engine Proactivo:** Sistema de cruce de datos que notifica coincidencias exactas (>85%) y analiza el GAP de inventario.
+
+### 4.3. Ventas y Documentación Legal
+- **Generación Automática:** Creación de contratos de reserva y compraventa inyectando variables dinámicas de clientes y propiedades (usando docxtemplater).
+- **Firmas:** Integración y soporte para flujos de firma digital.
+
+### 4.4. Comunicaciones y Marketing (Automatización Omnicanal)
+- **Email:** Bandeja de entrada sincronizada.
+- **Campañas (Newsletters):** Integración con editor visual (Unlayer) para envíos masivos segmentados.
+- **WhatsApp:** Gestor de plantillas dinámicas (con variables para clientes) y bandeja de entrada de chats.
+- **Automatización de Seguimiento:** Retargeting interno y notificaciones post-visita sin intervención manual.
+
+### 4.5. Dashboard & Analíticas
+- **KPIs en Tiempo Real:** Métricas de ventas, leads captados, y estado del inventario.
+- **Embudo de Conversión:** Visualización del flujo comercial.
+- **Inteligencia de Negocio:** Optimización de la inversión en marketing (ROI).
+
+### 4.6. Ecosistema VIP (Portal del Cliente)
+- **Self-Service:** Descarga de contratos, planos y documentación por parte del cliente.
+- **Seguimiento de Proyecto:** Timeline visual con el estado de avance de la construcción.
+- **Gestión de Visitas:** Sistema de reserva de citas.
+
+## 5. Requerimientos No Funcionales
+
+### 5.1. Seguridad y Privacidad (RGPD)
+- **Protección de Datos:** Encriptación AES-256 para documentos sensibles.
+- **Auditoría:** Registro de accesos a datos críticos.
+- **Infraestructura UE:** Servidores en la región de Frankfurt (Supabase).
+- **Control de Acceso:** Rol-Level Security (RLS) activo en la base de datos PostgreSQL.
+
+### 5.2. Rendimiento y Escalabilidad
+- **Arquitectura Jamstack:** Separación estricta entre Frontend y Backend.
+- **Tiempo de Respuesta:** Uso de caché y respuestas optimizadas para cargas en tiempo real.
+- **Escalabilidad Serverless:** Infraestructura elástica soportada por Supabase.
+
+## 6. Stack Tecnológico
+- **Frontend:** React 19, TypeScript, Vite.
+- **Estilos:** Tailwind CSS, Lucide React (iconos), diseño Glassmorphism y UI Premium.
+- **Backend/BD:** Supabase (PostgreSQL, Auth, Storage, Realtime).
+- **Comunicaciones:** Resend (Email API), IMAP-Simple, WhatsApp API.
+- **Documentos:** `docxtemplater`, `jspdf`, `pdf-lib`.
+- **Inteligencia Artificial:** Integración prevista con OpenAI API para automatizaciones.
+
+## 7. Criterios de Éxito
+- Reducción del ciclo de ventas en un 15%.
+- Ahorro de tiempo operativo del 40% mediante automatizaciones de marketing y gestión.
+- Aumento de fidelización y conversión mediante cualificación inteligente y el Portal VIP.

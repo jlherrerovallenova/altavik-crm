@@ -136,21 +136,6 @@ export default function Dashboard() {
         subtitle={
           <>Resumen comercial de <span className="text-altavik-600 font-bold ml-1">Terravall</span></>
         }
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => navigate('/agenda')}
-            >
-              <Calendar size={18} /> Nueva Tarea
-            </Button>
-            <Button
-              onClick={() => navigate('/leads')}
-            >
-              <Plus size={18} /> Nuevo Contacto
-            </Button>
-          </>
-        }
       />
 
       <div className="grid grid-cols-12 gap-5 flex-1">

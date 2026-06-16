@@ -19,13 +19,10 @@ export default function FeedbackResponse() {
       }
 
       try {
-        const { error } = await supabase
-          .from('leads')
-          .update({
-            feedback_rating: rating,
-            feedback_responded_at: new Date().toISOString()
-          })
-          .eq('id', leadId);
+        const { error } = await supabase.rpc('submit_lead_feedback', {
+          p_lead_id: leadId,
+          p_rating: rating
+        });
 
         if (error) throw error;
       } catch (err) {
