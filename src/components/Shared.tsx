@@ -140,7 +140,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-sm font-bold text-slate-700 flex items-center justify-between cursor-pointer shadow-sm"
+        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 outline-none transition-all text-[14px] font-bold text-slate-700 flex items-center justify-between cursor-pointer shadow-sm"
       >
         <div className="flex items-center gap-3">
           {selected?.icon && <selected.icon strokeWidth={2.5} size={16} className={selected.color || 'text-slate-400'} />}

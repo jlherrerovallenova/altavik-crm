@@ -475,10 +475,10 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
   return (
     <>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-        <div className="bg-white w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
+        <div className="bg-white w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:h-auto sm:max-h-[96vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
           
           {/* HEADER PREMIUM */}
-          <div className="px-5 sm:px-8 py-2.5 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-5 sm:px-8 py-3 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="w-11 h-11 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg shrink-0 border-2 border-slate-800">
                 <User size={20} strokeWidth={2.5} />
@@ -508,10 +508,10 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           </div>
 
           {/* TAB NAVIGATION */}
-          <div className="flex items-center px-4 sm:px-8 py-2 bg-white border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
+          <div className="flex items-center px-4 sm:px-8 py-1.5 bg-white border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
             <button
               onClick={() => setActiveTab('ficha')}
-              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+              className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'ficha' 
                   ? 'text-blue-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
                   : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
@@ -525,7 +525,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               onClick={() => setActiveTab('venta')}
               disabled={formData.status !== 'closed'}
               title={formData.status !== 'closed' ? 'Solo disponible cuando el estado es Venta Cerrada' : ''}
-              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+              className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 formData.status !== 'closed'
                   ? 'opacity-50 cursor-not-allowed text-slate-300'
                   : activeTab === 'venta' 
@@ -542,7 +542,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
             </button>
             <button
               onClick={() => setActiveTab('historial')}
-              className={`flex items-center gap-2.5 px-6 py-2.5 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+              className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'historial' 
                   ? 'text-indigo-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
                   : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
@@ -555,22 +555,22 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           </div>
 
           {/* CONTENIDO PRINCIPAL */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar-hide bg-white">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar-hide bg-white">
             {activeTab === 'ficha' && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
                   
                   {/* COLUMNA IZQUIERDA */}
-                  <div className="lg:col-start-1 lg:col-end-8 lg:row-start-1 lg:row-span-2 flex flex-col gap-4">
+                  <div className="lg:col-start-1 lg:col-end-8 lg:row-start-1 lg:row-span-2 flex flex-col gap-3">
                     {/* DATOS DEL LEAD */}
-                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                    <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
                       <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
                     </h3>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-1.5">
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
-                        <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Teléfono</label>
@@ -580,7 +580,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                             value={formData.phone} 
                             onChange={handleChange} 
                             placeholder="600 000 000"
-                            className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-12 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" 
+                            className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 pr-12 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" 
                           />
                           {formData.phone && (
                             <a 
@@ -597,7 +597,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       </div>
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico</label>
-                        <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Contacto</label>
@@ -610,7 +610,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
-                        <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[15px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+                        <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
                       <div className="space-y-1 group">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Estado Actual</label>
@@ -627,7 +627,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       </div>
                       {/* MARKETING INTEGRADO */}
                       <div className="sm:col-span-2 pt-2 border-t border-slate-50 mt-2">
-                        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/50 rounded-xl border border-slate-100">
+                        <div className="flex items-center justify-between px-3 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
                           <div className="flex items-center gap-2.5">
                             <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><Bell size={14} /></div>
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Suscrito a Comunicaciones</span>
@@ -647,8 +647,8 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                     </section>
 
                     {/* INTERÉS Y CALIDAD */}
-                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* INTERÉS */}
                         <div>
                           <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
@@ -744,7 +744,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         {/* WhatsApp */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
                         >
                           <MessageCircle size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">WhatsApp</span>
@@ -753,7 +753,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         {/* Email */}
                         <button 
                           onClick={() => { setEmailModalMethod('email'); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
                         >
                           <Mail size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">Email</span>
@@ -762,7 +762,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         {/* Primer Contacto */}
                         <button 
                           onClick={() => { setEmailModalMethod('whatsapp'); setFirstContactTemplateActive(true); setIsEmailModalOpen(true); }}
-                          className="flex flex-col items-center justify-center gap-1 h-14 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
+                          className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
                         >
                           <Zap size={18} strokeWidth={2.5} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">1er Contacto</span>
@@ -771,7 +771,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         {/* Opinión */}
                         <button 
                           onClick={() => setIsFeedbackModalOpen(true)}
-                          className={`flex flex-col items-center justify-center gap-1 h-14 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
+                          className={`flex flex-col items-center justify-center gap-1 h-12 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
                             lead.feedback_rating
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                             : lead.feedback_sent 
@@ -787,12 +787,12 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                     </section>
 
                   {/* AGENDA DE ACCIONES */}
-                  <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
+                  <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col">
                     <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><CalendarIcon size={16} /></div> AGENDA DE ACCIONES
                     </h3>
 
-                    <div className="bg-slate-50/50 p-3 rounded-2xl border border-slate-100 mt-2 relative z-10">
+                    <div className="bg-slate-50/50 p-2.5 rounded-2xl border border-slate-100 mt-2 relative z-10">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                           {editingTaskId ? <Pencil size={12} className="text-amber-500" /> : <Plus size={12} className="text-blue-500" />}
@@ -805,7 +805,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-2">
                         <div className="grid grid-cols-[1fr_135px_85px] gap-3">
                           <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
@@ -827,7 +827,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                               type="date"
                               value={newTask.date}
                               onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-[13px] font-bold text-slate-700 shadow-sm"
                             />
                           </div>
                           <div className="space-y-1.5">
@@ -836,7 +836,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                               type="time"
                               value={newTask.time}
                               onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2.5 text-[13px] font-bold text-slate-700 shadow-sm"
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-[13px] font-bold text-slate-700 shadow-sm"
                             />
                           </div>
                         </div>
@@ -849,7 +849,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                               placeholder={editingTaskId ? "Modificar descripción..." : "Ej: Llamar para confirmar visita"}
                               value={newTask.title}
                               onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 shadow-sm outline-none transition-all"
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 shadow-sm outline-none transition-all"
                             />
                             <button
                               onClick={() => saveTask()}
@@ -908,7 +908,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                     </section>
 
                     {/* NOTAS INTERNAS */}
-                    <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1">
+                    <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1">
                       <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
                         <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
                       </h3>
@@ -917,14 +917,14 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         value={formData.notes} 
                         onChange={handleChange}
                         placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
-                        className="w-full h-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[100px]"
+                        className="w-full h-full p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[60px]"
                       />
                     </section>
                   </div>
 
                   {/* PREFERENCIAS WHATSAPP */}
                   {waData && (
-                    <section className="lg:col-span-12 lg:row-start-4 bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm transition-all hover:shadow-md">
+                    <section className="lg:col-span-12 lg:row-start-4 bg-white rounded-2xl p-3 border border-emerald-100 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-bold flex items-center gap-2.5 text-slate-500 uppercase tracking-widest">
                           <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-xl"><MessageCircle size={16} /></div>
@@ -937,9 +937,9 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                           Ver conversación →
                         </a>
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                         {/* Tipo de vivienda */}
-                        <div className={`p-3 rounded-xl border-2 text-center ${
+                        <div className={`p-2 rounded-xl border-2 text-center ${
                           waData.tipo_vivienda && waData.tipo_vivienda !== 'no_especificado'
                             ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50'
                         }`}>
@@ -956,7 +956,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                           </p>
                         </div>
                         {/* Dormitorios */}
-                        <div className={`p-3 rounded-xl border-2 text-center ${
+                        <div className={`p-2 rounded-xl border-2 text-center ${
                           waData.dormitorios ? 'border-blue-200 bg-blue-50' : 'border-slate-100 bg-slate-50'
                         }`}>
                           <div className="text-xl mb-1">🛏️</div>
@@ -966,7 +966,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                           </p>
                         </div>
                         {/* Visita */}
-                        <div className={`p-3 rounded-xl border-2 text-center ${
+                        <div className={`p-2 rounded-xl border-2 text-center ${
                           waData.quiere_visita === true  ? 'border-purple-200 bg-purple-50' :
                           waData.quiere_visita === false ? 'border-red-100 bg-red-50' : 'border-slate-100 bg-slate-50'
                         }`}>
@@ -1012,7 +1012,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           </div>
 
           {/* FOOTER */}
-          <div className="px-8 py-4 bg-white border-t border-slate-100 flex items-center justify-end">
+          <div className="px-5 sm:px-8 py-3 bg-white border-t border-slate-100 flex items-center justify-end">
             <div className="flex items-center gap-4">
               <button 
                 onClick={onClose}
@@ -1023,7 +1023,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               <button 
                 onClick={handleUpdate}
                 disabled={loading}
-                className="px-8 py-2.5 bg-[#334155] text-white rounded-xl font-bold text-xs hover:bg-[#1e293b] transition-all shadow-lg active:scale-95 flex items-center gap-2"
+                className="px-8 py-2 bg-[#334155] text-white rounded-xl font-bold text-xs hover:bg-[#1e293b] transition-all shadow-lg active:scale-95 flex items-center gap-2"
               >
                 {loading && <Loader2 size={14} className="animate-spin" />} Guardar cambios
               </button>
