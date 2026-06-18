@@ -166,26 +166,26 @@ export default function Dashboard() {
         })}
 
         <Card variant="glass" noPadding className="col-span-12 lg:col-span-8 flex flex-col group">
-          <div className="p-8 border-b border-slate-100/80 flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-black text-slate-950 flex items-center gap-2.5 text-xl tracking-tight">
-                  <div className="p-2 bg-altavik-50 rounded-xl">
-                    <Clock size={22} className="text-altavik-600" />
-                  </div>
-                  Agenda Comercial
-                </h3>
-                <p className="text-xs text-slate-500 font-bold mt-1.5 ml-1">Seguimiento de acciones prioritarias</p>
-              </div>
-
-              <button
-                onClick={() => navigate('/agenda')}
-                className="text-[10px] font-black uppercase tracking-wider text-altavik-600 hover:text-altavik-700 transition-all bg-altavik-50 px-4 py-2 rounded-xl border border-altavik-100/50 hover:bg-altavik-100"
-              >
-                Calendario Completo
-              </button>
+          <div className="p-8 bg-altavik-100 border-b border-altavik-200/50 flex justify-between items-center">
+            <div>
+              <h3 className="font-black text-slate-950 flex items-center gap-2.5 text-xl tracking-tight">
+                <div className="p-2 bg-white rounded-xl shadow-sm border border-altavik-100/30">
+                  <Clock size={22} className="text-altavik-600" />
+                </div>
+                Agenda Comercial
+              </h3>
+              <p className="text-xs text-slate-500 font-bold mt-1.5 ml-1">Seguimiento de acciones prioritarias</p>
             </div>
 
+            <button
+              onClick={() => navigate('/agenda')}
+              className="text-[10px] font-black uppercase tracking-wider text-altavik-600 hover:text-altavik-700 transition-all bg-white px-4 py-2 rounded-xl border border-altavik-200/50 shadow-sm hover:bg-altavik-50"
+            >
+              Calendario Completo
+            </button>
+          </div>
+
+          <div className="px-8 py-5 border-b border-slate-100/80">
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex p-1 bg-slate-100/50 backdrop-blur rounded-2xl w-full sm:w-auto overflow-x-auto custom-scrollbar">
                 <TabButton label="Próximas" active={activeTab === 'futuras'} onClick={() => setActiveTab('futuras')} />
@@ -294,15 +294,17 @@ export default function Dashboard() {
 
         <div className="col-span-12 lg:col-span-4 space-y-6 flex flex-col">
           <Card variant="white" noPadding className="flex-1 flex flex-col group">
-            <div className="p-6 border-b border-slate-100/50 flex justify-between items-center">
+            <div className="p-6 bg-green-50 border-b border-green-100/50 flex justify-between items-center">
               <div>
                 <h3 className="font-black text-slate-800 text-sm tracking-tight flex items-center gap-2">
-                  <TrendingUp size={16} className="text-green-500" />
+                  <div className="p-1.5 bg-white rounded-lg shadow-sm border border-green-100/50">
+                    <TrendingUp size={16} className="text-green-500" />
+                  </div>
                   Nuevos Contactos
                 </h3>
-                <p className="text-[10px] text-slate-400 font-medium">Últimas entradas al sistema</p>
+                <p className="text-[10px] text-slate-500 font-medium mt-1">Últimas entradas al sistema</p>
               </div>
-              <button onClick={() => navigate('/leads')} className="text-[10px] font-bold text-slate-600 hover:text-altavik-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 transition-all">
+              <button onClick={() => navigate('/leads')} className="text-[10px] font-bold text-green-700 hover:text-green-800 bg-white hover:bg-green-50 px-3 py-1.5 rounded-lg border border-green-200/60 shadow-sm transition-all">
                 Ver todos
               </button>
             </div>
