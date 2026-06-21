@@ -307,7 +307,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       setSale(prev => prev ? { ...prev, commission_percentage: percentage } : null);
       
       // Re-calculate and update existing promoter invoices if they are in 'pending' status
-      const totalCommission = sale.sale_price * (percentage / 100);
+      const totalCommission = (sale.sale_price || 0) * (percentage / 100);
       const milestoneAmount = parseFloat((totalCommission * 0.5).toFixed(2));
       
       for (const inv of promoterInvoices) {
@@ -399,7 +399,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
 
       // Auto-insertar hitos de facturación del promotor si es aplicable
       const commissionPct = sale.commission_percentage !== undefined ? sale.commission_percentage : 3.00;
-      const totalCommission = sale.sale_price * (commissionPct / 100);
+      const totalCommission = (sale.sale_price || 0) * (commissionPct / 100);
       const milestoneAmount = parseFloat((totalCommission * 0.5).toFixed(2));
 
       if (newStatus === 'contrato') {

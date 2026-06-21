@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MessageSquare, Search, Send, CheckCheck, Check, Clock,
-  User, ArrowLeft, MoreVertical, Phone, ExternalLink, Circle
+  ArrowLeft, ExternalLink, Circle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -30,8 +30,7 @@ interface Message {
   sent_at: string;
 }
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 
 export default function WhatsAppInbox() {
   const { session } = useAuth();
@@ -189,20 +188,15 @@ export default function WhatsAppInbox() {
       setMessages(prev => [...prev, tempMsg]);
 
       // Enviar vía Edge Function
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-whatsapp-reply`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      const { error: invokeError } = await supabase.functions.invoke('send-whatsapp-reply', {
+        body: {
           conversation_id: selectedConv.id,
           to: selectedConv.phone,
           text
-        })
+        }
       });
 
-      if (res.ok) {
+      if (!invokeError) {
         setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, status: 'sent' } : m));
         await (supabase as any)
           .from('wa_conversations')

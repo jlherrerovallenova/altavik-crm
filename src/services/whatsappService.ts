@@ -1,4 +1,6 @@
 
+import { supabase } from '../lib/supabase';
+
 export interface WhatsAppTemplate {
   id?: string;
   name: string;
@@ -95,26 +97,12 @@ export const sendWhatsAppCloudAPI = async (
   let cleanPhone = to.replace(/\D/g, '');
   if (cleanPhone.length === 9) cleanPhone = '34' + cleanPhone;
 
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error('Configuración de Supabase incompleta.');
-  }
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/send-whatsapp`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ to: cleanPhone, templateName, languageCode, components })
+  const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+    body: { to: cleanPhone, templateName, languageCode, components }
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Error al enviar mensaje por WhatsApp');
+  if (error) {
+    throw new Error(error.message || 'Error al enviar mensaje por WhatsApp');
   }
 
   return data;

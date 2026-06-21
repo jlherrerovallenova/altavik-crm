@@ -14,6 +14,35 @@ serve(async (req) => {
     const WA_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? ''
     const SUPABASE_URL       = Deno.env.get('SUPABASE_URL') ?? ''
     const SUPABASE_KEY       = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const SUPABASE_ANON_KEY  = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
+    // 1. Validar autenticación del usuario
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'No se ha proporcionado cabecera de autorización' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return new Response(JSON.stringify({ error: 'Falta configuración en las variables de entorno de Supabase' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const authSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    })
+
+    const { data: { user }, error: authError } = await authSupabase.auth.getUser()
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Usuario no autenticado o token inválido' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     const { conversation_id, to, text } = await req.json()
 

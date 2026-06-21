@@ -17,11 +17,27 @@ serve(async (req) => {
             throw new Error("Missing RESEND_API_KEY")
         }
 
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'No se ha proporcionado cabecera de autorización' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
+
         const supabaseClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-            { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+            { global: { headers: { Authorization: authHeader } } }
         )
+
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+        if (authError || !user) {
+            return new Response(JSON.stringify({ error: 'Usuario no autenticado o token inválido' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
 
         const { newsletterId, audience, phase, leadIds } = await req.json()
         if (!newsletterId) throw new Error("Missing newsletterId");
