@@ -412,7 +412,10 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     });
   };
 
-  const cleanPhone = formData.phone.replace(/\D/g, '');
+  let cleanPhone = formData.phone.replace(/\D/g, '');
+  if (cleanPhone.length === 9 && (cleanPhone.startsWith('6') || cleanPhone.startsWith('7'))) {
+    cleanPhone = `34${cleanPhone}`;
+  }
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 14 ? 'Buenos días' : 'Buenas tardes';
