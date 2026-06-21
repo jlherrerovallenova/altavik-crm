@@ -22,18 +22,17 @@ import {
   AlertTriangle, 
   Clock,
   BarChart3,
-  Inbox,
   Sparkles,
   Command,
   BadgeDollarSign
 } from 'lucide-react';
 import CommandPalette from '../components/ui/CommandPalette';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
-import { useInboxCount } from '../hooks/useInboxCount';
 import { useWhatsAppReplies } from '../hooks/useWhatsAppReplies';
 import { DailyBriefingModal, briefingShownToday, markBriefingShown } from '../components/DailyBriefingModal';
 import { MessageSquare } from 'lucide-react';
 import { DailyTasksModal } from '../components/DailyTasksModal';
+import { useAutoLeadImporter } from '../hooks/useAutoLeadImporter';
 
 
 export default function MainLayout() {
@@ -53,7 +52,6 @@ export default function MainLayout() {
   const [showBellPopover, setShowBellPopover] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const { todayCount, overdueCount, total: alertTotal } = useAgendaAlerts();
-  const { data: inboxCount = 0 } = useInboxCount();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { replies: waReplies, unseenCount: waUnseen, markAllSeen } = useWhatsAppReplies();
   const [showBriefing, setShowBriefing] = useState(false);
@@ -108,6 +106,51 @@ export default function MainLayout() {
       return () => clearTimeout(timer);
     }
   }, [session]);
+
+  // 3. Importación automática de leads al iniciar la app
+  const { isImporting, importCount, error: importError } = useAutoLeadImporter(session);
+
+  useEffect(() => {
+    if (isImporting) {
+      const timer = setTimeout(() => {
+        setNotificationData({
+          title: "Bandeja IA",
+          message: "Escaneando bandeja para autogenerar leads...",
+          type: "info"
+        });
+        setShowNotification(true);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isImporting]);
+
+  useEffect(() => {
+    if (!isImporting && importCount > 0) {
+      const timer = setTimeout(() => {
+        setNotificationData({
+          title: "Leads Importados",
+          message: `¡Se han importado automáticamente ${importCount} nuevos contactos desde la bandeja de entrada!`,
+          type: "success"
+        });
+        setShowNotification(true);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isImporting, importCount]);
+
+  useEffect(() => {
+    if (importError) {
+      const timer = setTimeout(() => {
+        setNotificationData({
+          title: "Error de Importación",
+          message: `No se pudieron auto-importar algunos leads: ${importError}`,
+          type: "error"
+        });
+        setShowNotification(true);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [importError]);
 
   // 1. PANTALLA DE CARGA
   if (loading) {

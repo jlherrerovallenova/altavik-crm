@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BadgeDollarSign, Loader2, Calendar, FileText, CheckCircle2, User, Home, Search, AlertCircle } from 'lucide-react';
-import { useSales } from '../hooks/useSales';
+import { useSales, type SaleWithDetails } from '../hooks/useSales';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,6 +26,35 @@ export default function Sales() {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '-';
     return new Date(dateStr).toLocaleDateString('es-ES');
+  };
+
+  const getPromoterBillingStatus = (sale: SaleWithDetails) => {
+    const invoices = sale.promoter_invoices || [];
+    if (invoices.length === 0) {
+      return { label: 'Sin facturar', color: 'bg-slate-100 text-slate-500 border-slate-200/60' };
+    }
+    
+    const paid = invoices.filter(i => i.status === 'paid');
+    const sent = invoices.filter(i => i.status === 'sent');
+    const cancelled = invoices.filter(i => i.status === 'cancelled');
+    
+    if (cancelled.length === invoices.length) {
+      return { label: 'Cancelada', color: 'bg-red-50 text-red-700 border-red-200/50' };
+    }
+    
+    if (paid.length === invoices.length) {
+      return { label: 'Completada', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/50 font-bold' };
+    }
+    
+    if (paid.length > 0) {
+      return { label: `${paid.length}/${invoices.length} Cobrada`, color: 'bg-teal-50 text-teal-700 border-teal-200/50 font-bold' };
+    }
+    
+    if (sent.length > 0) {
+      return { label: `${sent.length}/${invoices.length} Enviada`, color: 'bg-blue-50 text-blue-700 border-blue-200/50 font-bold' };
+    }
+    
+    return { label: 'Pendiente', color: 'bg-amber-50 text-amber-700 border-amber-200/50 font-bold' };
   };
 
   const filteredSales = (sales || []).filter(sale => {
@@ -105,6 +134,7 @@ export default function Sales() {
                 <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider">Vivienda</th>
                 <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider">Estado</th>
                 <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider">Precio Venta</th>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider">Facturación Promotor</th>
                 <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider">Fecha Cierre</th>
                 <th className="px-6 py-4 font-bold text-slate-500 uppercase text-[10px] tracking-wider text-right">Acciones</th>
               </tr>
@@ -112,7 +142,7 @@ export default function Sales() {
             <tbody className="divide-y divide-slate-100">
               {filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <AlertCircle size={32} className="text-slate-300" />
                       <p className="font-medium">No se encontraron operaciones con los filtros actuales</p>
@@ -157,6 +187,16 @@ export default function Sales() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-black text-slate-900">{formatCurrency(sale.sale_price)}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const billing = getPromoterBillingStatus(sale);
+                          return (
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${billing.color}`}>
+                              {billing.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 text-slate-600 font-medium">
                         {formatDate(sale.escritura_date || sale.contract_date)}

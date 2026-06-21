@@ -35,6 +35,7 @@ ${emailBody}
     });
 
     if (error) {
+      console.error("Error invoking generate-ai-content Edge Function:", error);
       throw new Error(error.message || 'Error en Edge Function');
     }
 
@@ -49,7 +50,8 @@ ${emailBody}
 
     return JSON.parse(textOutput) as GeminiExtractedLead;
 
-  } catch (error: any) {
-    throw new Error(`Error procesando IA: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error procesando IA: ${message}`);
   }
 };

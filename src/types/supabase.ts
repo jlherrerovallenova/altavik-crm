@@ -276,6 +276,7 @@ export interface Database {
           contract_date: string | null
           escritura_date: string | null
           notes: string | null
+          commission_percentage: number
         }
         Insert: {
           id?: string
@@ -290,6 +291,7 @@ export interface Database {
           contract_date?: string | null
           escritura_date?: string | null
           notes?: string | null
+          commission_percentage?: number
         }
         Update: {
           id?: string
@@ -304,6 +306,7 @@ export interface Database {
           contract_date?: string | null
           escritura_date?: string | null
           notes?: string | null
+          commission_percentage?: number
         }
       }
       installments: {
@@ -336,6 +339,44 @@ export interface Database {
           amount?: number
           paid?: boolean
           paid_date?: string | null
+        }
+      }
+      promoter_invoices: {
+        Row: {
+          id: string
+          created_at: string
+          sale_id: string
+          milestone: 'contrato' | 'escrituracion'
+          amount: number
+          invoice_number: string | null
+          status: 'pending' | 'sent' | 'paid' | 'cancelled'
+          issued_date: string | null
+          paid_date: string | null
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          sale_id: string
+          milestone: 'contrato' | 'escrituracion'
+          amount: number
+          invoice_number?: string | null
+          status?: 'pending' | 'sent' | 'paid' | 'cancelled'
+          issued_date?: string | null
+          paid_date?: string | null
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          sale_id?: string
+          milestone?: 'contrato' | 'escrituracion'
+          amount?: number
+          invoice_number?: string | null
+          status?: 'pending' | 'sent' | 'paid' | 'cancelled'
+          issued_date?: string | null
+          paid_date?: string | null
+          notes?: string | null
         }
       }
       incoming_emails: {

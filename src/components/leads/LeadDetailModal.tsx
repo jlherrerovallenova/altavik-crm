@@ -523,10 +523,10 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
             </button>
             <button
               onClick={() => setActiveTab('venta')}
-              disabled={formData.status !== 'closed'}
-              title={formData.status !== 'closed' ? 'Solo disponible cuando el estado es Venta Cerrada' : ''}
+              disabled={formData.status !== 'closed' && !lead.sale_status}
+              title={formData.status !== 'closed' && !lead.sale_status ? 'Solo disponible cuando el estado es Venta Cerrada o hay una reserva activa' : ''}
               className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
-                formData.status !== 'closed'
+                formData.status !== 'closed' && !lead.sale_status
                   ? 'opacity-50 cursor-not-allowed text-slate-300'
                   : activeTab === 'venta' 
                     ? 'text-altavik-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 

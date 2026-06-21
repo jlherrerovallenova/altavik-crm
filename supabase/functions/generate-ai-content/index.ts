@@ -24,11 +24,12 @@ serve(async (req) => {
     }
 
     const maxRetries = 3;
-    const fallbackModels = ['gemini-flash-latest', 'gemini-pro-latest', 'gemini-2.0-flash'];
+    const fallbackModels = ['gemini-2.5-flash', 'gemini-pro-latest'];
     
     let attempt = 0;
     while (attempt < maxRetries) {
       const modelId = fallbackModels[attempt % fallbackModels.length];
+      console.log(`🤖 Attempt ${attempt + 1}: calling Gemini model ${modelId}...`);
       
       try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${GEMINI_API_KEY}`, {
@@ -42,9 +43,12 @@ serve(async (req) => {
           })
         });
 
+        console.log(`Status for ${modelId}: ${response.status} ${response.statusText}`);
+
         if (!response.ok) {
           const errorData = await response.json();
-          if (response.status === 404 && attempt < fallbackModels.length - 1) {
+          console.error(`Error response for ${modelId}:`, JSON.stringify(errorData));
+          if (response.status === 404 && attempt < maxRetries - 1) {
             attempt++;
             continue;
           }
@@ -52,9 +56,15 @@ serve(async (req) => {
         }
 
         const result = await response.json();
+        console.log(`Raw result from ${modelId}:`, JSON.stringify(result));
+        
         let textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
         
-        if (!textOutput) throw new Error("Respuesta de IA vacía");
+        if (!textOutput) {
+          const finishReason = result.candidates?.[0]?.finishReason;
+          console.warn(`No text output. Finish reason: ${finishReason}`);
+          throw new Error(`Respuesta de IA vacía (finishReason: ${finishReason})`);
+        }
 
         return new Response(JSON.stringify({ text: textOutput }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

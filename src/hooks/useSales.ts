@@ -9,6 +9,13 @@ type InventoryRow = Database['public']['Tables']['inventory']['Row'];
 export interface SaleWithDetails extends SaleRow {
   lead: Pick<LeadRow, 'id' | 'name' | 'email' | 'phone'>;
   property: Pick<InventoryRow, 'id' | 'n_orden' | 'planta' | 'portal' | 'letra' | 'precio'>;
+  promoter_invoices?: Array<{
+    id: string;
+    milestone: 'contrato' | 'escrituracion';
+    amount: number;
+    status: 'pending' | 'sent' | 'paid' | 'cancelled';
+    invoice_number: string | null;
+  }>;
 }
 
 export function useSales() {
@@ -20,7 +27,8 @@ export function useSales() {
         .select(`
           *,
           lead:leads (id, name, email, phone),
-          property:inventory (id, n_orden, planta, portal, letra, precio)
+          property:inventory (id, n_orden, planta, portal, letra, precio),
+          promoter_invoices (id, milestone, amount, status, invoice_number)
         `)
         .order('created_at', { ascending: false });
 
@@ -30,7 +38,7 @@ export function useSales() {
       }
       
       // Filtramos las ventas que no tienen lead o propiedad asociada por si acaso
-      return (data as any[]).filter(sale => sale.lead && sale.property) as SaleWithDetails[];
+      return ((data || []) as SaleWithDetails[]).filter(sale => sale.lead && sale.property);
     }
   });
 }

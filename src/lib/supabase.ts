@@ -2,8 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env)
+  ? import.meta.env.VITE_SUPABASE_URL
+  : (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_URL : '');
+
+const supabaseAnonKey = (typeof import.meta !== 'undefined' && import.meta.env)
+  ? import.meta.env.VITE_SUPABASE_ANON_KEY
+  : (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_ANON_KEY : '');
 
 if (!supabaseUrl) {
   console.error('❌ ERROR CRÍTICO: VITE_SUPABASE_URL no está definida en el archivo .env');
@@ -53,13 +58,15 @@ export const withRetry = async <T>(
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await Promise.resolve(fn());
-    } catch (error: any) {
-      lastError = error;
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      lastError = err;
+      const errObj = typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : {};
       const isNetworkError =
-        error.message?.includes('NetworkError') ||
-        error.message?.includes('Failed to fetch') ||
-        error.code === 'NETWORK_ERROR' ||
-        error.status === 0;
+        err.message?.includes('NetworkError') ||
+        err.message?.includes('Failed to fetch') ||
+        errObj.code === 'NETWORK_ERROR' ||
+        errObj.status === 0;
 
       if (isNetworkError && i < maxRetries - 1) {
         console.warn(`⚠️ Error de red, reintentando (${i + 1}/${maxRetries})...`);
