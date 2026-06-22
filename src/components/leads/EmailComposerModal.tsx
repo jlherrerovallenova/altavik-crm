@@ -272,7 +272,7 @@ Juan Herrero - TERRAVALL`);
     );
   };
 
-  const saveHistory = async (sentMethod: 'email' | 'whatsapp') => {
+  const saveHistory = async (sentMethod: 'email' | 'whatsapp', trackingId?: string) => {
     try {
       if (selectedDocs.length > 0) {
         const record = {
@@ -298,7 +298,11 @@ Juan Herrero - TERRAVALL`);
         lead_id: leadId,
         event_type: selectedDocs.length > 0 ? 'document' : sentMethod,
         description: description,
-        metadata: { method: sentMethod, docs: selectedDocs.map(d => d.name) }
+        metadata: { 
+          method: sentMethod, 
+          docs: selectedDocs.map(d => d.name),
+          ...(trackingId ? { tracking_id: trackingId, opened: false } : {})
+        }
       }]);
 
       // Actualizar estado a 'contacted' si actualmente es 'new'
@@ -325,6 +329,13 @@ Juan Herrero - TERRAVALL`);
           setLoading(false);
           return;
         }
+
+        // Generar trackingId para hacer seguimiento de apertura
+        const trackingId = typeof crypto.randomUUID === 'function' 
+          ? crypto.randomUUID() 
+          : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const trackingPixelUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-email-open?id=${trackingId}`;
+        const trackingPixelHtml = `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 
         // Obtenemos la firma en HTML ligero en lugar de Base64
         const signatureHtml = getSignatureHtml();
@@ -396,6 +407,7 @@ Juan Herrero - TERRAVALL`);
                 </div>
               </div>
             </div>
+            ${trackingPixelHtml}
           </body>
           </html>
         `;
@@ -419,7 +431,7 @@ Juan Herrero - TERRAVALL`);
           throw new Error(msg);
         }
 
-        await saveHistory('email');
+        await saveHistory('email', trackingId);
         setStatus('success');
         setTimeout(onClose, 2000);
       } else {

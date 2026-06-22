@@ -8,7 +8,9 @@ import {
   MessageSquare, 
   FileText, 
   StickyNote,
-  Clock
+  Clock,
+  Check,
+  CheckCheck
 } from 'lucide-react';
 
 interface TimelineEvent {
@@ -171,6 +173,26 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                 <span className="mt-2 inline-block px-2 py-0.5 bg-slate-50 rounded-md text-[9px] font-bold text-slate-400 border border-slate-100">
                   Vía: {event.metadata.source}
                 </span>
+              )}
+              {(event.event_type === 'email' || event.event_type === 'document') && event.metadata?.tracking_id && (
+                <div className="mt-2.5 flex items-center gap-1.5">
+                  {event.metadata.opened ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-0.5">
+                      <CheckCheck size={12} className="text-emerald-500" />
+                      Abierto
+                      {event.metadata.opened_at && (
+                        <span className="text-slate-400 font-normal">
+                          {new Date(event.metadata.opened_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 rounded-lg px-2 py-0.5">
+                      <Check size={12} className="text-slate-400" />
+                      Enviado
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
