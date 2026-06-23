@@ -71,6 +71,19 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   // Tareas de la agenda
   const [tasks, setTasks] = useState<AgendaItem[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Record<number, boolean>>({});
+  const toggleExpand = (id: number) => setExpandedTasks(prev => ({ ...prev, [id]: !prev[id] }));
+
+  function parseTaskTitle(title: string) {
+    const match = title.match(/^(Envío\s+[^:]+):\s*(.*)$/i);
+    if (match) {
+      const prefix = match[1];
+      const docsString = match[2];
+      const docs = docsString.split(',').map(d => d.trim()).filter(Boolean);
+      return { isDocSend: true, prefix, docs };
+    }
+    return { isDocSend: false, prefix: '', docs: [] };
+  }
 
   // Estado local para el formulario de nueva tarea
   const [newTask, setNewTask] = useState({
@@ -947,7 +960,40 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                                     {task.type}
                                   </span>
                                   {renderEmailTrackingBadge(task)}
-                                  <h5 className="text-[12px] font-bold text-slate-700">{task.title}</h5>
+                                  {(() => {
+                                    const { isDocSend, prefix, docs } = parseTaskTitle(task.title);
+                                    if (!isDocSend) {
+                                      return <h5 className="text-[12px] font-bold text-slate-700">{task.title}</h5>;
+                                    }
+                                    const isExpanded = !!expandedTasks[task.id];
+                                    return (
+                                      <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-2">
+                                          <h5 className="text-[12px] font-bold text-slate-700">{prefix}</h5>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleExpand(task.id);
+                                            }}
+                                            className="flex items-center gap-1 text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-all"
+                                          >
+                                            <span>{docs.length} {docs.length === 1 ? 'documento' : 'documentos'}</span>
+                                            {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                                          </button>
+                                        </div>
+                                        {isExpanded && (
+                                          <div className="mt-1 pl-2 border-l-2 border-slate-100 flex flex-col gap-1">
+                                            {docs.map((doc, idx) => (
+                                              <span key={idx} className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5">
+                                                <FileText size={10} className="text-slate-400 shrink-0" />
+                                                <span className="truncate max-w-[300px]">{doc}</span>
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-medium">
                                   {new Date(task.due_date).toLocaleDateString('es-ES')} a las {new Date(task.due_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
@@ -985,7 +1031,40 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                                     {task.type}
                                   </span>
                                   {renderEmailTrackingBadge(task)}
-                                  <h5 className="text-[12px] font-bold text-slate-600 line-through">{task.title}</h5>
+                                  {(() => {
+                                    const { isDocSend, prefix, docs } = parseTaskTitle(task.title);
+                                    if (!isDocSend) {
+                                      return <h5 className="text-[12px] font-bold text-slate-600 line-through">{task.title}</h5>;
+                                    }
+                                    const isExpanded = !!expandedTasks[task.id];
+                                    return (
+                                      <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-2">
+                                          <h5 className="text-[12px] font-bold text-slate-600 line-through">{prefix}</h5>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleExpand(task.id);
+                                            }}
+                                            className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 px-2 py-0.5 rounded-lg transition-all"
+                                          >
+                                            <span>{docs.length} {docs.length === 1 ? 'documento' : 'documentos'}</span>
+                                            {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                                          </button>
+                                        </div>
+                                        {isExpanded && (
+                                          <div className="mt-1 pl-2 border-l-2 border-slate-200 flex flex-col gap-1">
+                                            {docs.map((doc, idx) => (
+                                              <span key={idx} className="text-[11px] font-medium text-slate-400 line-through flex items-center gap-1.5">
+                                                <FileText size={10} className="text-slate-300 shrink-0" />
+                                                <span className="truncate max-w-[300px]">{doc}</span>
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-medium">
                                   Realizada el {new Date(task.due_date).toLocaleDateString('es-ES')}

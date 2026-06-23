@@ -78,7 +78,17 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
-            <span className={`truncate ${task.completed ? 'line-through opacity-60' : ''}`}>{task.title}</span>
+            <span className={`truncate ${task.completed ? 'line-through opacity-60' : ''}`}>
+              {(() => {
+                const match = task.title.match(/^(Envío\s+[^:]+):\s*(.*)$/i);
+                if (match) {
+                  const prefix = match[1];
+                  const docs = match[2].split(',').map(d => d.trim()).filter(Boolean);
+                  return `${prefix} (${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'})`;
+                }
+                return task.title;
+              })()}
+            </span>
             <span className="opacity-30">•</span>
             <span className={`${isOverdue && !task.completed ? "text-red-500 font-black flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100" : "text-altavik-600"}`}>
               {isOverdue && !task.completed && <AlertCircle size={10} />}
