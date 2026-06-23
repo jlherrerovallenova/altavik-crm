@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const id = url.searchParams.get('id');
+  const trackingId = url.searchParams.get('tracking_id') || url.searchParams.get('id');
 
   // Devolver el pixel inmediatamente para no bloquear el cliente de correo
   const responseHeaders = {
@@ -27,7 +27,7 @@ serve(async (req) => {
     'Expires': '0',
   };
 
-  if (!id) {
+  if (!trackingId) {
     return new Response(pixelBytes, { headers: responseHeaders, status: 200 });
   }
 
@@ -36,34 +36,37 @@ serve(async (req) => {
   (async () => {
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL');
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
 
       if (!supabaseUrl || !supabaseKey) {
-        console.error("Faltan variables de entorno SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
+        console.error("Faltan variables de entorno SUPABASE_URL o claves de API");
         return;
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Buscar el registro con el tracking_id en metadata
+      // 1. Llamar al RPC para incrementar el contador de aperturas en la tabla email_tracking
+      const { error: rpcError } = await supabase.rpc('increment_email_open', { tracking_id: trackingId });
+      if (rpcError) {
+        console.error("Error al llamar a increment_email_open RPC:", rpcError);
+      } else {
+        console.log(`RPC increment_email_open ejecutado para trackingId: ${trackingId}`);
+      }
+
+      // 2. Mantener sincronizado lead_history para el Timeline
       const { data, error } = await supabase
         .from('lead_history')
         .select('id, metadata')
-        .contains('metadata', { tracking_id: id });
+        .contains('metadata', { tracking_id: trackingId });
 
       if (error) {
-        console.error("Error al buscar el log de correo:", error);
+        console.error("Error al buscar el log de correo en lead_history:", error);
         return;
       }
 
       if (data && data.length > 0) {
         const record = data[0];
         const metadata = record.metadata || {};
-
-        // Si ya está marcado como abierto, no hacemos nada
-        if (metadata.opened) {
-          return;
-        }
 
         const updatedMetadata = {
           ...metadata,
@@ -77,12 +80,10 @@ serve(async (req) => {
           .eq('id', record.id);
 
         if (updateError) {
-          console.error("Error al actualizar estado a abierto:", updateError);
+          console.error("Error al actualizar lead_history metadata:", updateError);
         } else {
-          console.log(`Correo con tracking_id ${id} marcado como abierto exitosamente.`);
+          console.log(`lead_history con tracking_id ${trackingId} actualizado exitosamente.`);
         }
-      } else {
-        console.warn(`No se encontró ningún registro con tracking_id ${id} en lead_history`);
       }
     } catch (err) {
       console.error("Error en el proceso de tracking:", err);

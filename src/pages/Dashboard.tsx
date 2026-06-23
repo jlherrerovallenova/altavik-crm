@@ -54,7 +54,7 @@ export default function Dashboard() {
   } = useDashboardData(session?.user?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'radar' | 'feedback' | 'inboxia'>('futuras');
+  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'recientes' | 'radar' | 'feedback' | 'inboxia'>('futuras');
   const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<any | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -63,6 +63,13 @@ export default function Dashboard() {
       task.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
+
+    if (activeTab === 'recientes') {
+      return task.completed;
+    }
+
+    if (task.completed) return false;
+
     const taskDate = new Date(task.due_date).getTime();
     const isOverdue = taskDate < new Date().getTime();
     if (activeTab === 'caducadas' && !isOverdue) return false;
@@ -71,13 +78,14 @@ export default function Dashboard() {
   });
 
   const overdueCount = agenda.filter(task => {
+    if (task.completed) return false;
     const taskDate = new Date(task.due_date).getTime();
     return taskDate < new Date().getTime();
   }).length;
 
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
-    if (newStatus) setAgenda(prev => prev.filter(t => t.id !== task.id));
+    setAgenda(prev => prev.map(t => t.id === task.id ? { ...t, completed: newStatus } : t));
     try {
       const { error } = await (supabase as any).from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
       if (error) throw error;
@@ -195,6 +203,12 @@ export default function Dashboard() {
                   active={activeTab === 'caducadas'} 
                   onClick={() => setActiveTab('caducadas')} 
                   variant="overdue" 
+                />
+                <TabButton 
+                  label="Recientes" 
+                  active={activeTab === 'recientes'} 
+                  onClick={() => setActiveTab('recientes')} 
+                  variant="primary" 
                 />
                 <TabButton 
                   label="Opinión" 

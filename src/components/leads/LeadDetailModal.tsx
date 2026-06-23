@@ -118,6 +118,28 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     fetchHistory();
     fetchTasks();
     fetchWaData();
+
+    // Suscribirse a cambios en tiempo real en email_tracking para este lead
+    const trackingChannel = supabase
+      .channel(`email_tracking_changes_${lead.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'email_tracking',
+          filter: `lead_id=eq.${lead.id}`
+        },
+        () => {
+          fetchTasks();
+          fetchHistory();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(trackingChannel);
+    };
   }, [lead.id]);
 
   async function fetchHistory() {
@@ -142,11 +164,41 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   async function fetchTasks() {
     const { data } = await supabase
       .from('agenda')
-      .select('*')
+      .select('*, email_tracking(*)')
       .eq('lead_id', lead.id)
       .order('due_date', { ascending: true });
 
-    if (data) setTasks(data);
+    if (data) {
+      const formatted = (data as any[]).map(item => ({
+        ...item,
+        email_tracking: Array.isArray(item.email_tracking) ? item.email_tracking[0] : item.email_tracking
+      }));
+      setTasks(formatted);
+    }
+  }
+
+  function renderEmailTrackingBadge(task: any) {
+    if (task.type !== 'Email' || !task.email_tracking) return null;
+    const tracking = task.email_tracking;
+    const isOpened = tracking.status === 'opened' || tracking.opens_count > 0;
+    const opensLabel = tracking.opens_count > 1 ? ` (${tracking.opens_count})` : '';
+    return (
+      <span 
+        className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+          isOpened 
+            ? 'bg-emerald-100 text-emerald-700' 
+            : 'bg-slate-100 text-slate-500'
+        }`}
+        title={
+          isOpened 
+            ? `Abierto${opensLabel}. Última apertura: ${new Date(tracking.last_opened_at || tracking.first_opened_at || '').toLocaleString()}`
+            : 'Recibido pero aún no abierto.'
+        }
+      >
+        {isOpened ? 'ABIERTO' : 'ENVIADO'}
+        {opensLabel}
+      </span>
+    );
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -889,10 +941,12 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                                   <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
                                     task.type === 'Llamada' ? 'bg-blue-50 text-blue-600' :
                                     task.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600' :
+                                    task.type === 'Email' ? 'bg-amber-50 text-amber-600' :
                                     'bg-slate-50 text-slate-500'
                                   }`}>
                                     {task.type}
                                   </span>
+                                  {renderEmailTrackingBadge(task)}
                                   <h5 className="text-[12px] font-bold text-slate-700">{task.title}</h5>
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-medium">
@@ -902,6 +956,43 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
+                              <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* LISTADO DE ACCIONES REALIZADAS */}
+                    {tasks.filter(t => t.completed).length > 0 && (
+                      <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto pr-1 border-t border-slate-100 pt-4">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <CheckCircle2 size={10} className="text-emerald-500" /> Acciones Realizadas ({tasks.filter(t => t.completed).length})
+                        </p>
+                        {tasks.filter(t => t.completed).map(task => (
+                          <div key={task.id} className="flex items-center justify-between p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl transition-all opacity-80 group">
+                            <div className="flex items-center gap-3">
+                              <span className="text-emerald-500 shrink-0">
+                                <CheckCircle2 size={18} />
+                              </span>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                                    task.type === 'Llamada' ? 'bg-blue-50 text-blue-600' :
+                                    task.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600' :
+                                    task.type === 'Email' ? 'bg-amber-50 text-amber-600' :
+                                    'bg-slate-50 text-slate-500'
+                                  }`}>
+                                    {task.type}
+                                  </span>
+                                  {renderEmailTrackingBadge(task)}
+                                  <h5 className="text-[12px] font-bold text-slate-600 line-through">{task.title}</h5>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium">
+                                  Realizada el {new Date(task.due_date).toLocaleDateString('es-ES')}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
                             </div>
                           </div>
@@ -1049,7 +1140,10 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           availableDocs={availableDocs}
           initialMethod={emailModalMethod}
           initialTemplate={firstContactTemplateActive ? 'first_contact' : undefined}
-          onSentSuccess={fetchHistory}
+          onSentSuccess={() => {
+            fetchHistory();
+            fetchTasks();
+          }}
         />
       )}
 

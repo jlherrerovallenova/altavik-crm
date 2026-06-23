@@ -7,6 +7,7 @@ import type { Database } from '../types/supabase';
 // Tipo enriquecido con nombre para mostrar en UI
 type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
     leads?: { name: string } | null;
+    email_tracking?: { id: string; status: string; opens_count: number; last_opened_at: string | null } | null;
 };
 type AgendaUpdate = Database['public']['Tables']['agenda']['Update'];
 
@@ -24,7 +25,8 @@ export function useAgenda() {
                 .from('agenda')
                 .select(`
           *,
-          leads (name)
+          leads (name),
+          email_tracking (*)
         `)
                 .order('due_date', { ascending: true });
 
@@ -44,7 +46,7 @@ export function useLeadAgenda(leadId: string | undefined) {
             if (!leadId) return [];
             const { data, error } = await supabase
                 .from('agenda')
-                .select(`*, leads (name)`)
+                .select(`*, leads (name), email_tracking (*)`)
                 .eq('lead_id', leadId)
                 .order('due_date', { ascending: true });
 

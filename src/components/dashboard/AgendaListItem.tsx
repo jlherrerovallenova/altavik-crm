@@ -1,5 +1,5 @@
 import React from 'react';
-import { Circle, AlertCircle, Trash2 } from 'lucide-react';
+import { Circle, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 
 interface AgendaListItemProps {
   task: {
@@ -7,8 +7,15 @@ interface AgendaListItemProps {
     title: string;
     type: string;
     due_date: string;
+    completed?: boolean;
     leads?: {
       name: string;
+    } | null;
+    email_tracking?: {
+      id: string;
+      status: string;
+      opens_count: number;
+      last_opened_at: string | null;
     } | null;
   };
   onToggle: () => void;
@@ -24,9 +31,13 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
       <div className="flex items-center gap-4">
         <button
           onClick={onToggle}
-          className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 border-slate-100 bg-white text-slate-200 hover:border-altavik-500 hover:text-altavik-500 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50"
+          className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50 ${
+            task.completed 
+              ? 'bg-emerald-50 border-emerald-100 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600' 
+              : 'border-slate-100 bg-white text-slate-200 hover:border-altavik-500 hover:text-altavik-500'
+          }`}
         >
-          <Circle size={22} strokeWidth={3} />
+          {task.completed ? <CheckCircle2 size={22} strokeWidth={3} /> : <Circle size={22} strokeWidth={3} />}
         </button>
 
         <div className="min-w-0">
@@ -35,19 +46,42 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
               task.type === 'Llamada' ? 'bg-blue-50 text-blue-600 border-blue-100' :
               task.type === 'WhatsApp' ? 'bg-altavik-50 text-altavik-600 border-altavik-100' :
               task.type === 'Visita' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+              task.type === 'Email' ? 'bg-amber-50 text-amber-600 border-amber-100' :
               'bg-slate-50 text-slate-500 border-slate-100'
             }`}>
               {task.type}
             </span>
+            {task.type === 'Email' && task.email_tracking && (() => {
+              const tracking = task.email_tracking;
+              const isOpened = tracking.status === 'opened' || tracking.opens_count > 0;
+              const opensLabel = tracking.opens_count > 1 ? ` (${tracking.opens_count})` : '';
+              return (
+                <span 
+                  className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
+                    isOpened 
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                      : 'bg-slate-50 text-slate-400 border-slate-100'
+                  }`}
+                  title={
+                    isOpened 
+                      ? `Abierto${opensLabel}. Última apertura: ${new Date(tracking.last_opened_at || '').toLocaleString()}`
+                      : 'Recibido pero aún no abierto.'
+                  }
+                >
+                  {isOpened ? 'ABIERTO' : 'ENVIADO'}
+                  {opensLabel}
+                </span>
+              );
+            })()}
             <span className="text-[15px] font-black text-slate-800 tracking-tight truncate max-w-[200px]">
               {task.leads?.name || 'Cliente anónimo'}
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
-            <span className="truncate">{task.title}</span>
+            <span className={`truncate ${task.completed ? 'line-through opacity-60' : ''}`}>{task.title}</span>
             <span className="opacity-30">•</span>
-            <span className={`${isOverdue ? "text-red-500 font-black flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100" : "text-altavik-600"}`}>
-              {isOverdue && <AlertCircle size={10} />}
+            <span className={`${isOverdue && !task.completed ? "text-red-500 font-black flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-lg border border-red-100" : "text-altavik-600"}`}>
+              {isOverdue && !task.completed && <AlertCircle size={10} />}
               {formatDate(task.due_date)}
             </span>
           </div>

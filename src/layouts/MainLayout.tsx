@@ -33,6 +33,8 @@ import { DailyBriefingModal, briefingShownToday, markBriefingShown } from '../co
 import { MessageSquare } from 'lucide-react';
 import { DailyTasksModal } from '../components/DailyTasksModal';
 import { useAutoLeadImporter } from '../hooks/useAutoLeadImporter';
+import { useEmailTrackingNotifications } from '../hooks/useEmailTrackingNotifications';
+
 
 
 export default function MainLayout() {
@@ -56,6 +58,12 @@ export default function MainLayout() {
   const { replies: waReplies, unseenCount: waUnseen, markAllSeen } = useWhatsAppReplies();
   const [showBriefing, setShowBriefing] = useState(false);
   const [isDailyTasksOpen, setIsDailyTasksOpen] = useState(false);
+
+  // Escuchar aperturas de email en tiempo real
+  useEmailTrackingNotifications((data) => {
+    setNotificationData(data);
+    setShowNotification(true);
+  });
 
   // Mostrar briefing una vez al día tras cargar
   useEffect(() => {

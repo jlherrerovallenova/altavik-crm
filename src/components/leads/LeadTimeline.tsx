@@ -33,6 +33,7 @@ const EVENT_CONFIG: Record<string, { icon: any; color: string; label: string }> 
 
 export default function LeadTimeline({ leadId }: { leadId: string }) {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [trackingRecords, setTrackingRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,7 +63,17 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
         .select('*')
         .eq('lead_id', leadId);
 
-      // 4. Datos del propio lead (Creación)
+      // 4. Fetch de email_tracking
+      const { data: trackingData } = await supabase
+        .from('email_tracking')
+        .select('*')
+        .eq('lead_id', leadId);
+
+      if (trackingData) {
+        setTrackingRecords(trackingData);
+      }
+
+      // 5. Datos del propio lead (Creación)
       const { data: leadData } = await supabase
         .from('leads')
         .select('created_at, source')
@@ -86,9 +97,9 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
         allEvents.push({
           id: `task-${task.id}`,
           created_at: task.due_date,
-          event_type: task.type === 'Llamada' ? 'call' : task.type === 'Visita' ? 'note' : 'note',
+          event_type: task.type === 'Llamada' ? 'call' : task.type === 'Email' ? 'email' : task.type === 'Visita' ? 'note' : 'note',
           description: `${task.type}: ${task.title}. ${task.comentario || ''}`,
-          metadata: { taskId: task.id }
+          metadata: { taskId: task.id, tracking_id: task.tracking_id }
         });
       });
 
@@ -174,26 +185,37 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                   Vía: {event.metadata.source}
                 </span>
               )}
-              {(event.event_type === 'email' || event.event_type === 'document') && event.metadata?.tracking_id && (
-                <div className="mt-2.5 flex items-center gap-1.5">
-                  {event.metadata.opened ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-0.5">
-                      <CheckCheck size={12} className="text-emerald-500" />
-                      Abierto
-                      {event.metadata.opened_at && (
-                        <span className="text-slate-400 font-normal">
-                          {new Date(event.metadata.opened_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 rounded-lg px-2 py-0.5">
-                      <Check size={12} className="text-slate-400" />
-                      Enviado
-                    </span>
-                  )}
-                </div>
-              )}
+              {(event.event_type === 'email' || event.event_type === 'document') && event.metadata?.tracking_id && (() => {
+                const tracking = trackingRecords.find(t => t.id === event.metadata.tracking_id);
+                const isOpened = tracking ? (tracking.status === 'opened' || tracking.opens_count > 0) : event.metadata.opened;
+                const opensCount = tracking ? tracking.opens_count : (event.metadata.opened ? 1 : 0);
+                const opensLabel = opensCount > 1 ? ` (${opensCount})` : '';
+                const lastOpenedAt = tracking ? (tracking.last_opened_at || tracking.first_opened_at) : event.metadata.opened_at;
+
+                return (
+                  <div className="mt-2.5 flex items-center gap-1.5">
+                    {isOpened ? (
+                      <span 
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-2 py-0.5 cursor-help"
+                        title={lastOpenedAt ? `Última apertura: ${new Date(lastOpenedAt).toLocaleString('es-ES')}` : ''}
+                      >
+                        <CheckCheck size={12} className="text-emerald-500" />
+                        Abierto{opensLabel}
+                        {lastOpenedAt && (
+                          <span className="text-slate-400 font-normal">
+                            {new Date(lastOpenedAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 rounded-lg px-2 py-0.5">
+                        <Check size={12} className="text-slate-400" />
+                        Enviado
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );

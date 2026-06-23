@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase';
 import type { Database } from '../types/supabase';
 
 export type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
-  leads?: { name: string, phone: string | null } | null
+  leads?: { name: string, phone: string | null } | null;
+  email_tracking?: { id: string; status: string; opens_count: number; last_opened_at: string | null } | null;
 };
 
 export interface SourceStat {
@@ -66,17 +67,19 @@ export function useDashboardData(userId: string | undefined) {
         setRecentLeads(recentResponse.data);
       }
 
-      // 2. CARGA DE AGENDA
+      // 2. CARGA DE AGENDA (Pendientes o completadas en los últimos 7 días)
+      const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: agendaData, error: agendaError } = await supabase
         .from('agenda')
-        .select('*, leads(name, phone)')
-        .eq('completed', false)
+        .select('*, leads(name, phone), email_tracking(*)')
+        .or(`completed.eq.false,and(completed.eq.true,due_date.gte.${lastWeek})`)
         .order('due_date', { ascending: true });
 
       if (!agendaError && agendaData) {
         const formattedData = (agendaData || []).map((item: any) => ({
           ...item,
-          leads: Array.isArray(item.leads) ? item.leads[0] : item.leads
+          leads: Array.isArray(item.leads) ? item.leads[0] : item.leads,
+          email_tracking: Array.isArray(item.email_tracking) ? item.email_tracking[0] : item.email_tracking
         })) as AgendaItem[];
         setAgenda(formattedData);
       }

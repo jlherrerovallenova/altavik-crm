@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
+import { useAuth } from '../../context/AuthContext';
 import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
@@ -72,7 +73,34 @@ export default function EmailComposerModal({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
+  const { session } = useAuth();
   const [method, setMethod] = useState<'email' | 'whatsapp'>(initialMethod || 'email');
+
+  const createTaskRecord = async (sentMethod: 'email' | 'whatsapp', trackingId?: string) => {
+    try {
+      const methodLabel = sentMethod === 'email' ? 'Email' : 'WhatsApp';
+      const docNames = selectedDocs.length > 0 
+        ? selectedDocs.map(d => d.name).join(', ')
+        : 'Documentación manual';
+      
+      const payload: any = {
+        lead_id: leadId,
+        user_id: session?.user?.id,
+        title: `Envío ${methodLabel}: ${docNames}`,
+        type: methodLabel,
+        due_date: new Date().toISOString(),
+        completed: true
+      };
+
+      if (sentMethod === 'email' && trackingId) {
+        payload.tracking_id = trackingId;
+      }
+
+      await supabase.from('agenda').insert([payload]);
+    } catch (error) {
+      console.error('Error al crear tarea de agenda:', error);
+    }
+  };
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
@@ -330,12 +358,24 @@ Juan Herrero - TERRAVALL`);
           return;
         }
 
-        // Generar trackingId para hacer seguimiento de apertura
-        const trackingId = typeof crypto.randomUUID === 'function' 
-          ? crypto.randomUUID() 
-          : Math.random().toString(36).substring(2) + Date.now().toString(36);
-        const trackingPixelUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-email-open?id=${trackingId}`;
-        const trackingPixelHtml = `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+        // Insertamos en email_tracking para obtener el tracking_id
+        const { data: trackingRecord, error: trackingError } = await supabase
+          .from('email_tracking')
+          .insert([{ lead_id: leadId, subject: subject }])
+          .select()
+          .single();
+
+        if (trackingError) {
+          console.error("No se pudo registrar el tracking", trackingError);
+        }
+
+        const trackingId = trackingRecord?.id;
+        const trackingPixelUrl = trackingId 
+          ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-email-open?tracking_id=${trackingId}`
+          : '';
+        const trackingPixelHtml = trackingPixelUrl 
+          ? `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`
+          : '';
 
         // Obtenemos la firma en HTML ligero en lugar de Base64
         const signatureHtml = getSignatureHtml();
@@ -432,6 +472,7 @@ Juan Herrero - TERRAVALL`);
         }
 
         await saveHistory('email', trackingId);
+        await createTaskRecord('email', trackingId);
         setStatus('success');
         setTimeout(onClose, 2000);
       } else {
@@ -493,6 +534,7 @@ Juan Herrero - TERRAVALL`);
         }
 
         await saveHistory('whatsapp');
+        await createTaskRecord('whatsapp');
         setStatus('success');
         setTimeout(onClose, 1000);
       }
