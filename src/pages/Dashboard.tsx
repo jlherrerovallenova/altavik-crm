@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -14,7 +14,8 @@ import {
   Target,
   TrendingUp,
   Wand2,
-  User
+  User,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -54,11 +55,11 @@ export default function Dashboard() {
   } = useDashboardData(session?.user?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'recientes' | 'radar' | 'feedback' | 'inboxia'>('futuras');
+  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'recientes' | 'feedback' | 'inboxia' | 'radar' | 'emails'>('futuras');
   const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<any | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-  const filteredAgenda = agenda.filter(task => {
+  const filteredAgenda = useMemo(() => agenda.filter(task => {
     const matchesSearch =
       task.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -75,13 +76,16 @@ export default function Dashboard() {
     if (activeTab === 'caducadas' && !isOverdue) return false;
     if (activeTab === 'futuras' && isOverdue) return false;
     return true;
-  });
+  }), [agenda, searchQuery, activeTab]);
 
-  const overdueCount = agenda.filter(task => {
+  const overdueCount = useMemo(() => agenda.filter(task => {
     if (task.completed) return false;
     const taskDate = new Date(task.due_date).getTime();
     return taskDate < new Date().getTime();
-  }).length;
+  }).length, [agenda]);
+
+  const sentEmails = useMemo(() => agenda.filter(task => task.type === 'Email'), [agenda]);
+  const unopenedEmailsCount = useMemo(() => sentEmails.filter(e => !e.email_tracking || (e.email_tracking.status !== 'opened' && e.email_tracking.opens_count === 0)).length, [sentEmails]);
 
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
@@ -111,6 +115,33 @@ export default function Dashboard() {
       console.error("Error eliminando tarea:", error);
       refresh();
     }
+  };
+
+  const handleWhatsAppFollowup = (task: AgendaItem) => {
+    const leadName = task.leads?.name || 'Cliente';
+    const phone = task.leads?.phone;
+    const hour = new Date().getHours();
+    const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
+    
+    const message = `${greeting}, ${leadName}:
+
+Soy Juan Herrero, de Terravall, inmobiliaria comercializadora de Residencial Altavik.
+
+Le escribo para confirmar si pudo recibir el dossier informativo de la promoción que le enviamos hace unos días. Si no es así, le agradecería que revisase su carpeta de correo no deseado (SPAM); en caso de que siga sin localizarlo, por favor háganoslo saber y se lo haré llegar de inmediato.
+
+Quedo a su entera disposición para resolver cualquier duda que pueda tener sobre la promoción.
+
+Un cordial saludo,
+
+Juan Herrero
+www.residencialaltavik.com`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = phone 
+      ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`
+      : `https://wa.me/?text=${encodedMessage}`;
+      
+    window.open(whatsappUrl, '_blank');
   };
 
   const getSourceIcon = (sourceName: string) => {
@@ -224,6 +255,13 @@ export default function Dashboard() {
                   onClick={() => setActiveTab('inboxia')} 
                   variant="primary" 
                 />
+                <TabButton 
+                  label="Correos" 
+                  count={unopenedEmailsCount} 
+                  active={activeTab === 'emails'} 
+                  onClick={() => setActiveTab('emails')} 
+                  variant="primary" 
+                />
               </div>
 
               <div className="relative flex-1 w-full">
@@ -286,6 +324,25 @@ export default function Dashboard() {
                   </div>
                 ))
               )
+            ) : activeTab === 'emails' ? (
+              sentEmails.length === 0 ? (
+                <EmptyState icon={<Mail />} title="Sin Correos" subtitle="No hay correos enviados recientemente." />
+              ) : (
+                sentEmails.filter(t => t.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase())).map(task => {
+                  const isUnopened = !task.email_tracking || (task.email_tracking.status !== 'opened' && task.email_tracking.opens_count === 0);
+                  return (
+                    <AgendaListItem 
+                      key={task.id} 
+                      task={task} 
+                      onToggle={() => toggleTask(task)} 
+                      onDelete={() => deleteTask(task.id)} 
+                      onWhatsApp={isUnopened ? () => handleWhatsAppFollowup(task) : undefined}
+                      formatDate={formatDateTime}
+                      hideToggle={true}
+                    />
+                  );
+                })
+              )
             ) : filteredAgenda.length === 0 ? (
               <EmptyState 
                 icon={activeTab === 'caducadas' ? <CheckCircle2 /> : <Calendar />} 
@@ -300,6 +357,7 @@ export default function Dashboard() {
                   onToggle={() => toggleTask(task)} 
                   onDelete={() => deleteTask(task.id)} 
                   formatDate={formatDateTime}
+                  readOnly={activeTab === 'recientes'}
                 />
               ))
             )}

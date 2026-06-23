@@ -1,5 +1,5 @@
 import React from 'react';
-import { Circle, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { Circle, CheckCircle2, AlertCircle, Trash2, MessageCircle } from 'lucide-react';
 
 interface AgendaListItemProps {
   task: {
@@ -20,25 +20,30 @@ interface AgendaListItemProps {
   };
   onToggle: () => void;
   onDelete: () => void;
+  onWhatsApp?: () => void;
   formatDate: (date: string) => string;
+  readOnly?: boolean;
+  hideToggle?: boolean;
 }
 
-export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaListItemProps) {
+export function AgendaListItem({ task, onToggle, onDelete, onWhatsApp, formatDate, readOnly, hideToggle }: AgendaListItemProps) {
   const isOverdue = new Date(task.due_date) < new Date();
   
   return (
     <div className="py-4 flex items-center justify-between group hover:pl-2 transition-all rounded-2xl">
       <div className="flex items-center gap-4">
-        <button
-          onClick={onToggle}
-          className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50 ${
-            task.completed 
-              ? 'bg-emerald-50 border-emerald-100 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600' 
-              : 'border-slate-100 bg-white text-slate-200 hover:border-altavik-500 hover:text-altavik-500'
-          }`}
-        >
-          {task.completed ? <CheckCircle2 size={22} strokeWidth={3} /> : <Circle size={22} strokeWidth={3} />}
-        </button>
+        {!readOnly && !hideToggle && (
+          <button
+            onClick={onToggle}
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50 ${
+              task.completed 
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600' 
+                : 'border-slate-100 bg-white text-slate-200 hover:border-altavik-500 hover:text-altavik-500'
+            }`}
+          >
+            {task.completed ? <CheckCircle2 size={22} strokeWidth={3} /> : <Circle size={22} strokeWidth={3} />}
+          </button>
+        )}
 
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -78,7 +83,7 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
             </span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-400 font-bold">
-            <span className={`truncate ${task.completed ? 'line-through opacity-60' : ''}`}>
+            <span className={`truncate ${task.completed ? 'opacity-60' : ''}`}>
               {(() => {
                 const match = task.title.match(/^(Envío\s+[^:]+):\s*(.*)$/i);
                 if (match) {
@@ -98,14 +103,25 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
         </div>
       </div>
 
-      <div className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1 transform translate-x-3 group-hover:translate-x-0">
-        <button
-          onClick={onDelete}
-          className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-        >
-          <Trash2 size={18} />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1 transform translate-x-3 group-hover:translate-x-0">
+          {onWhatsApp && (
+            <button
+              onClick={onWhatsApp}
+              className="p-2.5 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+              title="Enviar recordatorio por WhatsApp"
+            >
+              <MessageCircle size={18} />
+            </button>
+          )}
+          <button
+            onClick={onDelete}
+            className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
