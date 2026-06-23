@@ -189,7 +189,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                 const tracking = trackingRecords.find(t => t.id === event.metadata.tracking_id);
                 const isOpened = tracking ? (tracking.status === 'opened' || tracking.opens_count > 0) : event.metadata.opened;
                 const opensCount = tracking ? tracking.opens_count : (event.metadata.opened ? 1 : 0);
-                const opensLabel = opensCount > 1 ? ` (${opensCount})` : '';
+                const opensLabel = opensCount > 0 ? ` (${opensCount})` : '';
                 const lastOpenedAt = tracking ? (tracking.last_opened_at || tracking.first_opened_at) : event.metadata.opened_at;
 
                 return (

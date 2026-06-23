@@ -194,7 +194,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     if (task.type !== 'Email' || !task.email_tracking) return null;
     const tracking = task.email_tracking;
     const isOpened = tracking.status === 'opened' || tracking.opens_count > 0;
-    const opensLabel = tracking.opens_count > 1 ? ` (${tracking.opens_count})` : '';
+    const opensLabel = tracking.opens_count > 0 ? ` (${tracking.opens_count})` : '';
     return (
       <span 
         className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${

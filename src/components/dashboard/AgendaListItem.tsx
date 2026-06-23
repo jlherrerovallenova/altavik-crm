@@ -54,7 +54,7 @@ export function AgendaListItem({ task, onToggle, onDelete, formatDate }: AgendaL
             {task.type === 'Email' && task.email_tracking && (() => {
               const tracking = task.email_tracking;
               const isOpened = tracking.status === 'opened' || tracking.opens_count > 0;
-              const opensLabel = tracking.opens_count > 1 ? ` (${tracking.opens_count})` : '';
+              const opensLabel = tracking.opens_count > 0 ? ` (${tracking.opens_count})` : '';
               return (
                 <span 
                   className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${
