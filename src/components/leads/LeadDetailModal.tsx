@@ -635,12 +635,12 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
                     </h3>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-1.5">
-                      <div className="space-y-1 group">
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-12 gap-y-1.5">
+                      <div className="space-y-1 group sm:col-span-8">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
                         <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1 group">
+                      <div className="space-y-1 group sm:col-span-4">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Teléfono</label>
                         <div className="relative w-full group/phone">
                           <input 
@@ -663,11 +663,11 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                           )}
                         </div>
                       </div>
-                      <div className="space-y-1 group">
+                      <div className="space-y-1 group sm:col-span-8">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico</label>
                         <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1 group">
+                      <div className="space-y-1 group sm:col-span-4">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Contacto</label>
                         <CustomSelect
                           value={formData.source}
@@ -676,11 +676,11 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                           className="w-full font-bold"
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 sm:col-span-8">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
                         <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
                       </div>
-                      <div className="space-y-1 group">
+                      <div className="space-y-1 group sm:col-span-4">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Estado Actual</label>
                         <CustomSelect
                           value={formData.status}
@@ -694,7 +694,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                         />
                       </div>
                       {/* MARKETING INTEGRADO */}
-                      <div className="sm:col-span-2 pt-2 border-t border-slate-50 mt-2">
+                      <div className="sm:col-span-12 pt-2 border-t border-slate-50 mt-2">
                         <div className="flex items-center justify-between px-3 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
                           <div className="flex items-center gap-2.5">
                             <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><Bell size={14} /></div>
