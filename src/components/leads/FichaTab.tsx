@@ -352,7 +352,7 @@ export function FichaTab({
           {tasks.filter(t => !t.completed).length > 0 && (
             <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto pr-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <Clock size={10} /> Acciones Programadas ({tasks.filter(t => !t.completed).length})
+                <Clock size={10} /> Acciones pendientes de realizar ({tasks.filter(t => !t.completed).length})
               </p>
               {tasks.filter(t => !t.completed).map(task => (
                 <div key={task.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group">
@@ -416,76 +416,6 @@ export function FichaTab({
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
-                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {/* LISTADO DE ACCIONES REALIZADAS */}
-          {tasks.filter(t => t.completed).length > 0 && (
-            <div className="mt-4 space-y-2 max-h-[200px] overflow-y-auto pr-1 border-t border-slate-100 pt-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <CheckCircle2 size={10} className="text-emerald-500" /> Acciones Realizadas ({tasks.filter(t => t.completed).length})
-              </p>
-              {tasks.filter(t => t.completed).map(task => (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl transition-all opacity-80 group">
-                  <div className="flex items-center gap-3">
-                    <span className="text-emerald-500 shrink-0">
-                      <CheckCircle2 size={18} />
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
-                          task.type === 'Llamada' ? 'bg-blue-50 text-blue-600' :
-                          task.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600' :
-                          task.type === 'Email' ? 'bg-amber-50 text-amber-600' :
-                          'bg-slate-50 text-slate-500'
-                        }`}>
-                          {task.type}
-                        </span>
-                        {renderEmailTrackingBadge(task)}
-                        {(() => {
-                          const { isDocSend, prefix, docs } = parseTaskTitle(task.title);
-                          if (!isDocSend) {
-                            return <h5 className="text-[12px] font-bold text-slate-600">{task.title}</h5>;
-                          }
-                          const isExpanded = !!expandedTasks[task.id];
-                          return (
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2">
-                                <h5 className="text-[12px] font-bold text-slate-600">{prefix}</h5>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleExpand(task.id);
-                                  }}
-                                  className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-500 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 px-2 py-0.5 rounded-lg transition-all"
-                                >
-                                  <span>{docs.length} {docs.length === 1 ? 'documento' : 'documentos'}</span>
-                                  {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-                                </button>
-                              </div>
-                              {isExpanded && (
-                                <div className="mt-1 pl-2 border-l-2 border-slate-200 flex flex-col gap-1">
-                                  {docs.map((doc: any, idx: number) => (
-                                    <span key={idx} className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
-                                      <FileText size={10} className="text-slate-300 shrink-0" />
-                                      <span className="truncate max-w-[300px]">{doc}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-medium">
-                        Realizada el {new Date(task.due_date).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
                   </div>
                 </div>
