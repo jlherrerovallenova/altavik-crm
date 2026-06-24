@@ -423,20 +423,6 @@ export function FichaTab({
             </div>
           )}
         </section>
-
-        {/* NOTAS INTERNAS */}
-        <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1">
-          <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
-            <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
-          </h3>
-          <textarea 
-            name="notes" 
-            value={formData.notes} 
-            onChange={handleChange}
-            placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
-            className="w-full h-full p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[60px]"
-          />
-        </section>
       </div>
 
       {/* PREFERENCIAS WHATSAPP */}

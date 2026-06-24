@@ -58,7 +58,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
   const [firstContactTemplateActive, setFirstContactTemplateActive] = useState(false);
-  const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial'>('ficha');
+  const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial' | 'notas'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
@@ -609,7 +609,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               )}
               {activeTab === 'venta' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-altavik-600 rounded-t-full" />}
             </button>
-            <button
+             <button
               onClick={() => setActiveTab('historial')}
               className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'historial' 
@@ -620,6 +620,18 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               <Clock size={14} />
               HISTORIAL
               {activeTab === 'historial' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-t-full" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('notas')}
+              className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+                activeTab === 'notas' 
+                  ? 'text-emerald-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <StickyNote size={14} />
+              NOTAS Y OBSERVACIONES
+              {activeTab === 'notas' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-600 rounded-t-full" />}
             </button>
           </div>
 
@@ -667,6 +679,23 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
             {activeTab === 'historial' && (
               <div className="max-w-4xl mx-auto py-4">
                 <LeadTimeline leadId={lead.id} />
+              </div>
+            )}
+
+            {activeTab === 'notas' && (
+              <div className="max-w-4xl mx-auto py-4 h-[calc(100vh-320px)] min-h-[300px] flex flex-col animate-in fade-in duration-300">
+                <section className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1 h-full">
+                  <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-3 text-slate-500 uppercase tracking-widest">
+                    <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><StickyNote size={16} /></div> NOTAS Y OBSERVACIONES
+                  </h3>
+                  <textarea 
+                    name="notes" 
+                    value={formData.notes || ''} 
+                    onChange={handleChange}
+                    placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
+                    className="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[200px] h-full"
+                  />
+                </section>
               </div>
             )}
           </div>
