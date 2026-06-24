@@ -796,9 +796,6 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
         updateCommissionPercentage={updateCommissionPercentage}
         savePromoterInvoice={savePromoterInvoice}
       />
-          </div>
-        )}
-      </section>
 
       {/* ── SECCIÓN 5: Recibos mensuales ── */}
       <SaleInstallments
