@@ -421,7 +421,7 @@ Juan Herrero - TERRAVALL`);
           <body style="background-color: #f1f5f9; padding: 40px 20px;">
             <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
               <!-- Header Corporativo -->
-              <div style="background-color: #1e293b; padding: 25px 20px; text-align: center;">
+              <div style="background-color: #ffffff; padding: 25px 20px; text-align: center; border-bottom: 2px solid #6b94b9;">
                 <img src="https://oenaworwtrblkmjvwjfs.supabase.co/storage/v1/object/public/documents/logo-altavik.png" alt="Altavik Residencial" style="height: 65px; max-height: 65px; width: auto; display: inline-block; border: none; outline: none; text-decoration: none;" />
               </div>
 
