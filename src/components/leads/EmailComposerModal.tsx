@@ -274,7 +274,7 @@ Juan Herrero - TERRAVALL`);
   // Eliminada para no saturar EmailJS (Error 422 por payload demasiado grande)
     const getSignatureHtml = (): string => {
     return `
-      <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #1e293b; display: inline-block;">
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 2px solid #6b94b9; display: inline-block;">
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <div style="font-size: 15px; font-weight: 900; color: #1e293b; letter-spacing: 0.08em; text-transform: uppercase;">
             TERRAVALL
