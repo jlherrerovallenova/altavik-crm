@@ -92,3 +92,10 @@
 .animate-fade-in-scale {
   animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Hide native WebKit datepicker controls to avoid duplicate icons in Edge/Chrome */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}

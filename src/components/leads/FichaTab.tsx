@@ -94,7 +94,17 @@ export function FichaTab({
             </div>
             <div className="space-y-1 sm:col-span-8">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha de Alta</label>
-              <input type="date" name="created_at_date" value={formData.created_at_date} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+              <div className="relative">
+                <input 
+                  type="date" 
+                  name="created_at_date" 
+                  value={formData.created_at_date} 
+                  onChange={handleChange} 
+                  onClick={(e) => e.currentTarget.showPicker()}
+                  className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm cursor-pointer pr-10" 
+                />
+                <CalendarIcon size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div className="space-y-1 group sm:col-span-4">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Estado Actual</label>
@@ -305,12 +315,16 @@ export function FichaTab({
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fecha</label>
-                  <input
-                    type="date"
-                    value={newTask.date}
-                    onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-[13px] font-bold text-slate-700 shadow-sm"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={newTask.date}
+                      onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+                      onClick={(e) => e.currentTarget.showPicker()}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 pr-8 text-[13px] font-bold text-slate-700 shadow-sm cursor-pointer"
+                    />
+                    <CalendarIcon size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hora</label>
