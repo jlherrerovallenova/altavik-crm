@@ -96,6 +96,6 @@
 /* Hide native WebKit datepicker controls to avoid duplicate icons in Edge/Chrome */
 input[type="date"]::-webkit-inner-spin-button,
 input[type="date"]::-webkit-calendar-picker-indicator {
-  display: none;
-  -webkit-appearance: none;
+  display: none !important;
+  -webkit-appearance: none !important;
 }
