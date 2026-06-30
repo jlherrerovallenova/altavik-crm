@@ -50,7 +50,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       }
 
       // 3. Actualizar base de datos
-      const { error: dbError } = await supabase
+      const { error: dbError } = await (supabase as any)
         .from('leads')
         .update({ 
           feedback_sent: true,

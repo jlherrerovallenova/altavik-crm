@@ -449,7 +449,7 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
         allPaymentPages.forEach((page) => mergedPdf.addPage(page));
         
         const mergedPdfBytes = await mergedPdf.save();
-        return new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        return new Blob([mergedPdfBytes as unknown as BlobPart], { type: 'application/pdf' });
       } else {
         // CASO IMAGEN: Imagen (Pág 1) -> Forma de Pago (Pág 2)
         const fichaImg = await getBase64Image(property.ficha_url);

@@ -14,9 +14,9 @@ export function ProfileTab() {
     if (!profile?.id) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
-        .update({ full_name: fullName } as any)
+        .update({ full_name: fullName })
         .eq('id', profile.id);
 
       if (error) throw error;

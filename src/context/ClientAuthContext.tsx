@@ -59,7 +59,7 @@ export const ClientAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
 
       // Check if they have a sale
-      const matchedLead = leads[0];
+      const matchedLead = leads[0] as Lead;
       const { data: sales, error: salesError } = await supabase
         .from('sales')
         .select('*')

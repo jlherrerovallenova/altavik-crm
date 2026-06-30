@@ -65,7 +65,7 @@ export function useUpdateAgendaItem() {
 
     return useMutation({
         mutationFn: async ({ id, updates }: { id: number; updates: AgendaUpdate }) => {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('agenda')
                 .update(updates)
                 .eq('id', id);

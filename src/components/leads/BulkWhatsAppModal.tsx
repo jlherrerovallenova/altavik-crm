@@ -51,7 +51,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
           }
         ]);
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',
@@ -67,7 +67,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
         const whatsappUrl = getWhatsAppUrl(lead.phone || '', personalizedMessage);
         window.open(whatsappUrl, '_blank');
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',
@@ -112,7 +112,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
         ]);
         setSentLeads(prev => [...prev, lead.id]);
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',

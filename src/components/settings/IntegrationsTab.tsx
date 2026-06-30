@@ -17,8 +17,8 @@ export function IntegrationsTab() {
 
   const fetchIntegrations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('settings' as any)
+      const { data, error } = await (supabase as any)
+        .from('settings')
         .select('*')
         .in('key', ['resend_api_key', 'unlayer_project_id']);
 

@@ -164,8 +164,8 @@ export function InventoryTab() {
       </div>
 
       <CreatePropertyModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); fetchProperties(); }} />
-      <ImportInventoryModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchProperties(); }} />
-      <UploadFichasModal isOpen={isFichasModalOpen} onClose={() => setIsFichasModalOpen(false)} />
+      <ImportInventoryModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchProperties(); }} onSuccess={() => fetchProperties()} />
+      <UploadFichasModal isOpen={isFichasModalOpen} onClose={() => setIsFichasModalOpen(false)} onSuccess={() => fetchProperties()} />
     </div>
   );
 }

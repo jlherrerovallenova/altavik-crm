@@ -116,7 +116,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
   const logEvent = async (type: string, description: string, metadata = {}) => {
     try {
-      await supabase.from('lead_history').insert([{
+      await (supabase as any).from('lead_history').insert([{
         lead_id: lead.id,
         user_id: session?.user.id,
         event_type: type,
@@ -157,7 +157,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   }, [lead.id]);
 
   async function fetchHistory() {
-    const { data } = await supabase.from('sent_documents').select('*').eq('lead_id', lead.id).order('sent_at', { ascending: false });
+    const { data } = await (supabase as any).from('sent_documents').select('*').eq('lead_id', lead.id).order('sent_at', { ascending: false });
     if (data) setSentHistory(data);
   }
 
@@ -176,7 +176,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
 
   // Cargar tareas de la tabla agenda filtrando por ID del cliente
   async function fetchTasks() {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('agenda')
       .select('*, email_tracking(*)')
       .eq('lead_id', lead.id)

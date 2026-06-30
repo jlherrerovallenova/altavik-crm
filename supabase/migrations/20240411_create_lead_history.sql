@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS public.lead_history (
+CREATE TABLE IF NOT EXISTS public.lead_history (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     lead_id UUID REFERENCES public.leads(id) ON DELETE CASCADE NOT NULL,

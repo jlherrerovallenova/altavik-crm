@@ -96,7 +96,7 @@ export default function EmailComposerModal({
         payload.tracking_id = trackingId;
       }
 
-      await supabase.from('agenda').insert([payload]);
+      await (supabase as any).from('agenda').insert([payload]);
     } catch (error) {
       console.error('Error al crear tarea de agenda:', error);
     }
@@ -142,7 +142,7 @@ Juan Herrero - TERRAVALL`);
 
     if (template.name === 'Recordatorio de Visita') {
       // Buscar la última cita de tipo VISITA del lead
-      const { data: agendaItems } = await supabase
+      const { data: agendaItems } = await (supabase as any)
         .from('agenda')
         .select('*')
         .eq('lead_id', leadId)
@@ -359,7 +359,7 @@ Juan Herrero - TERRAVALL`);
         }
 
         // Insertamos en email_tracking para obtener el tracking_id
-        const { data: trackingRecord, error: trackingError } = await supabase
+        const { data: trackingRecord, error: trackingError } = await (supabase as any)
           .from('email_tracking')
           .insert([{ lead_id: leadId, subject: subject }])
           .select()

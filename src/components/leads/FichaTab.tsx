@@ -2,7 +2,7 @@ import React from 'react';
 import {
   MessageCircle, Globe, Smartphone, Users, MapPin, 
   FileText, Bell, Heart, Star, Send, Mail, Zap, CalendarIcon, 
-  Plus, Pencil, X, Clock, Check, CheckCircle2, ChevronUp, ChevronDown, Trash2, Loader2, StickyNote, Home, Phone
+  Plus, Pencil, Save, X, Clock, Check, CheckCircle2, ChevronUp, ChevronDown, Trash2, Loader2, StickyNote, Home, Phone
 } from 'lucide-react';
 import { CustomSelect } from '../Shared';
 

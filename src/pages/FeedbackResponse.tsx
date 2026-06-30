@@ -19,7 +19,7 @@ export default function FeedbackResponse() {
       }
 
       try {
-        const { error } = await supabase.rpc('submit_lead_feedback', {
+        const { error } = await (supabase as any).rpc('submit_lead_feedback', {
           p_lead_id: leadId,
           p_rating: rating
         });
