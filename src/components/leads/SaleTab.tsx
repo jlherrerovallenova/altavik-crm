@@ -280,7 +280,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     if (!sale) return;
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('promoter_invoices')
         .upsert({
           ...inv,
@@ -301,7 +301,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     if (!sale) return;
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('sales')
         .update({ commission_percentage: percentage })
         .eq('id', sale.id);
@@ -314,7 +314,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       
       for (const inv of promoterInvoices) {
         if (inv.status === 'pending') {
-          await supabase
+          await (supabase as any)
             .from('promoter_invoices')
             .update({ amount: milestoneAmount })
             .eq('id', inv.id);
@@ -395,7 +395,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             paid: false,
           };
         });
-        await supabase.from('installments').insert(rows);
+        await (supabase as any).from('installments').insert(rows);
         await fetchInstallments(sale.id);
       }
 
@@ -413,7 +413,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           .limit(1);
 
         if (!existing || existing.length === 0) {
-          await supabase.from('promoter_invoices').insert({
+          await (supabase as any).from('promoter_invoices').insert({
             sale_id: sale.id,
             milestone: 'contrato',
             amount: milestoneAmount,
@@ -430,7 +430,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           .limit(1);
 
         if (!existing || existing.length === 0) {
-          await supabase.from('promoter_invoices').insert({
+          await (supabase as any).from('promoter_invoices').insert({
             sale_id: sale.id,
             milestone: 'escrituracion',
             amount: milestoneAmount,
@@ -440,7 +440,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
         }
       }
 
-      await supabase.from('sales').update({ sale_status: newStatus }).eq('id', sale.id);
+      await (supabase as any).from('sales').update({ sale_status: newStatus }).eq('id', sale.id);
       await onLeadUpdate({ sale_status: newStatus });
       setSale(prev => prev ? { ...prev, sale_status: newStatus } : null);
       await fetchPromoterInvoices(sale.id);

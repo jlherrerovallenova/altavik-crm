@@ -89,7 +89,7 @@ export default function Dashboard() {
 
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
-    setAgenda(prev => prev.map(t => t.id === task.id ? { ...t, completed: newStatus } : t));
+    setAgenda((prev: AgendaItem[]) => prev.map((t: AgendaItem) => t.id === task.id ? { ...t, completed: newStatus } : t));
     try {
       const { error } = await (supabase as any).from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
       if (error) throw error;
@@ -107,9 +107,9 @@ export default function Dashboard() {
       cancelText: 'Cancelar'
     });
     if (!confirmed) return;
-    setAgenda(prev => prev.filter(t => t.id !== id));
+    setAgenda((prev: AgendaItem[]) => prev.filter((t: AgendaItem) => t.id !== id));
     try {
-      const { error } = await supabase.from('agenda').delete().eq('id', id);
+      const { error } = await (supabase as any).from('agenda').delete().eq('id', id);
       if (error) throw error;
     } catch (error) {
       console.error("Error eliminando tarea:", error);
@@ -305,7 +305,7 @@ www.residencialaltavik.com`;
               autoImportedLeads.length === 0 ? (
                 <EmptyState icon={<Wand2 />} title="Bandeja IA Limpia" subtitle="No hay clientes importados automáticamente de momento." />
               ) : (
-                autoImportedLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
+                autoImportedLeads.filter((l: any) => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map((lead: any) => (
                   <div key={lead.id} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} className="group relative bg-white border border-slate-100 hover:border-indigo-200 shadow-sm hover:shadow-md p-4 rounded-2xl transition-all cursor-pointer flex items-start gap-4 mx-4 my-2">
                     <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
                       <Wand2 size={20} />

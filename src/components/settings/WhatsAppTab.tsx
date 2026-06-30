@@ -6,7 +6,7 @@ import { parseTemplate, type WhatsAppTemplate } from '../../services/whatsappSer
 export const WhatsAppTab: React.FC = () => {
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<Partial<WhatsAppTemplate>>({});
+  const [editingTemplate, setEditingTemplate] = useState<Partial<WhatsAppTemplate & { is_active: boolean }>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -55,8 +55,8 @@ export const WhatsAppTab: React.FC = () => {
     setStatus('idle');
 
     try {
-      const { data, error } = await supabase
-        .from('whatsapp_templates' as any)
+      const { data, error } = await (supabase as any)
+        .from('whatsapp_templates')
         .upsert({
           ...editingTemplate,
           updated_at: new Date().toISOString()

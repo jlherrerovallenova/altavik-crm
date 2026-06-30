@@ -27,7 +27,7 @@ export function useAutoLeadImporter(session: Session | null): AutoImportResult {
 
       try {
         // 1. Obtener correos pendientes que son scaneables por IA
-        const { data: emails, error: emailError } = await supabase
+        const { data: emails, error: emailError } = await (supabase as any)
           .from('incoming_emails')
           .select('*')
           .not('tags', 'cs', '{"Descartado"}')
@@ -70,7 +70,7 @@ export function useAutoLeadImporter(session: Session | null): AutoImportResult {
               if (phoneToCheck) duplicateQueries.push(`phone.eq.${phoneToCheck}`);
 
               if (duplicateQueries.length > 0) {
-                const { data: duplicates } = await supabase
+                const { data: duplicates } = await (supabase as any)
                   .from('leads')
                   .select('id, name')
                   .or(duplicateQueries.join(','));
@@ -83,7 +83,7 @@ export function useAutoLeadImporter(session: Session | null): AutoImportResult {
               if (duplicateLead) {
                 console.log(`⚠️ [Auto IA] El contacto ya existe (${duplicateLead.name}). Vinculando correo...`);
                 // Marcar como procesado y vincular al lead existente
-                await supabase
+                await (supabase as any)
                   .from('incoming_emails')
                   .update({
                     is_processed: true,
@@ -94,7 +94,7 @@ export function useAutoLeadImporter(session: Session | null): AutoImportResult {
               } else {
                 // Crear el lead
                 const formattedName = formatName(extracted.name);
-                const { data: newLead, error: insertError } = await supabase
+                const { data: newLead, error: insertError } = await (supabase as any)
                   .from('leads')
                   .insert([
                     {
@@ -115,7 +115,7 @@ export function useAutoLeadImporter(session: Session | null): AutoImportResult {
                 if (newLead) {
                   console.log(`✅ [Auto IA] Lead creado con éxito: ${formattedName}`);
                   // Vincular correo y marcar como procesado
-                  await supabase
+                  await (supabase as any)
                     .from('incoming_emails')
                     .update({
                       is_processed: true,
