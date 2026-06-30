@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Upload, Download, Trash2, Loader2, Search } from 'lucide-react';
+import { Users, Upload, Download, Trash2, Loader as Loader2, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import { useQueryClient } from '@tanstack/react-query';

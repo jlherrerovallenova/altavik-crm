@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Save, Trash2, MessageCircle, CheckCircle2, Loader2, Info, Layout, Power } from 'lucide-react';
+import { Plus, Save, Trash2, MessageCircle, CircleCheck as CheckCircle2, Loader as Loader2, Info, LayoutGrid as Layout, Power } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { parseTemplate, type WhatsAppTemplate } from '../../services/whatsappService';
 

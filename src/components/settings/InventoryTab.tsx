@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Upload, FileText, Trash2, Home, Loader2 } from 'lucide-react';
+import { Plus, Upload, FileText, Trash2, Hop as Home, Loader as Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import CreatePropertyModal from '../inventory/CreatePropertyModal';

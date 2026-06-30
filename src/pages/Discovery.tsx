@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Loader2, UserPlus, Mail, AlertCircle, CheckCircle2, Wand2, Search, Trash2 } from 'lucide-react';
+import { Sparkles, Loader as Loader2, UserPlus, Mail, CircleAlert as AlertCircle, CircleCheck as CheckCircle2, Wand as Wand2, Search, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { extractLeadDataFromEmail } from '../services/geminiService';
 import { useCreateLead } from '../hooks/useLeads';

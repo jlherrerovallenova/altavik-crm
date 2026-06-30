@@ -1,12 +1,7 @@
 // src/components/leads/SaleTab.tsx
 // Pestaña de gestión del proceso de compra-venta de una vivienda
 import React, { useState, useEffect } from 'react';
-import {
-  Home, User, Users, FileText, Receipt, PenLine,
-  CheckCircle2, Circle, ChevronDown, ChevronUp,
-  Loader2, Save, CalendarDays, BadgeEuro, Download,
-  Upload, Trash2, Eye, Lock
-} from 'lucide-react';
+import { Hop as Home, User, Users, FileText, Receipt, PenLine, CircleCheck as CheckCircle2, Circle, ChevronDown, ChevronUp, Loader as Loader2, Save, CalendarDays, BadgeEuro, Download, Upload, Trash2, Eye, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { generarReservaPdf, generarReservaDocx, type DatosReserva } from '../../utils/generarReserva';
 import { CustomSelect } from '../Shared';

@@ -1,16 +1,6 @@
 // src/components/leads/EmailComposerModal.tsx
 import { useState, useEffect } from 'react';
-import {
-  Mail,
-  MessageCircle,
-  Paperclip,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  Building2,
-  Zap,
-  Layout
-} from 'lucide-react';
+import { Mail, MessageCircle, Paperclip, Loader as Loader2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Building2, Zap, LayoutGrid as Layout } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import { useAuth } from '../../context/AuthContext';

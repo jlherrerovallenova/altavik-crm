@@ -1,6 +1,6 @@
 // src/components/leads/FeedbackEmailModal.tsx
 import { useState } from 'react';
-import { X, Send, CheckCircle2, Loader2, MessageSquareQuote } from 'lucide-react';
+import { X, Send, CircleCheck as CheckCircle2, Loader as Loader2, MessageSquareQuote } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
 import { useDialog } from '../../context/DialogContext';

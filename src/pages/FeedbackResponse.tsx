@@ -1,7 +1,7 @@
 // src/pages/FeedbackResponse.tsx
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CheckCircle2, MessageSquareQuote, MessageCircle, Heart, HelpCircle, XCircle, Loader2 } from 'lucide-react';
+import { CircleCheck as CheckCircle2, MessageSquareQuote, MessageCircle, Heart, Circle as HelpCircle, Circle as XCircle, Loader as Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function FeedbackResponse() {

@@ -1,12 +1,6 @@
 // src/components/leads/LeadDetailModal.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  X, Mail, Phone, Save, Trash2, Loader2, Send,
-  Clock, Compass, MessageCircle, Calendar as CalendarIcon,
-  CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone,
-  ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote,
-  Heart, HelpCircle, XCircle, StickyNote, Check, Home, Zap, User, MapPin, Star
-} from 'lucide-react';
+import { X, Mail, Phone, Save, Trash2, Loader as Loader2, Send, Clock, Compass, MessageCircle, Calendar as CalendarIcon, CircleCheck as CheckCircle2, Circle, Plus, Pencil, RotateCcw, ShoppingCart, Smartphone, ChevronDown, ChevronUp, Globe, Users, FileText, Share, Bell, MessageSquareQuote, Heart, Circle as HelpCircle, Circle as XCircle, StickyNote, Check, Hop as Home, Zap, User, MapPin, Star } from 'lucide-react';
 import FeedbackEmailModal from './FeedbackEmailModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';

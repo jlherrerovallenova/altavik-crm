@@ -1,22 +1,7 @@
 // src/pages/Dashboard.tsx
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Users,
-  Globe,
-  Smartphone,
-  Clock,
-  Calendar,
-  CheckCircle2,
-  Search,
-  Plus,
-  LayoutDashboard,
-  Target,
-  TrendingUp,
-  Wand2,
-  User,
-  Mail
-} from 'lucide-react';
+import { Users, Globe, Smartphone, Clock, Calendar, CircleCheck as CheckCircle2, Search, Plus, LayoutDashboard, Target, TrendingUp, Wand as Wand2, User, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { supabase } from '../lib/supabase';

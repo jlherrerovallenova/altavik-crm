@@ -1,6 +1,6 @@
 // src/components/leads/BulkWhatsAppModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, MessageCircle, User, CheckCircle2, ExternalLink, Loader2, Layout } from 'lucide-react';
+import { X, MessageCircle, User, CircleCheck as CheckCircle2, ExternalLink, Loader as Loader2, LayoutGrid as Layout } from 'lucide-react';
 import type { Database } from '../../types/supabase';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
 import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
