@@ -52,7 +52,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [emailModalMethod, setEmailModalMethod] = useState<'email' | 'whatsapp'>('email');
   const [firstContactTemplateActive, setFirstContactTemplateActive] = useState(false);
-  const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial' | 'notas'>('ficha');
+  const [activeTab, setActiveTab] = useState<'ficha' | 'venta' | 'historial' | 'notas' | 'encuesta'>('ficha');
   const { data: rawDocs = [] } = useDocuments();
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
@@ -627,6 +627,20 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               NOTAS Y OBSERVACIONES
               {activeTab === 'notas' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-600 rounded-t-full" />}
             </button>
+            {lead.survey_data && Object.keys(lead.survey_data).length > 0 && (
+              <button
+                onClick={() => setActiveTab('encuesta')}
+                className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
+                  activeTab === 'encuesta' 
+                    ? 'text-altavik-600 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] ring-1 ring-slate-200/50' 
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                <Send size={14} />
+                RESULTADOS ENCUESTA
+                {activeTab === 'encuesta' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-altavik-600 rounded-t-full" />}
+              </button>
+            )}
           </div>
 
           {/* CONTENIDO PRINCIPAL */}
@@ -689,6 +703,70 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                     placeholder="Anota aquí detalles, preferencias o recordatorios rápidos sobre el cliente..." 
                     className="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 text-[14px] font-medium text-slate-600 italic focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm leading-relaxed flex-1 min-h-[200px] h-full"
                   />
+                </section>
+              </div>
+            )}
+            
+            {activeTab === 'encuesta' && (
+              <div className="max-w-4xl mx-auto py-4 h-[calc(100vh-320px)] min-h-[300px] flex flex-col animate-in fade-in duration-300">
+                <section className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col flex-1 h-full overflow-y-auto custom-scrollbar-hide">
+                  <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-6 text-slate-500 uppercase tracking-widest">
+                    <div className="p-1.5 bg-slate-50 text-slate-600 rounded-xl"><Send size={16} /></div> RESULTADOS DE LA ENCUESTA
+                  </h3>
+                  <div className="space-y-4">
+                    {(lead.survey_data as any).pregunta_1 && (
+                      <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">¿Qué le ha parecido la promoción?</span>
+                        <span className="text-slate-800 font-black">{
+                          {
+                            mas_info: 'Me interesa, quiero más información.',
+                            pensarlo: 'Me interesa, pero necesito tiempo para pensarlo.',
+                            no_encaja: 'No encaja con lo que estoy buscando actualmente.',
+                            encontrado: 'Ya he encontrado otra vivienda.'
+                          }[(lead.survey_data as any).pregunta_1] || (lead.survey_data as any).pregunta_1
+                        }</span>
+                      </div>
+                    )}
+                    {(lead.survey_data as any).pregunta_2 && (
+                      <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">Motivo principal del descarte</span>
+                        <span className="text-slate-800 font-black">{
+                          {
+                            ubicacion: 'Ubicación.',
+                            precio: 'Precio/Presupuesto.',
+                            distribucion: 'Distribución o tamaño de la vivienda.',
+                            plazos: 'Plazos de entrega.',
+                            falta_servicio: 'Falta de algún servicio o característica (ej. terraza, garaje).',
+                            otro: 'Otro.'
+                          }[(lead.survey_data as any).pregunta_2] || (lead.survey_data as any).pregunta_2
+                        }</span>
+                      </div>
+                    )}
+                    {(lead.survey_data as any).pregunta_3 && (
+                      <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">Calificación de la información recibida</span>
+                        <span className="text-slate-800 font-black">{
+                          {
+                            muy_clara: 'Muy clara y completa.',
+                            suficiente: 'Suficiente, pero me faltan algunos detalles.',
+                            poca_info: 'Poca información o difícil de entender.'
+                          }[(lead.survey_data as any).pregunta_3] || (lead.survey_data as any).pregunta_3
+                        }</span>
+                      </div>
+                    )}
+                    {(lead.survey_data as any).pregunta_4 && (
+                      <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
+                        <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">¿Quiere ser contactado?</span>
+                        <span className="text-slate-800 font-black">{
+                          {
+                            si_llamada: 'Sí, por favor (llamadme).',
+                            si_whatsapp: 'Sí, prefiero que me escribáis por WhatsApp/Email.',
+                            no_mirar: 'No, prefiero seguir mirando por mi cuenta de momento.'
+                          }[(lead.survey_data as any).pregunta_4] || (lead.survey_data as any).pregunta_4
+                        }</span>
+                      </div>
+                    )}
+                  </div>
                 </section>
               </div>
             )}

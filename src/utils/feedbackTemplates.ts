@@ -37,18 +37,12 @@ export const getFeedbackEmailTemplate = (clientName: string, promotionName: stri
           <h1>ALTAVIK • TERRAVALL</h1>
         </div>
         <div class="content">
-          <p>Hola <strong>${clientName}</strong>,</p>
-          <p>Hace unos días nos visitaste para conocer más detalles sobre nuestra promoción. Nos encantaría saber tu opinión personal para seguir mejorando y ayudarte en lo que necesites.</p>
+          <p>Estimado/a <strong>${clientName}</strong>,</p>
+          <p>Hace unos días le enviamos la información detallada sobre nuestra promoción <strong>${promotionName}</strong>. Para nosotros es fundamental conocer si la propuesta se ajusta a sus expectativas o si hay algún aspecto en el que podamos mejorar nuestra atención.</p>
+          <p>¿Le gustaría dedicarnos menos de 30 segundos para responder a una breve encuesta de opinión? Sus respuestas son anónimas y nos ayudan a ofrecerle exactamente lo que busca.</p>
           
-          <div class="promotion-card">
-            <h2>PROMOCIÓN VISITADA</h2>
-            <p>${promotionName}</p>
-          </div>
-
-          <div class="actions">
-            <a href="${getFeedbackUrl('positive')}" class="btn btn-primary italic">⭐ ME HA ENCANTADO</a>
-            <a href="${getFeedbackUrl('neutral')}" class="btn btn-secondary italic">🤔 TENGO DUDAS</a>
-            <a href="${getFeedbackUrl('negative')}" class="btn btn-danger italic">❌ NO ES LO QUE BUSCABA</a>
+          <div class="actions" style="margin-top: 40px;">
+            <a href="${getFeedbackUrl('')}" class="btn btn-primary" style="font-size: 16px; padding: 18px 32px;">📝 COMENZAR ENCUESTA</a>
           </div>
         </div>
         <div class="footer">

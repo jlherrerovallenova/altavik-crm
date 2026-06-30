@@ -72,6 +72,7 @@ export interface Database {
           interest_bedrooms: string[] | null
           interest_floor: string[] | null
           client_quality_rating: number | null
+          survey_data: Json | null
         }
         Insert: {
           id?: string
@@ -103,6 +104,7 @@ export interface Database {
           interest_bedrooms?: string[] | null
           interest_floor?: string[] | null
           client_quality_rating?: number | null
+          survey_data?: Json | null
         }
         Update: {
           id?: string
@@ -134,6 +136,7 @@ export interface Database {
           interest_bedrooms?: string[] | null
           interest_floor?: string[] | null
           client_quality_rating?: number | null
+          survey_data?: Json | null
         }
       }
       inventory: {
@@ -668,6 +671,10 @@ export interface Database {
     Functions: {
       submit_lead_feedback: {
         Args: { p_lead_id: string; p_rating: string }
+        Returns: void
+      }
+      submit_lead_survey: {
+        Args: { p_lead_id: string; p_survey_data: Json }
         Returns: void
       }
       increment_email_open: {

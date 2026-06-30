@@ -40,7 +40,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       const { data, error: sendError } = await supabase.functions.invoke('send-email', {
         body: {
           to: lead.email,
-          subject: 'Nos encantaría saber tu opinión - RESIDENCIAL ALTAVIK',
+          subject: 'Una breve opinión sobre Residencial Altavik',
           html: emailHtml,
         },
       });
