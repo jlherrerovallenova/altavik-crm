@@ -1,6 +1,6 @@
 // src/components/leads/FeedbackEmailModal.tsx
 import { useState } from 'react';
-import { X, Send, CheckCircle2, Loader2, MessageSquareQuote } from 'lucide-react';
+import { X, Send, CircleCheck as CheckCircle2, Loader as Loader2, MessageSquareQuote } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
 import { useDialog } from '../../context/DialogContext';
@@ -50,7 +50,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       }
 
       // 3. Actualizar base de datos
-      const { error: dbError } = await supabase
+      const { error: dbError } = await (supabase as any)
         .from('leads')
         .update({ 
           feedback_sent: true,

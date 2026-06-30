@@ -1,12 +1,7 @@
 // src/components/leads/SaleTab.tsx
 // Pestaña de gestión del proceso de compra-venta de una vivienda
 import React, { useState, useEffect } from 'react';
-import {
-  Home, User, Users, FileText, Receipt, PenLine,
-  CheckCircle2, Circle, ChevronDown, ChevronUp,
-  Loader2, Save, CalendarDays, BadgeEuro, Download,
-  Upload, Trash2, Eye, Lock
-} from 'lucide-react';
+import { Hop as Home, User, Users, FileText, Receipt, PenLine, CircleCheck as CheckCircle2, Circle, ChevronDown, ChevronUp, Loader as Loader2, Save, CalendarDays, BadgeEuro, Download, Upload, Trash2, Eye, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { generarReservaPdf, generarReservaDocx, type DatosReserva } from '../../utils/generarReserva';
 import { CustomSelect } from '../Shared';
@@ -280,7 +275,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     if (!sale) return;
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('promoter_invoices')
         .upsert({
           ...inv,
@@ -301,7 +296,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     if (!sale) return;
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('sales')
         .update({ commission_percentage: percentage })
         .eq('id', sale.id);
@@ -314,7 +309,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       
       for (const inv of promoterInvoices) {
         if (inv.status === 'pending') {
-          await supabase
+          await (supabase as any)
             .from('promoter_invoices')
             .update({ amount: milestoneAmount })
             .eq('id', inv.id);
@@ -395,7 +390,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             paid: false,
           };
         });
-        await supabase.from('installments').insert(rows);
+        await (supabase as any).from('installments').insert(rows);
         await fetchInstallments(sale.id);
       }
 
@@ -413,7 +408,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           .limit(1);
 
         if (!existing || existing.length === 0) {
-          await supabase.from('promoter_invoices').insert({
+          await (supabase as any).from('promoter_invoices').insert({
             sale_id: sale.id,
             milestone: 'contrato',
             amount: milestoneAmount,
@@ -430,7 +425,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           .limit(1);
 
         if (!existing || existing.length === 0) {
-          await supabase.from('promoter_invoices').insert({
+          await (supabase as any).from('promoter_invoices').insert({
             sale_id: sale.id,
             milestone: 'escrituracion',
             amount: milestoneAmount,
@@ -440,7 +435,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
         }
       }
 
-      await supabase.from('sales').update({ sale_status: newStatus }).eq('id', sale.id);
+      await (supabase as any).from('sales').update({ sale_status: newStatus }).eq('id', sale.id);
       await onLeadUpdate({ sale_status: newStatus });
       setSale(prev => prev ? { ...prev, sale_status: newStatus } : null);
       await fetchPromoterInvoices(sale.id);

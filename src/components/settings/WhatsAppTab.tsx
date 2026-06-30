@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Save, Trash2, MessageCircle, CheckCircle2, Loader2, Info, Layout, Power } from 'lucide-react';
+import { Plus, Save, Trash2, MessageCircle, CircleCheck as CheckCircle2, Loader as Loader2, Info, LayoutGrid as Layout, Power } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { parseTemplate, type WhatsAppTemplate } from '../../services/whatsappService';
 
 export const WhatsAppTab: React.FC = () => {
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<Partial<WhatsAppTemplate>>({});
+  const [editingTemplate, setEditingTemplate] = useState<Partial<WhatsAppTemplate & { is_active: boolean }>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -55,8 +55,8 @@ export const WhatsAppTab: React.FC = () => {
     setStatus('idle');
 
     try {
-      const { data, error } = await supabase
-        .from('whatsapp_templates' as any)
+      const { data, error } = await (supabase as any)
+        .from('whatsapp_templates')
         .upsert({
           ...editingTemplate,
           updated_at: new Date().toISOString()

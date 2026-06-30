@@ -164,7 +164,7 @@ export function useDashboardData(userId: string | undefined) {
   const { data: autoImportedLeads = [], isLoading: loadingAuto, refetch: refetchAuto } = useQuery({
     queryKey: ['dashboard_auto_imported', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('leads')
         .select('id, name, source, email, phone, status, created_at')
         .like('source', '%(Auto IA)%')

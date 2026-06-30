@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Loader2, Mail, KeyRound, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Save, Loader as Loader2, Mail, KeyRound, Eye, EyeOff, CircleCheck as CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 
@@ -17,8 +17,8 @@ export function IntegrationsTab() {
 
   const fetchIntegrations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('settings' as any)
+      const { data, error } = await (supabase as any)
+        .from('settings')
         .select('*')
         .in('key', ['resend_api_key', 'unlayer_project_id']);
 

@@ -420,6 +420,260 @@ export interface Database {
           lead_id?: string | null
         }
       }
+      lead_history: {
+        Row: {
+          id: string
+          created_at: string
+          lead_id: string
+          user_id: string | null
+          event_type: string
+          description: string
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          lead_id: string
+          user_id?: string | null
+          event_type: string
+          description: string
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          lead_id?: string
+          user_id?: string | null
+          event_type?: string
+          description?: string
+          metadata?: Json | null
+        }
+      }
+      sent_documents: {
+        Row: {
+          id: string
+          created_at: string
+          lead_id: string
+          doc_name: string
+          method: string
+          sent_at: string
+          tracking_id: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          lead_id: string
+          doc_name: string
+          method: string
+          sent_at?: string
+          tracking_id?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          lead_id?: string
+          doc_name?: string
+          method?: string
+          sent_at?: string
+          tracking_id?: string | null
+        }
+      }
+      email_tracking: {
+        Row: {
+          id: string
+          created_at: string
+          lead_id: string | null
+          subject: string | null
+          status: string
+          opens_count: number
+          first_opened_at: string | null
+          last_opened_at: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          lead_id?: string | null
+          subject?: string | null
+          status?: string
+          opens_count?: number
+          first_opened_at?: string | null
+          last_opened_at?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          lead_id?: string | null
+          subject?: string | null
+          status?: string
+          opens_count?: number
+          first_opened_at?: string | null
+          last_opened_at?: string | null
+        }
+      }
+      sale_documents: {
+        Row: {
+          id: string
+          created_at: string
+          sale_id: string
+          name: string
+          file_path: string
+          document_type: string
+          file_size: number
+          uploaded_by: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          sale_id: string
+          name: string
+          file_path: string
+          document_type: string
+          file_size: number
+          uploaded_by?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          sale_id?: string
+          name?: string
+          file_path?: string
+          document_type?: string
+          file_size?: number
+          uploaded_by?: string | null
+        }
+      }
+      whatsapp_templates: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          name: string
+          body: string
+          category: 'system' | 'marketing'
+          is_active: boolean
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          name: string
+          body: string
+          category: 'system' | 'marketing'
+          is_active?: boolean
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          name?: string
+          body?: string
+          category?: 'system' | 'marketing'
+          is_active?: boolean
+        }
+      }
+      wa_conversations: {
+        Row: {
+          id: string
+          created_at: string
+          lead_id: string | null
+          phone: string
+          lead_name: string
+          status: string
+          last_message_at: string
+          last_message_preview: string
+          unread_count: number
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          lead_id?: string | null
+          phone: string
+          lead_name: string
+          status?: string
+          last_message_at?: string
+          last_message_preview?: string
+          unread_count?: number
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          lead_id?: string | null
+          phone?: string
+          lead_name?: string
+          status?: string
+          last_message_at?: string
+          last_message_preview?: string
+          unread_count?: number
+        }
+      }
+      wa_messages: {
+        Row: {
+          id: string
+          created_at: string
+          conversation_id: string
+          wa_message_id: string | null
+          direction: 'inbound' | 'outbound'
+          content: string
+          type: string
+          template_name: string | null
+          status: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          conversation_id: string
+          wa_message_id?: string | null
+          direction: 'inbound' | 'outbound'
+          content: string
+          type?: string
+          template_name?: string | null
+          status?: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          conversation_id?: string
+          wa_message_id?: string | null
+          direction?: 'inbound' | 'outbound'
+          content?: string
+          type?: string
+          template_name?: string | null
+          status?: string
+          sent_at?: string
+        }
+      }
+      settings: {
+        Row: {
+          id: string
+          created_at: string
+          key: string
+          value: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          key: string
+          value?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          key?: string
+          value?: string | null
+        }
+      }
+    }
+    Functions: {
+      submit_lead_feedback: {
+        Args: { p_lead_id: string; p_rating: string }
+        Returns: void
+      }
+      increment_email_open: {
+        Args: { tracking_id: string }
+        Returns: void
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Upload, FileText, Trash2, Home, Loader2 } from 'lucide-react';
+import { Plus, Upload, FileText, Trash2, Hop as Home, Loader as Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import CreatePropertyModal from '../inventory/CreatePropertyModal';
@@ -164,8 +164,8 @@ export function InventoryTab() {
       </div>
 
       <CreatePropertyModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); fetchProperties(); }} />
-      <ImportInventoryModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchProperties(); }} />
-      <UploadFichasModal isOpen={isFichasModalOpen} onClose={() => setIsFichasModalOpen(false)} />
+      <ImportInventoryModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchProperties(); }} onSuccess={() => fetchProperties()} />
+      <UploadFichasModal isOpen={isFichasModalOpen} onClose={() => setIsFichasModalOpen(false)} onSuccess={() => fetchProperties()} />
     </div>
   );
 }

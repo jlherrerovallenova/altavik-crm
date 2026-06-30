@@ -42,7 +42,7 @@ export function useUpdateEmail() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<IncomingEmail> }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('incoming_emails')
         .update(updates)
         .eq('id', id)

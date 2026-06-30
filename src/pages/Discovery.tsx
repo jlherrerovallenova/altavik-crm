@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Loader2, UserPlus, Mail, AlertCircle, CheckCircle2, Wand2, Search, Trash2 } from 'lucide-react';
+import { Sparkles, Loader as Loader2, UserPlus, Mail, CircleAlert as AlertCircle, CircleCheck as CheckCircle2, Wand as Wand2, Search, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { extractLeadDataFromEmail } from '../services/geminiService';
 import { useCreateLead } from '../hooks/useLeads';
@@ -39,7 +39,7 @@ export default function Discovery() {
     setLoading(true);
     try {
       // 1. Obtener TODOS los correos marcados como posible Lead
-      const { data: emails, error: emailError } = await supabase
+      const { data: emails, error: emailError } = await (supabase as any)
         .from('incoming_emails')
         .select('*')
         .not('tags', 'cs', '{"Descartado"}')
@@ -49,20 +49,20 @@ export default function Discovery() {
       if (emailError) throw emailError;
 
       // 2. Obtener todos los emails de leads actuales para cruzar datos
-      const { data: leads, error: leadError } = await supabase
+      const { data: leads, error: leadError } = await (supabase as any)
         .from('leads')
         .select('email');
 
       if (leadError) throw leadError;
 
-      const existingEmails = new Set(leads.map(l => l.email?.toLowerCase()).filter(Boolean));
+      const existingEmails = new Set((leads as any[]).map((l: any) => l.email?.toLowerCase()).filter(Boolean));
 
       // 3. Filtrar según la vista seleccionada (pendientes o importados)
-      const filtered = (emails || []).filter(e => {
+      const filtered = ((emails as any[]) || []).filter((e: any) => {
         const isExisting = existingEmails.has(e.sender_email?.toLowerCase());
         const isImported = e.is_processed || isExisting;
         return viewMode === 'pending' ? !isImported : isImported;
-      }).map(e => ({
+      }).map((e: any) => ({
           emailId: e.id,
           senderName: e.sender_name,
           senderEmail: e.sender_email,
@@ -105,14 +105,14 @@ export default function Discovery() {
       if (phoneToCheck) duplicateQuery.push(`phone.eq.${phoneToCheck}`);
 
       if (duplicateQuery.length > 0) {
-        const { data: duplicates } = await supabase
+        const { data: duplicates } = await (supabase as any)
           .from('leads')
           .select('id, name')
           .or(duplicateQuery.join(','));
 
         if (duplicates && duplicates.length > 0) {
           console.log("⚠️ Duplicado(s) detectado(s):", duplicates);
-          const names = duplicates.map(d => d.name).join(', ');
+          const names = duplicates.map((d: any) => d.name).join(', ');
           const proceed = await showConfirm({
             title: 'Contacto Existente Detectado',
             message: `Gemini ha encontrado que los datos de este contacto coinciden con: ${names}. ¿Quieres marcar el correo como procesado de todas formas?`,
@@ -201,8 +201,7 @@ export default function Discovery() {
       title: `¿Eliminar ${selectedIds.length} entradas?`,
       message: `Vas a eliminar ${selectedIds.length} correos de la lista de descubrimiento. Esta acción no se puede deshacer.`,
       confirmText: 'Sí, eliminar todo',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      cancelText: 'Cancelar'
     });
 
     if (!confirmed) return;
@@ -217,7 +216,7 @@ export default function Discovery() {
 
       if (currentEmails) {
         for (const email of currentEmails) {
-          await supabase
+          await (supabase as any)
             .from('incoming_emails')
             .update({ tags: [...(email.tags || []), 'Descartado'] })
             .eq('id', email.id);
@@ -250,8 +249,7 @@ export default function Discovery() {
       title: '¿Eliminar entrada?',
       message: 'Esta acción eliminará el correo de la lista de descubrimiento. No se creará ningún contacto.',
       confirmText: 'Sí, eliminar',
-      cancelText: 'Cancelar',
-      variant: 'danger'
+      cancelText: 'Cancelar'
     });
 
     if (!confirmed) return;
@@ -264,7 +262,7 @@ export default function Discovery() {
         .eq('id', emailId)
         .single();
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('incoming_emails')
         .update({ tags: [...(emailData?.tags || []), 'Descartado'] })
         .eq('id', emailId);

@@ -45,26 +45,26 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
       setLoading(true);
       
       // 1. Fetch de tabla lead_history (logs explícitos)
-      const { data: historyData } = await supabase
+      const { data: historyData } = await (supabase as any)
         .from('lead_history')
         .select('*')
         .eq('lead_id', leadId);
 
       // 2. Fetch de tabla agenda (tareas completadas)
-      const { data: tasksData } = await supabase
+      const { data: tasksData } = await (supabase as any)
         .from('agenda')
         .select('*')
         .eq('lead_id', leadId)
         .eq('completed', true);
 
       // 3. Fetch de documentos enviados
-      const { data: docsData } = await supabase
+      const { data: docsData } = await (supabase as any)
         .from('sent_documents')
         .select('*')
         .eq('lead_id', leadId);
 
       // 4. Fetch de email_tracking
-      const { data: trackingData } = await supabase
+      const { data: trackingData } = await (supabase as any)
         .from('email_tracking')
         .select('*')
         .eq('lead_id', leadId);
@@ -74,7 +74,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
       }
 
       // 5. Datos del propio lead (Creación)
-      const { data: leadData } = await supabase
+      const { data: leadData } = await (supabase as any)
         .from('leads')
         .select('created_at, source')
         .eq('id', leadId)
@@ -93,7 +93,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
         });
       }
 
-      tasksData?.forEach(task => {
+      tasksData?.forEach((task: any) => {
         allEvents.push({
           id: `task-${task.id}`,
           created_at: task.due_date,
@@ -103,7 +103,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
         });
       });
 
-      docsData?.forEach(doc => {
+      docsData?.forEach((doc: any) => {
         allEvents.push({
           id: `doc-${doc.id}`,
           created_at: doc.sent_at,
@@ -113,7 +113,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
         });
       });
 
-      historyData?.forEach(h => {
+      historyData?.forEach((h: any) => {
         allEvents.push({
           id: h.id,
           created_at: h.created_at,

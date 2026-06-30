@@ -1,6 +1,6 @@
 // src/components/leads/BulkWhatsAppModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, MessageCircle, User, CheckCircle2, ExternalLink, Loader2, Layout } from 'lucide-react';
+import { X, MessageCircle, User, CircleCheck as CheckCircle2, ExternalLink, Loader as Loader2, LayoutGrid as Layout } from 'lucide-react';
 import type { Database } from '../../types/supabase';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
 import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI } from '../../services/whatsappService';
@@ -51,7 +51,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
           }
         ]);
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',
@@ -67,7 +67,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
         const whatsappUrl = getWhatsAppUrl(lead.phone || '', personalizedMessage);
         window.open(whatsappUrl, '_blank');
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',
@@ -112,7 +112,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
         ]);
         setSentLeads(prev => [...prev, lead.id]);
 
-        await supabase.from('lead_history').insert([{
+        await (supabase as any).from('lead_history').insert([{
           lead_id: lead.id,
           user_id: session?.user.id,
           event_type: 'whatsapp',

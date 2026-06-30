@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Upload, Download, Trash2, Loader2, Search } from 'lucide-react';
+import { Users, Upload, Download, Trash2, Loader as Loader2, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -52,8 +52,8 @@ export function ClientsTab() {
     setIsDeleting(true);
     try {
       // 1. Borrar historial y tareas
-      await supabase.from('lead_history').delete().eq('lead_id', leadToDelete);
-      await supabase.from('agenda').delete().eq('lead_id', leadToDelete);
+      await (supabase as any).from('lead_history').delete().eq('lead_id', leadToDelete);
+      await (supabase as any).from('agenda').delete().eq('lead_id', leadToDelete);
 
       // 2. Borrar el lead
       const { error } = await supabase.from('leads').delete().eq('id', leadToDelete);
@@ -155,7 +155,7 @@ export function ClientsTab() {
         </div>
       </div>
 
-      <ImportLeadsModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchLeads(); }} />
+      <ImportLeadsModal isOpen={isImportModalOpen} onClose={() => { setIsImportModalOpen(false); fetchLeads(); }} onSuccess={() => fetchLeads()} />
       <ExportLeadsModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} />
       <DuplicateLeadsModal isOpen={isDuplicateModalOpen} onClose={() => { setIsDuplicateModalOpen(false); fetchLeads(); }} />
     </div>

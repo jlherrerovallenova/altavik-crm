@@ -55,7 +55,7 @@ export const summarizeLeadWithCopilot = async (
       }
     });
 
-    const textResult = response.text();
+    const textResult = response.text;
     if (!textResult) return null;
 
     const parsed = JSON.parse(textResult);
