@@ -68,6 +68,20 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-altavik-600 to-altavik-800;
   }
 
+  /* Reducir el grosor de las fuentes en toda la app para hacerla más elegante y legible */
+  .font-black {
+    font-weight: 700 !important; /* De 900 (ultra-bold) a 700 (bold estándar) */
+  }
+  .font-extrabold {
+    font-weight: 700 !important; /* De 800 a 700 */
+  }
+  .font-bold {
+    font-weight: 600 !important; /* De 700 a 600 (semibold) */
+  }
+  .font-semibold {
+    font-weight: 500 !important; /* De 600 a 500 (medium) */
+  }
+
   /* Custom Scrollbar Premium */
   ::-webkit-scrollbar {
     width: 6px;
