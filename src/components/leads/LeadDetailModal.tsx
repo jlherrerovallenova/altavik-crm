@@ -718,12 +718,12 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
                         <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">¿Qué le ha parecido la promoción?</span>
                         <span className="text-slate-800 font-black">{
-                          {
+                          ({
                             mas_info: 'Me interesa, quiero más información.',
                             pensarlo: 'Me interesa, pero necesito tiempo para pensarlo.',
                             no_encaja: 'No encaja con lo que estoy buscando actualmente.',
                             encontrado: 'Ya he encontrado otra vivienda.'
-                          }[(lead.survey_data as any).pregunta_1] || (lead.survey_data as any).pregunta_1
+                          } as Record<string, string>)[(lead.survey_data as any).pregunta_1] || (lead.survey_data as any).pregunta_1
                         }</span>
                       </div>
                     )}
@@ -731,14 +731,14 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
                         <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">Motivo principal del descarte</span>
                         <span className="text-slate-800 font-black">{
-                          {
+                          ({
                             ubicacion: 'Ubicación.',
                             precio: 'Precio/Presupuesto.',
                             distribucion: 'Distribución o tamaño de la vivienda.',
                             plazos: 'Plazos de entrega.',
                             falta_servicio: 'Falta de algún servicio o característica (ej. terraza, garaje).',
                             otro: 'Otro.'
-                          }[(lead.survey_data as any).pregunta_2] || (lead.survey_data as any).pregunta_2
+                          } as Record<string, string>)[(lead.survey_data as any).pregunta_2] || (lead.survey_data as any).pregunta_2
                         }</span>
                       </div>
                     )}
@@ -746,11 +746,11 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
                         <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">Calificación de la información recibida</span>
                         <span className="text-slate-800 font-black">{
-                          {
+                          ({
                             muy_clara: 'Muy clara y completa.',
                             suficiente: 'Suficiente, pero me faltan algunos detalles.',
                             poca_info: 'Poca información o difícil de entender.'
-                          }[(lead.survey_data as any).pregunta_3] || (lead.survey_data as any).pregunta_3
+                          } as Record<string, string>)[(lead.survey_data as any).pregunta_3] || (lead.survey_data as any).pregunta_3
                         }</span>
                       </div>
                     )}
@@ -758,11 +758,11 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
                       <div className="bg-slate-50/70 p-4 rounded-xl text-sm border border-slate-100">
                         <span className="font-bold text-slate-400 uppercase tracking-widest block mb-1 text-[10px]">¿Quiere ser contactado?</span>
                         <span className="text-slate-800 font-black">{
-                          {
+                          ({
                             si_llamada: 'Sí, por favor (llamadme).',
                             si_whatsapp: 'Sí, prefiero que me escribáis por WhatsApp/Email.',
                             no_mirar: 'No, prefiero seguir mirando por mi cuenta de momento.'
-                          }[(lead.survey_data as any).pregunta_4] || (lead.survey_data as any).pregunta_4
+                          } as Record<string, string>)[(lead.survey_data as any).pregunta_4] || (lead.survey_data as any).pregunta_4
                         }</span>
                       </div>
                     )}

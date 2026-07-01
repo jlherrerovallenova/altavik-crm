@@ -17,10 +17,14 @@ export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
   const hasFeedback = !!lead.feedback_rating;
   
   const ratingCfg = {
+    mas_info: { icon: <Heart size={14} className="text-pink-500" />, label: 'Me interesa', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+    pensarlo: { icon: <HelpCircle size={14} className="text-amber-500" />, label: 'Necesito pensarlo', color: 'bg-amber-50 text-amber-700 border-amber-100' },
+    no_encaja: { icon: <XCircle size={14} className="text-slate-400" />, label: 'No encaja', color: 'bg-slate-50 text-slate-600 border-slate-200' },
+    encontrado: { icon: <XCircle size={14} className="text-slate-400" />, label: 'Ya compró/alquiló', color: 'bg-slate-50 text-slate-600 border-slate-200' },
     positive: { icon: <Heart size={14} className="text-pink-500" />, label: 'Me ha encantado', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
     neutral: { icon: <HelpCircle size={14} className="text-amber-500" />, label: 'Tengo dudas', color: 'bg-amber-50 text-amber-700 border-amber-100' },
     negative: { icon: <XCircle size={14} className="text-slate-400" />, label: 'No es lo que buscaba', color: 'bg-slate-50 text-slate-600 border-slate-200' },
-  }[lead.feedback_rating as 'positive' | 'neutral' | 'negative'] || null;
+  }[lead.feedback_rating as string] || null;
 
   return (
     <div className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:pl-2 transition-all rounded-2xl ${hasFeedback ? 'bg-slate-50/50 px-4 mb-2 border border-slate-100' : ''}`}>

@@ -4,6 +4,7 @@ import { X, Send, CircleCheck as CheckCircle2, Loader as Loader2, MessageSquareQ
 import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
 import { useDialog } from '../../context/DialogContext';
+import { useAuth } from '../../context/AuthContext';
 import emailjs from '@emailjs/browser';
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
+  const { session } = useAuth();
 
   if (!isOpen) return null;
 
@@ -59,6 +61,24 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
         .eq('id', lead.id);
 
       if (dbError) throw dbError;
+
+      // 4. Registrar en el historial del lead
+      const { error: historyError } = await (supabase as any)
+        .from('lead_history')
+        .insert([{
+          lead_id: lead.id,
+          user_id: session?.user?.id,
+          event_type: 'email',
+          description: 'Solicitud de opinión de Residencial Altavik enviada al cliente.',
+          metadata: {
+            type: 'survey_request',
+            sent_at: new Date().toISOString()
+          }
+        }]);
+
+      if (historyError) {
+        console.error('Error logging survey send to lead_history:', historyError);
+      }
 
       await showAlert({ 
         title: '¡Email Enviado!', 

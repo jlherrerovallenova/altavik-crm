@@ -29,6 +29,7 @@ const EVENT_CONFIG: Record<string, { icon: any; color: string; label: string }> 
   whatsapp: { icon: MessageSquare, color: 'bg-green-100 text-green-600', label: 'WhatsApp' },
   document: { icon: FileText, color: 'bg-red-100 text-red-600', label: 'Documentación' },
   note: { icon: StickyNote, color: 'bg-slate-100 text-slate-600', label: 'Nota Interna' },
+  feedback: { icon: MessageSquare, color: 'bg-pink-100 text-pink-600', label: 'Encuesta' },
 };
 
 export default function LeadTimeline({ leadId }: { leadId: string }) {
