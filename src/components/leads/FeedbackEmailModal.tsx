@@ -21,7 +21,7 @@ interface Props {
 
 export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
-  const { showAlert } = useDialog();
+  const { showAlert, showConfirm } = useDialog();
   const { session } = useAuth();
 
   if (!isOpen) return null;
@@ -30,6 +30,16 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
     if (!lead.email) {
       await showAlert({ title: 'Error', message: 'El cliente no tiene un correo electrónico registrado.' });
       return;
+    }
+
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      const proceed = await showConfirm({
+        title: 'Advertencia: Entorno Local',
+        message: 'Estás ejecutando la aplicación en modo local (localhost). Si envías esta encuesta, el enlace apuntará a tu equipo y no funcionará para el cliente. ¿Deseas enviarla de todos modos?',
+        confirmText: 'Enviar de todos modos',
+        cancelText: 'Cancelar',
+      });
+      if (!proceed) return;
     }
 
     setLoading(true);

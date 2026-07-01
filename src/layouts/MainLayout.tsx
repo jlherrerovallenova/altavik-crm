@@ -24,7 +24,8 @@ import {
   BarChart3,
   Sparkles,
   Command,
-  BadgeDollarSign
+  BadgeDollarSign,
+  MessageSquareQuote
 } from 'lucide-react';
 import CommandPalette from '../components/ui/CommandPalette';
 import { useAgendaAlerts } from '../hooks/useAgendaAlerts';
@@ -257,6 +258,7 @@ export default function MainLayout() {
           <SidebarItem to="/whatsapp" icon={<MessageSquare size={18} />} label="WhatsApp" active={location.pathname === '/whatsapp'} onClick={closeSidebar} badge={waUnseen > 0 ? waUnseen : undefined} />
           
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-6">Gestión</p>
+          <SidebarItem to="/surveys" icon={<MessageSquareQuote size={18} />} label="Encuestas" active={location.pathname.startsWith('/surveys')} onClick={closeSidebar} />
           <SidebarItem to="/newsletters" icon={<Mail size={18} />} label="Newsletters" active={location.pathname.startsWith('/newsletters')} onClick={closeSidebar} />
           <SidebarItem to="/settings" icon={<Settings size={18} />} label="Configuración" active={location.pathname === '/settings'} onClick={closeSidebar} />
         </nav>
