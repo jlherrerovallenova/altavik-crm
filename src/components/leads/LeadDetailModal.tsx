@@ -538,7 +538,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
   return (
     <>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-        <div className="bg-white w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
+        <div className="bg-white w-full max-w-6xl rounded-none sm:rounded-2xl shadow-2xl overflow-hidden h-full sm:h-auto sm:max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
           
           {/* HEADER PREMIUM */}
           <div className="shrink-0 px-5 sm:px-8 py-3 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
