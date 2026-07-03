@@ -537,11 +537,11 @@ Juan Herrero - TERRAVALL`);
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200">
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-slate-200">
 
         {/* HEADER */}
-        <div className="bg-altavik-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-altavik-600 px-4 sm:px-6 py-4 flex items-center justify-between shrink-0">
           <div>
             <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Enviar a</p>
             <h2 className="text-white font-bold text-base leading-tight">{leadName}</h2>
@@ -563,10 +563,10 @@ Juan Herrero - TERRAVALL`);
           </div>
         </div>
 
-        <form onSubmit={handleSend} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSend} className="flex flex-col flex-1 overflow-hidden">
 
-          {/* CAMPOS */}
-          <div className="space-y-4">
+          {/* CAMPOS (Scrollable) */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar">
             {method === 'email' && (
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Asunto</label>
@@ -590,15 +590,16 @@ Juan Herrero - TERRAVALL`);
                 // Modo Cloud API: preview read-only de la plantilla aprobada en Meta
                 <div className="mt-1.5 rounded-xl overflow-hidden border border-emerald-200">
                   {/* Badge Cloud API */}
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border-b border-emerald-200">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Cloud API Activa</span>
-                    <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-mono">{META_PRIMER_CONTACTO_TEMPLATE}</span>
+                  <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-emerald-50 border-b border-emerald-200">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest hidden sm:inline">Cloud API Activa</span>
+                    <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest sm:hidden">Cloud API</span>
+                    <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-mono max-w-[120px] sm:max-w-none truncate">{META_PRIMER_CONTACTO_TEMPLATE}</span>
                   </div>
                   {/* Texto de la plantilla */}
-                  <div className="px-4 py-4 bg-white">
+                  <div className="px-3 sm:px-4 py-4 bg-white">
                     <p className="text-[11px] text-slate-400 font-medium mb-3 italic">Este mensaje se enviará directamente al cliente sin abrir el navegador:</p>
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                    <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
                       <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">{META_PRIMER_CONTACTO_BODY}</p>
                     </div>
                     <p className="text-[10px] text-slate-400 mt-3">📌 Pie de página: <span className="font-semibold">Terravall · Plaza Mayor 8 1ºA · 983342132</span></p>
@@ -607,7 +608,7 @@ Juan Herrero - TERRAVALL`);
               ) : (
                 // Modo email: textarea editable normal
                 <textarea
-                  rows={10}
+                  rows={8}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300/30 focus:border-slate-400 outline-none font-medium text-sm text-slate-700 resize-y transition-all"
@@ -617,23 +618,25 @@ Juan Herrero - TERRAVALL`);
           </div>
 
           {method === 'email' && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
+            <div className="pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Documentación a enviar</label>
-                <div className="relative">
-                  <input type="file" multiple id="customFile" className="hidden" onChange={handleFileUpload} />
-                  <label htmlFor="customFile" className="text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-altavik-200 hover:bg-altavik-50 px-3 py-1.5 rounded-md transition-all">
-                    {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo suelto
-                  </label>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-none">
+                    <input type="file" multiple id="customFile" className="hidden" onChange={handleFileUpload} />
+                    <label htmlFor="customFile" className="w-full justify-center text-[10px] font-bold text-altavik-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-altavik-200 hover:bg-altavik-50 px-3 py-2 sm:py-1.5 rounded-md transition-all">
+                      {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Paperclip size={12} />} Subir un archivo
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsPropertySelectorOpen(true)}
+                    disabled={isGeneratingFichas}
+                    className="flex-1 sm:flex-none justify-center text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-blue-200 hover:bg-blue-50 px-3 py-2 sm:py-1.5 rounded-md transition-all"
+                  >
+                    {isGeneratingFichas ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />} Añadir Ficha
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPropertySelectorOpen(true)}
-                  disabled={isGeneratingFichas}
-                  className="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1 cursor-pointer bg-white border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-md transition-all ml-2"
-                >
-                  {isGeneratingFichas ? <Loader2 size={12} className="animate-spin" /> : <Building2 size={12} />} Añadir Ficha de Vivienda
-                </button>
               </div>
               
               {customDocs.length > 0 && (
@@ -641,7 +644,7 @@ Juan Herrero - TERRAVALL`);
                   <div className="bg-altavik-50 px-4 py-2 border-b border-altavik-200 flex justify-between items-center">
                     <h4 className="text-[10px] font-black text-altavik-700 uppercase tracking-wider">Archivos Locales (Sueltos)</h4>
                   </div>
-                  <div className="grid grid-cols-2 gap-px bg-slate-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-100">
                     {customDocs.map((doc, idx) => {
                       const isSelected = selectedDocs.find(d => d.url === doc.url);
                       return (
@@ -668,7 +671,7 @@ Juan Herrero - TERRAVALL`);
                 <div className="bg-slate-50 px-4 py-2 border-b border-slate-200">
                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Repositorio de Archivos</h4>
                 </div>
-                <div className="grid grid-cols-2 gap-px bg-slate-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-100">
                   {availableDocs.map((doc, idx) => {
                     const isSelected = selectedDocs.find(d => d.url === doc.url);
                     return (
@@ -694,39 +697,39 @@ Juan Herrero - TERRAVALL`);
               )}
             </div>
           )}
-
+          </div> {/* Fin de los campos (Scrollable) */}
 
           {/* FOOTER */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-            <div className="flex-1">
+          <div className="shrink-0 p-4 sm:p-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white z-10">
+            <div className="flex-1 w-full sm:w-auto text-center sm:text-left">
               {status === 'success' && (
-                <div className="flex items-center gap-2 text-altavik-600 font-bold text-sm">
+                <div className="flex items-center justify-center sm:justify-start gap-2 text-altavik-600 font-bold text-sm">
                   <CheckCircle2 size={17} /> ¡Enviado correctamente!
                 </div>
               )}
               {status === 'error' && (
-                <div className="flex items-center gap-2 text-red-500 font-bold text-sm">
+                <div className="flex items-center justify-center sm:justify-start gap-2 text-red-500 font-bold text-sm">
                   <AlertCircle size={17} /> Error al procesar el envío
                 </div>
               )}
             </div>
 
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2 shrink-0 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 text-slate-500 font-semibold text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                className="flex-1 sm:flex-none justify-center px-5 py-3 sm:py-2.5 text-slate-500 font-semibold text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading || status === 'success'}
-                className={`px-6 py-2.5 rounded-lg font-bold text-sm text-white flex items-center gap-2 transition-all active:scale-95 disabled:opacity-60 shadow-sm ${
+                className={`flex-1 sm:flex-none justify-center px-6 py-3 sm:py-2.5 rounded-lg font-bold text-sm text-white flex items-center gap-2 transition-all active:scale-95 disabled:opacity-60 shadow-sm ${
                   method === 'email' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-altavik-600 hover:bg-altavik-700'
                 }`}
               >
-                {loading ? <Loader2 className="animate-spin" size={16} /> : (method === 'whatsapp' ? 'Enviar Mensaje' : 'Enviar Documentación')}
+                {loading ? <Loader2 className="animate-spin" size={16} /> : (method === 'whatsapp' ? 'Enviar' : 'Enviar Documentos')}
               </button>
             </div>
           </div>
