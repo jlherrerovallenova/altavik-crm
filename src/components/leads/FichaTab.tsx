@@ -38,16 +38,16 @@ export function FichaTab({
   renderEmailTrackingBadge, expandedTasks, toggleExpand, parseTaskTitle, startEditingTask, deleteTask, loading, waData
 }: FichaTabProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
       {/* COLUMNA IZQUIERDA */}
-      <div className="lg:col-start-1 lg:col-end-8 lg:row-start-1 lg:row-span-2 flex flex-col gap-3">
+      <div className="md:col-start-1 md:col-end-8 md:row-start-1 md:row-span-2 flex flex-col gap-3">
         {/* DATOS DEL LEAD */}
         <section className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm transition-all hover:shadow-md flex flex-col justify-between">
           <h3 className="text-xs font-bold text-[#1e293b] flex items-center gap-2.5 mb-2 text-slate-500 uppercase tracking-widest">
             <div className="p-1.5 bg-blue-50 text-blue-600 rounded-xl"><FileText size={16} /></div> DATOS DEL CONTACTO
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-12 gap-y-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-x-4 md:gap-x-6 lg:gap-x-8 gap-y-1.5">
             <div className="space-y-1 group sm:col-span-8">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Nombre Completo</label>
               <input name="name" value={formData.name} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
@@ -225,10 +225,10 @@ export function FichaTab({
       </div>
 
       {/* COLUMNA DERECHA */}
-      <div className="lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:row-span-2 flex flex-col gap-4">
+      <div className="md:col-start-8 md:col-end-13 md:row-start-1 md:row-span-2 flex flex-col gap-4">
         {/* ACCIONES DE CONTACTO Y FEEDBACK */}
         <section>
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 md:grid-cols-4 gap-2">
             
             {/* WhatsApp */}
             <button 
