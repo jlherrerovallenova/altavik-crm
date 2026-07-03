@@ -615,7 +615,6 @@ Juan Herrero - TERRAVALL`);
                 />
               )}
             </div>
-          </div>
 
           {method === 'email' && (
             <div className="pb-4">
