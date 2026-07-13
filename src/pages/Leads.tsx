@@ -188,6 +188,7 @@ export default function Leads() {
                    { id: '', label: 'Cualquier Origen' },
                    { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
                    { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
+                   { id: 'Google SEM', label: 'Google SEM', icon: Search, color: 'text-blue-600' },
                    { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
                    { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
                    { id: 'Llamada', label: 'Llamada', icon: Phone, color: 'text-green-500' },

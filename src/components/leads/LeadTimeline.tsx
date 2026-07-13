@@ -36,6 +36,11 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [trackingRecords, setTrackingRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedEmails, setExpandedEmails] = useState<Record<string, boolean>>({});
+
+  const toggleEmailExpand = (eventId: string) => {
+    setExpandedEmails(prev => ({ ...prev, [eventId]: !prev[eventId] }));
+  };
 
   useEffect(() => {
     fetchAggregatedEvents();
@@ -217,6 +222,29 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                   </div>
                 );
               })()}
+              
+              {(event.event_type === 'email' || event.event_type === 'document' || event.event_type === 'whatsapp') && event.metadata?.body && (
+                <div className="mt-3 border-t border-slate-100 pt-2.5">
+                  {event.metadata.subject && (
+                    <p className="text-[11px] text-slate-500 font-bold mb-1">
+                      Asunto: <span className="font-semibold text-slate-700">{event.metadata.subject}</span>
+                    </p>
+                  )}
+                  <div className="mt-1">
+                    <button
+                      onClick={() => toggleEmailExpand(event.id)}
+                      className="text-[10px] font-black text-altavik-600 hover:text-altavik-700 flex items-center gap-1 cursor-pointer bg-altavik-50 hover:bg-altavik-100/80 px-2.5 py-1 rounded-lg transition-all"
+                    >
+                      {expandedEmails[event.id] ? 'Ocultar mensaje' : 'Ver mensaje completo'}
+                    </button>
+                    {expandedEmails[event.id] && (
+                      <div className="mt-2.5 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-100 text-[12px] text-slate-600 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto font-medium">
+                        {event.metadata.body}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );

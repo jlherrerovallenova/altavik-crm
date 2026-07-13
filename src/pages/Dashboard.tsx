@@ -138,6 +138,7 @@ www.residencialaltavik.com`;
         </div>
       );
     }
+    if (lower.includes('google sem') || lower.includes('sem')) return <Search />;
     if (lower.includes('web')) return <Globe />;
     if (lower.includes('insta')) return <Smartphone />;
     if (lower.includes('referido')) return <Users />;

@@ -155,7 +155,16 @@ export function FichaTab({
                           key={bed}
                           onClick={() => {
                             const current = formData.interest_bedrooms;
-                            setFormData({ ...formData, interest_bedrooms: isSelected ? current.filter((v: string) => v !== bed) : [...current, bed] });
+                            const nextBedrooms = isSelected ? current.filter((v: string) => v !== bed) : [...current, bed];
+                            const hasInterest = nextBedrooms.length > 0 || formData.interest_floor.length > 0;
+                            const shouldPromote = !formData.status || formData.status === 'new' || formData.status === 'contacted';
+                            const nextStatus = (hasInterest && shouldPromote) ? 'qualified' : formData.status;
+                            
+                            setFormData({ 
+                              ...formData, 
+                              interest_bedrooms: nextBedrooms,
+                              status: nextStatus
+                            });
                           }}
                           className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all border ${
                             isSelected 
@@ -179,7 +188,16 @@ export function FichaTab({
                           key={floor}
                           onClick={() => {
                             const current = formData.interest_floor;
-                            setFormData({ ...formData, interest_floor: isSelected ? current.filter((v: string) => v !== floor) : [...current, floor] });
+                            const nextFloor = isSelected ? current.filter((v: string) => v !== floor) : [...current, floor];
+                            const hasInterest = formData.interest_bedrooms.length > 0 || nextFloor.length > 0;
+                            const shouldPromote = !formData.status || formData.status === 'new' || formData.status === 'contacted';
+                            const nextStatus = (hasInterest && shouldPromote) ? 'qualified' : formData.status;
+                            
+                            setFormData({ 
+                              ...formData, 
+                              interest_floor: nextFloor,
+                              status: nextStatus
+                            });
                           }}
                           className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all border ${
                             isSelected 

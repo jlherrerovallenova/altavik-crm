@@ -319,6 +319,8 @@ Juan Herrero - TERRAVALL`);
         metadata: { 
           method: sentMethod, 
           docs: selectedDocs.map(d => d.name),
+          body: message,
+          ...(sentMethod === 'email' ? { subject: subject } : {}),
           ...(trackingId ? { tracking_id: trackingId, opened: false } : {})
         }
       }]);

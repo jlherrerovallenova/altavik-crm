@@ -413,6 +413,7 @@ export default function LeadDetail() {
                     >
                       <option value="Idealista">Idealista</option>
                       <option value="Web">Web</option>
+                      <option value="Google SEM">Google SEM</option>
                       <option value="Redes Sociales">Redes Sociales</option>
                       <option value="Referido">Referido</option>
                       <option value="Otro">Otro</option>

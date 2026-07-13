@@ -1,6 +1,6 @@
 // src/components/leads/CreateLeadModal.tsx
 import { useState } from 'react';
-import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
+import { X, Loader2, AlertCircle, ClipboardPaste, Sparkles, Globe, Users, Plus, Smartphone, ChevronDown, ChevronUp, MapPin, Search } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { CustomSelect, IdealistaIcon } from '../Shared';
@@ -16,6 +16,7 @@ import { useCreateLead } from '../../hooks/useLeads';
 const SOURCE_CONFIG = [
   { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
   { id: 'Web', label: 'Web', icon: Globe, color: 'text-blue-500' },
+  { id: 'Google SEM', label: 'Google SEM', icon: Search, color: 'text-blue-600' },
   { id: 'Redes Sociales', label: 'Redes Sociales', icon: Smartphone, color: 'text-purple-500' },
   { id: 'Referido', label: 'Referido', icon: Users, color: 'text-emerald-500' },
   { id: 'Valla', label: 'Valla', icon: MapPin, color: 'text-orange-500' },

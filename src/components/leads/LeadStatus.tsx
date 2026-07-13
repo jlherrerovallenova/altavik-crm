@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Smartphone, Users, MapPin, Phone, HelpCircle } from 'lucide-react';
+import { Globe, Smartphone, Users, MapPin, Phone, HelpCircle, Search } from 'lucide-react';
 import { IdealistaIcon } from '../Shared';
 
 interface SourceIconProps {
@@ -15,6 +15,17 @@ export function SourceIcon({ source }: SourceIconProps) {
       <div className="flex flex-col items-center justify-center gap-1 group/source" title="Idealista">
         <IdealistaIcon className="w-5 h-5" />
         <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">Idealista</span>
+      </div>
+    );
+  }
+
+  if (lower.includes('google sem') || lower.includes('sem')) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 group/source" title={s}>
+        <div className="w-5 h-5 bg-blue-50 flex items-center justify-center rounded border border-blue-100 shadow-sm">
+          <Search strokeWidth={2.5} size={11} className="text-blue-600" />
+        </div>
+        <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tight">G. SEM</span>
       </div>
     );
   }
