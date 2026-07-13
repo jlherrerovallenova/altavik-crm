@@ -80,7 +80,7 @@ export const DailyTasksModal: React.FC<DailyTasksModalProps> = ({ isOpen, onClos
         {/* Header con gradiente premium */}
         <div className="bg-gradient-to-r from-altavik-600 to-altavik-800 p-6 text-white relative">
           <div className="absolute top-0 right-0 p-4">
-            <button 
+            <button type="button" 
               onClick={onClose}
               className="p-2 hover:bg-white/10 rounded-full transition-colors"
             >
@@ -165,13 +165,13 @@ export const DailyTasksModal: React.FC<DailyTasksModalProps> = ({ isOpen, onClos
 
         {/* Footer */}
         <div className="p-6 bg-white border-t border-slate-100 flex gap-3">
-          <button 
+          <button type="button" 
             onClick={onClose}
             className="flex-1 py-3 px-4 rounded-2xl text-slate-500 font-bold text-sm hover:bg-slate-50 transition-colors"
           >
             Cerrar
           </button>
-          <button 
+          <button type="button" 
             onClick={() => {
               navigate('/agenda');
               onClose();

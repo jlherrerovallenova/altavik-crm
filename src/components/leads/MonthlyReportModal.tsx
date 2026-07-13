@@ -168,7 +168,7 @@ export default function MonthlyReportModal({ isOpen, onClose, leads, statusLabel
             </div>
             <h2 className="text-xl font-bold text-slate-800">Generar Informe Mensual</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
             <X size={24} />
           </button>
         </div>
@@ -210,13 +210,13 @@ export default function MonthlyReportModal({ isOpen, onClose, leads, statusLabel
           </div>
 
           <div className="pt-4 flex gap-4">
-            <button
+            <button type="button"
               onClick={onClose}
               className="flex-1 px-4 py-3 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-xl transition-all"
             >
               Cancelar
             </button>
-            <button
+            <button type="button"
               onClick={handleGenerate}
               className="flex-1 px-4 py-3 bg-[#334155] text-white font-bold rounded-xl shadow-lg hover:bg-[#1e293b] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm"
             >

@@ -114,7 +114,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <MessageSquareQuote size={120} />
           </div>
-          <button 
+          <button type="button" 
             onClick={onClose}
             className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-full transition-colors"
           >
@@ -154,6 +154,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
                 "Registro automático en el CRM",
                 "Clasificación emocional del cliente"
               ].map((item, i) => (
+                // react-doctor-disable-next-line no-array-index-as-key
                 <li key={i} className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50">
                   <div className="w-1.5 h-1.5 rounded-full bg-altavik-400" />
                   {item}
@@ -163,13 +164,13 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           </div>
 
           <div className="flex gap-4 pt-2">
-            <button
+            <button type="button"
               onClick={onClose}
               className="flex-1 px-6 py-4 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 transition-all text-sm"
             >
               Cancelar
             </button>
-            <button
+            <button type="button"
               onClick={handleSendFeedbackEmail}
               disabled={loading || !lead.email}
               className="flex-[2] px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -151,7 +151,7 @@ export function FichaTab({
                     {['1', '2', '3', '4'].map(bed => {
                       const isSelected = formData.interest_bedrooms.includes(bed);
                       return (
-                        <button
+                        <button type="button"
                           key={bed}
                           onClick={() => {
                             const current = formData.interest_bedrooms;
@@ -184,7 +184,7 @@ export function FichaTab({
                     {['Bajo', '1º-2º-3º', 'Atico'].map(floor => {
                       const isSelected = formData.interest_floor.includes(floor);
                       return (
-                        <button
+                        <button type="button"
                           key={floor}
                           onClick={() => {
                             const current = formData.interest_floor;
@@ -222,7 +222,7 @@ export function FichaTab({
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Valoración</label>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map(rating => (
-                    <button
+                    <button type="button"
                       key={rating}
                       onClick={() => setFormData({ ...formData, client_quality_rating: formData.client_quality_rating === rating ? 0 : rating })}
                       className={`p-1.5 rounded-lg transition-all hover:scale-110 ${
@@ -249,7 +249,7 @@ export function FichaTab({
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-2 grid grid-cols-2 md:grid-cols-4 gap-2">
             
             {/* WhatsApp */}
-            <button 
+            <button type="button" 
               onClick={() => { setEmailModalMethod('whatsapp'); setIsEmailModalOpen(true); }}
               className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all active:scale-[0.98] group"
             >
@@ -258,7 +258,7 @@ export function FichaTab({
             </button>
 
             {/* Email */}
-            <button 
+            <button type="button" 
               onClick={() => { setEmailModalMethod('email'); setIsEmailModalOpen(true); }}
               className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all active:scale-[0.98] group"
             >
@@ -267,7 +267,7 @@ export function FichaTab({
             </button>
 
             {/* Primer Contacto */}
-            <button 
+            <button type="button" 
               onClick={() => { setEmailModalMethod('whatsapp'); setFirstContactTemplateActive(true); setIsEmailModalOpen(true); }}
               className="flex flex-col items-center justify-center gap-1 h-12 rounded-xl bg-amber-50/50 text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-100 transition-all active:scale-[0.98] group"
             >
@@ -276,7 +276,7 @@ export function FichaTab({
             </button>
 
             {/* Opinión */}
-            <button 
+            <button type="button" 
               onClick={() => setIsFeedbackModalOpen(true)}
               className={`flex flex-col items-center justify-center gap-1 h-12 rounded-xl transition-all active:scale-[0.98] border border-transparent ${
                 lead.feedback_rating
@@ -305,7 +305,7 @@ export function FichaTab({
                 {editingTaskId ? 'Editar Acción' : 'Nueva Acción en Agenda'}
               </h4>
               {editingTaskId && (
-                <button onClick={() => { setEditingTaskId(null); setNewTask({ ...newTask, title: '', comentario: '' }); }} className="text-[10px] font-bold text-slate-400 hover:text-red-500 flex items-center gap-1">
+                <button type="button" onClick={() => { setEditingTaskId(null); setNewTask({ ...newTask, title: '', comentario: '' }); }} className="text-[10px] font-bold text-slate-400 hover:text-red-500 flex items-center gap-1">
                   <X size={12} /> Cancelar edición
                 </button>
               )}
@@ -361,7 +361,7 @@ export function FichaTab({
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                     className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[13px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-100 shadow-sm outline-none transition-all"
                   />
-                  <button
+                  <button type="button"
                     onClick={() => saveTask()}
                     disabled={loading || !newTask.title}
                     className={`px-6 rounded-xl flex items-center justify-center gap-2 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:grayscale ${
@@ -385,7 +385,7 @@ export function FichaTab({
               {tasks.filter(t => !t.completed).map(task => (
                 <div key={task.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-blue-200 transition-all group">
                   <div className="flex items-center gap-3">
-                    <button 
+                    <button type="button" 
                       onClick={() => toggleTaskStatus(task)}
                       className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center text-transparent hover:border-emerald-500 hover:text-emerald-500 transition-all"
                     >
@@ -412,7 +412,7 @@ export function FichaTab({
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-2">
                                 <h5 className="text-[12px] font-bold text-slate-700">{prefix}</h5>
-                                <button 
+                                <button type="button" 
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleExpand(task.id);
@@ -426,6 +426,7 @@ export function FichaTab({
                               {isExpanded && (
                                 <div className="mt-1 pl-2 border-l-2 border-slate-100 flex flex-col gap-1">
                                   {docs.map((doc: any, idx: number) => (
+                                    // react-doctor-disable-next-line no-array-index-as-key
                                     <span key={idx} className="text-[11px] font-medium text-slate-500 flex items-center gap-1.5">
                                       <FileText size={10} className="text-slate-400 shrink-0" />
                                       <span className="truncate max-w-[300px]">{doc}</span>
@@ -443,8 +444,8 @@ export function FichaTab({
                     </div>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
-                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
+                    <button type="button" onClick={() => startEditingTask(task)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Pencil size={14} /></button>
+                    <button type="button" onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
                   </div>
                 </div>
               ))}

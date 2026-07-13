@@ -88,7 +88,7 @@ export default function FeedbackResponse() {
     onClick: () => void; 
     text: string 
   }) => (
-    <button
+    <button type="button"
       onClick={onClick}
       className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
         selected 
@@ -228,7 +228,7 @@ export default function FeedbackResponse() {
           )}
 
           <div className="pt-6 border-t border-slate-100">
-            <button
+            <button type="button"
               onClick={handleSubmit}
               disabled={isSubmitting || !answers.pregunta_1 || (showP2 && !answers.pregunta_2) || !answers.pregunta_3 || (!showP2 && !answers.pregunta_4)}
               className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white p-4 rounded-xl font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

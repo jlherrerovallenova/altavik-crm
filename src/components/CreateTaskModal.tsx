@@ -42,6 +42,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
+  // react-doctor-disable-next-line exhaustive-deps
   }, [searchTerm]);
 
   async function searchLeads() {
@@ -137,7 +138,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
           <h2 className="text-lg font-bold text-slate-800">
             {showWhatsAppSuccess ? '¡Tarea Creada!' : 'Nueva Tarea en Agenda'}
           </h2>
-          <button 
+          <button type="button" 
             onClick={() => {
               if (showWhatsAppSuccess) {
                 setFormData({
@@ -181,7 +182,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <button
+              <button type="button"
                 onClick={() => {
                   const now = new Date();
                   const hour = now.getHours();
@@ -210,7 +211,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
               >
                 <Smartphone size={20} /> ENVIAR POR WHATSAPP
               </button>
-              <button
+              <button type="button"
                 onClick={() => {
                   onClose();
                   // Reset form

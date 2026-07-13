@@ -22,9 +22,13 @@ export default function NewsletterEditor() {
     const [notification, setNotification] = useState<{ title: string, message: string, type: 'success' | 'error' | 'info' } | null>(null);
 
     useEffect(() => {
+        let cleanup: (() => void) | void;
         if (id) {
-            loadNewsletter(id);
+            loadNewsletter(id).then(fn => cleanup = fn);
         }
+        return () => {
+            if (cleanup) cleanup();
+        };
     }, [id]);
 
     const loadNewsletter = async (newsletterId: string) => {
@@ -40,16 +44,9 @@ export default function NewsletterEditor() {
             if (data) {
                 setSubject((data as any).subject || '');
                 setStatus((data as any).status);
-
-                // Wait for editor to be ready before loading design
-                const checkEditorInterval = setInterval(() => {
-                    if (emailEditorRef.current?.editor) {
-                        clearInterval(checkEditorInterval);
-                        if ((data as any).design) {
-                            emailEditorRef.current.editor.loadDesign((data as any).design);
-                        }
-                    }
-                }, 500);
+                if ((data as any).design) {
+                    setDesignToLoad((data as any).design);
+                }
             }
         } catch (error) {
             console.error('Error loading newsletter:', error);
@@ -58,6 +55,20 @@ export default function NewsletterEditor() {
             setLoading(false);
         }
     };
+
+    const [designToLoad, setDesignToLoad] = useState<any>(null);
+
+    useEffect(() => {
+        if (!designToLoad) return;
+        const interval = setInterval(() => {
+            if (emailEditorRef.current?.editor) {
+                emailEditorRef.current.editor.loadDesign(designToLoad);
+                clearInterval(interval);
+                setDesignToLoad(null);
+            }
+        }, 500);
+        return () => clearInterval(interval);
+    }, [designToLoad]);
 
     const saveDesign = async (isSending: boolean = false) => {
         if (!id || !emailEditorRef.current?.editor) return null;
@@ -153,7 +164,7 @@ export default function NewsletterEditor() {
             {/* Header Toolbar */}
             <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 z-10">
                 <div className="flex items-center gap-4 flex-1">
-                    <button
+                    <button type="button"
                         onClick={() => navigate('/newsletters')}
                         className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
                         title="Volver a Campañas"
@@ -173,14 +184,14 @@ export default function NewsletterEditor() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
+                    <button type="button"
                         onClick={() => emailEditorRef.current?.editor?.showPreview('desktop')}
                         className="hidden md:flex items-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 font-bold text-sm rounded-lg transition-colors border border-slate-200 shadow-sm bg-white"
                     >
                         <Eye size={16} /> Previsualizar
                     </button>
 
-                    <button
+                    <button type="button"
                         onClick={() => saveDesign(false)}
                         disabled={saving}
                         className="flex items-center gap-2 px-4 py-2 text-altavik-700 bg-altavik-50 hover:bg-altavik-100 font-bold text-sm rounded-lg transition-colors border border-emerald-200 shadow-sm"
@@ -188,7 +199,7 @@ export default function NewsletterEditor() {
                         {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                         Guardar
                     </button>
-                    <button
+                    <button type="button"
                         onClick={handleSendClick}
                         className="flex items-center gap-2 px-4 py-2 text-white bg-slate-900 hover:bg-slate-800 font-bold text-sm rounded-lg shadow-md transition-all"
                     >

@@ -65,6 +65,7 @@ export default function ClientDashboard() {
   }, [client]);
 
   async function handlePreview(filePath: string) {
+    // react-doctor-disable-next-line no-impure-state-updater
     setLoadingPreview(filePath);
     try {
       const { data, error } = await supabase.storage
@@ -213,7 +214,7 @@ export default function ClientDashboard() {
                 </div>
                 {(property as any).ficha_url && (
                   <div className="pt-4 border-t border-slate-100 mt-4">
-                    <button 
+                    <button type="button" 
                       onClick={handleVerFicha}
                       disabled={generatingFicha}
                       className="w-full flex items-center justify-center gap-2 py-2.5 bg-altavik-50 hover:bg-altavik-100 text-altavik-700 text-sm font-bold rounded-lg transition-all border border-altavik-200 active:scale-95 disabled:opacity-50"
@@ -378,7 +379,7 @@ export default function ClientDashboard() {
                     </div>
                   </div>
                   <div className="mt-4 flex gap-2">
-                    <button 
+                    <button type="button" 
                       onClick={() => handlePreview(doc.file_path)}
                       disabled={loadingPreview === doc.file_path}
                       className="w-full flex items-center justify-center gap-1.5 py-2 bg-altavik-50 hover:bg-altavik-100 text-altavik-700 border border-altavik-200 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50"
@@ -386,7 +387,7 @@ export default function ClientDashboard() {
                       {loadingPreview === doc.file_path ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
                       Ver
                     </button>
-                    <button 
+                    <button type="button" 
                       onClick={() => handleDownload(doc.file_path, doc.name)}
                       className="w-full flex items-center justify-center gap-1.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-altavik-600 transition-all shadow-sm active:scale-95"
                     >

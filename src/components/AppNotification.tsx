@@ -71,7 +71,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
           </p>
         </div>
 
-        <button 
+        <button type="button" 
           onClick={onClose}
           className="p-1 hover:bg-pine-100/50 rounded-full transition-colors text-pine-400"
         >

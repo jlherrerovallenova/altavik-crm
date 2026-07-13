@@ -21,7 +21,7 @@ export function SettingsSidebar({ activeTab, setActiveTab }: SettingsSidebarProp
   return (
     <div className="w-full md:w-64 flex flex-col gap-1">
       {menuItems.map((item) => (
-        <button
+        <button type="button"
           key={item.id}
           onClick={() => setActiveTab(item.id)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${

@@ -84,9 +84,11 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
   const monthlyAmount = monthlyQuotaTotal / 24;
   const eightyPercent = totalWithIVA * 0.8;
 
-  const logoAltavik = await getBase64Image('/logo-altavik.png');
-  const logoHabitarum = await getBase64Image('/logo_habitarum.png');
-  const logoTerravall = await getBase64Image('/logo-terravall.png');
+  const [logoAltavik, logoHabitarum, logoTerravall] = await Promise.all([
+    getBase64Image('/logo-altavik.png'),
+    getBase64Image('/logo_habitarum.png'),
+    getBase64Image('/logo-terravall.png')
+  ]);
 
   const drawHeader = (isFichaPage = false) => {
     doc.setFillColor(255, 255, 255);

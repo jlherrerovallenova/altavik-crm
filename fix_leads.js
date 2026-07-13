@@ -29,25 +29,29 @@ async function run() {
   
   let updatedCount = 0;
 
-  for (const lead of leads) {
-    const { data: agendaTasks } = await supabase
-      .from('agenda')
-      .select('id')
-      .eq('lead_id', lead.id)
-      .limit(1);
-
-    const { data: sentDocs } = await supabase
-      .from('sent_documents')
-      .select('id')
-      .eq('lead_id', lead.id)
-      .limit(1);
-      
-    const { data: history } = await supabase
-      .from('lead_history')
-      .select('id')
-      .eq('lead_id', lead.id)
-      .in('event_type', ['contact', 'email_sent', 'whatsapp_sent', 'feedback_sent'])
-      .limit(1);
+  await Promise.all(leads.map(async (lead) => {
+    const [
+      { data: agendaTasks },
+      { data: sentDocs },
+      { data: history }
+    ] = await Promise.all([
+      supabase
+        .from('agenda')
+        .select('id')
+        .eq('lead_id', lead.id)
+        .limit(1),
+      supabase
+        .from('sent_documents')
+        .select('id')
+        .eq('lead_id', lead.id)
+        .limit(1),
+      supabase
+        .from('lead_history')
+        .select('id')
+        .eq('lead_id', lead.id)
+        .in('event_type', ['contact', 'email_sent', 'whatsapp_sent', 'feedback_sent'])
+        .limit(1)
+    ]);
 
     const hasAction = 
       (agendaTasks && agendaTasks.length > 0) || 
@@ -67,7 +71,7 @@ async function run() {
         updatedCount++;
       }
     }
-  }
+  }));
 
   console.log(`Finished! Updated ${updatedCount} leads to 'contacted'.`);
 }

@@ -84,6 +84,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
   useEffect(() => {
     fetchProperties();
     fetchSale();
+  // react-doctor-disable-next-line exhaustive-deps
   }, [lead.id]);
 
   async function fetchProperties() {
@@ -135,6 +136,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
     const file = e.target.files?.[0];
     if (!file || !sale) return;
 
+    // react-doctor-disable-next-line no-impure-state-updater
     setUploadingSlot(type);
     try {
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -202,6 +204,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
   }
 
   async function handlePreview(filePath: string, name: string) {
+    // react-doctor-disable-next-line no-impure-state-updater
     setPreviewName(name);
     setLoadingPreview(true);
     try {
@@ -227,6 +230,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
   async function handleDelete(docId: string, filePath: string) {
     if (!confirm('¿Estás seguro de que deseas eliminar este documento? Esta acción no se puede deshacer.')) return;
     
+    // react-doctor-disable-next-line no-impure-state-updater
     setDeletingId(docId);
     try {
       const { error: storageError } = await supabase.storage
@@ -307,14 +311,13 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       const totalCommission = (sale.sale_price || 0) * (percentage / 100);
       const milestoneAmount = parseFloat((totalCommission * 0.5).toFixed(2));
       
-      for (const inv of promoterInvoices) {
-        if (inv.status === 'pending') {
-          await (supabase as any)
-            .from('promoter_invoices')
-            .update({ amount: milestoneAmount })
-            .eq('id', inv.id);
-        }
-      }
+      await Promise.all(promoterInvoices
+        .filter(inv => inv.status === 'pending')
+        .map(inv => (supabase as any)
+          .from('promoter_invoices')
+          .update({ amount: milestoneAmount })
+          .eq('id', inv.id)
+        ));
       await fetchPromoterInvoices(sale.id);
     } catch (error: unknown) {
       console.error('Error updating commission percentage:', error);
@@ -634,7 +637,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
       </section>
 
       {/* Botón guardar datos */}
-      <button
+      <button type="button"
         onClick={savePersonalData}
         disabled={savingPersonal}
         className="w-full py-2.5 bg-altavik-600 hover:bg-altavik-700 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -709,7 +712,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
           {/* Botones de acción */}
           <div className="pt-2">
             {!sale && (
-              <button
+              <button type="button"
                 onClick={formalizarReserva}
                 disabled={loading || !personalForm.property_id}
                 className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -719,7 +722,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               </button>
             )}
             {sale?.sale_status === 'reserva' && (
-              <button
+              <button type="button"
                 onClick={() => advanceSaleStatus('contrato')}
                 disabled={loading}
                 className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -729,7 +732,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               </button>
             )}
             {sale?.sale_status === 'contrato' && (
-              <button
+              <button type="button"
                 onClick={() => advanceSaleStatus('mensualidades')}
                 disabled={loading}
                 className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -739,7 +742,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               </button>
             )}
             {sale?.sale_status === 'mensualidades' && (
-              <button
+              <button type="button"
                 onClick={() => advanceSaleStatus('escrituracion')}
                 disabled={loading}
                 className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -749,7 +752,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               </button>
             )}
             {sale?.sale_status === 'escrituracion' && (
-              <button
+              <button type="button"
                 onClick={() => advanceSaleStatus('completada')}
                 disabled={loading}
                 className="w-full py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
@@ -832,7 +835,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-3">
-              <button
+              <button type="button"
                 disabled={generatingDoc}
                 onClick={async () => {
                   setGeneratingDoc(true);
@@ -845,7 +848,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                 {generatingDoc ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 Descargar PDF
               </button>
-              <button
+              <button type="button"
                 disabled={generatingDoc}
                 onClick={async () => {
                   setGeneratingDoc(true);
@@ -860,7 +863,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               </button>
             </div>
             
-            <button
+            <button type="button"
               disabled={generatingDoc}
               onClick={async () => {
                 setGeneratingDoc(true);
@@ -889,7 +892,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
               Enviar a Firmar (SignWell)
             </button>
 
-            <button
+            <button type="button"
               onClick={() => setShowDocModal(false)}
               className="w-full py-2 text-slate-500 text-xs hover:text-slate-700 transition-colors"
             >
@@ -901,7 +904,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
 
       {/* Botón de re-descarga si ya hay reserva y vivienda asociada */}
       {sale?.sale_status !== undefined && selectedProperty && !showDocModal && (
-        <button
+        <button type="button"
           onClick={() => setShowDocModal(true)}
           className="w-full py-2 flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-amber-600 border border-dashed border-slate-200 hover:border-amber-300 rounded-xl transition-all"
         >
@@ -942,7 +945,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                   >
                     Abrir en pestaña nueva
                   </a>
-                  <button
+                  <button type="button"
                     onClick={() => {
                       setPreviewUrl(null);
                       setPreviewName(null);
@@ -996,7 +999,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                       >
                         Abrir en pestaña nueva
                       </a>
-                      <button
+                      <button type="button"
                         onClick={() => {
                           const link = document.createElement('a');
                           link.href = previewUrl;

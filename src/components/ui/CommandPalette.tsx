@@ -114,11 +114,13 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
   );
 
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
     if (isOpen) {
       setSearch('');
       setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 10);
+      timeout = setTimeout(() => inputRef.current?.focus(), 10);
     }
+    return () => clearTimeout(timeout);
   }, [isOpen]);
 
   useEffect(() => {

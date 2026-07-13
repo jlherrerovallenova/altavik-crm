@@ -105,7 +105,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
         <h4 className="text-sm font-bold uppercase tracking-wide">{title}</h4>
         <p className="text-sm opacity-90 leading-snug mt-1">{message}</p>
       </div>
-      <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
+      <button type="button" onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
         <X strokeWidth={2.5} size={16} />
       </button>
     </div>

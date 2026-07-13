@@ -16,9 +16,9 @@ CREATE POLICY \
 Permitir
 lectura
 a
-autenticados\ ON public.lead_history FOR SELECT TO authenticated USING (true);
+autenticados\ ON public.lead_history FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
 CREATE POLICY \Permitir
 inserción
 a
-autenticados\ ON public.lead_history FOR INSERT TO authenticated WITH CHECK (true);
+autenticados\ ON public.lead_history FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
 

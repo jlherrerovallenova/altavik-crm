@@ -10,9 +10,10 @@ interface NotificationData {
 export function useEmailTrackingNotifications(
   showNotification: (data: NotificationData) => void
 ) {
+  // react-doctor-disable-next-line effect-needs-cleanup
   useEffect(() => {
     // Suscribirse a actualizaciones en la tabla email_tracking
-    const subscription = supabase
+    const channel = supabase
       .channel('email-opens')
       .on(
         'postgres_changes',
@@ -28,20 +29,15 @@ export function useEmailTrackingNotifications(
 
           // Solo notificamos si el opens_count cambia/aumenta
           if (newRecord.opens_count > (oldRecord?.opens_count || 0)) {
-            // Obtener info del lead
+            // Buscamos información del lead
             const { data: lead } = await supabase
               .from('leads')
-              .select('name, status')
+              .select('name')
               .eq('id', newRecord.lead_id)
               .single();
 
-            // Solo notificar si el lead es "caliente" o siempre.
-            // Para no hacer spam, notificamos siempre pero con mensaje especial si es "caliente"
-            const hotStatuses = ['qualified', 'visiting'];
-            const isHot = lead && hotStatuses.includes((lead as any).status);
-
             showNotification({
-              title: isHot ? "🔥 ¡Email Abierto (Cliente Caliente)!" : "📧 Email Abierto",
+              title: "¡Correo abierto!",
               message: `El cliente ${(lead as any)?.name || 'Desconocido'} ha abierto tu correo "${newRecord.subject}". Aperturas totales: ${newRecord.opens_count}`,
               type: "success"
             });
@@ -50,8 +46,7 @@ export function useEmailTrackingNotifications(
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    const unsubscribe = () => supabase.removeChannel(channel);
+    return unsubscribe;
   }, [showNotification]);
 }

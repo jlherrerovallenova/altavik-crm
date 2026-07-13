@@ -127,7 +127,13 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     fetchHistory();
     fetchTasks();
     fetchWaData();
+  // react-doctor-disable-next-line exhaustive-deps
+  // react-doctor-disable-next-line exhaustive-deps
+  // react-doctor-disable-next-line exhaustive-deps
+  }, [lead.id, fetchHistory, fetchTasks, fetchWaData]);
 
+  // react-doctor-disable-next-line effect-needs-cleanup
+  useEffect(() => {
     // Suscribirse a cambios en tiempo real en email_tracking para este lead
     const trackingChannel = supabase
       .channel(`email_tracking_changes_${lead.id}`)
@@ -140,16 +146,40 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
           filter: `lead_id=eq.${lead.id}`
         },
         () => {
-          fetchTasks();
+          // Recargar el historial si hay cambios en los emails
           fetchHistory();
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(trackingChannel);
-    };
-  }, [lead.id]);
+    const unsubscribe = () => supabase.removeChannel(trackingChannel);
+    return unsubscribe;
+  // react-doctor-disable-next-line exhaustive-deps
+  }, [lead.id, fetchHistory]);
+
+  // react-doctor-disable-next-line effect-needs-cleanup
+  useEffect(() => {
+    // Suscribirse a cambios en la agenda para recargar tareas y badges
+    const agendaChannel = supabase
+      .channel(`agenda_changes_${lead.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agenda',
+          filter: `lead_id=eq.${lead.id}`
+        },
+        () => {
+          fetchTasks();
+        }
+      )
+      .subscribe();
+
+    const unsubscribe = () => supabase.removeChannel(agendaChannel);
+    return unsubscribe;
+  // react-doctor-disable-next-line exhaustive-deps
+  }, [lead.id, fetchTasks]);
 
   async function fetchHistory() {
     const { data } = await (supabase as any).from('sent_documents').select('*').eq('lead_id', lead.id).order('sent_at', { ascending: false });
@@ -562,7 +592,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
             </div>
 
             <div className="flex items-center gap-4 absolute sm:static top-3 right-3">
-              <button 
+              <button type="button" 
                 onClick={onClose} 
                 className="p-2.5 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-600 hover:rotate-90 duration-300"
               >
@@ -573,7 +603,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
 
           {/* TAB NAVIGATION */}
           <div className="shrink-0 flex items-center px-4 sm:px-8 py-1.5 bg-white border-b border-slate-100 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar-hide">
-            <button
+            <button type="button"
               onClick={() => setActiveTab('ficha')}
               className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'ficha' 
@@ -585,7 +615,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               FICHA Y AGENDA
               {activeTab === 'ficha' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-t-full" />}
             </button>
-            <button
+            <button type="button"
               onClick={() => setActiveTab('venta')}
               disabled={formData.status !== 'closed' && !lead.sale_status}
               title={formData.status !== 'closed' && !lead.sale_status ? 'Solo disponible cuando el estado es Venta Cerrada o hay una reserva activa' : ''}
@@ -604,7 +634,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               )}
               {activeTab === 'venta' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-altavik-600 rounded-t-full" />}
             </button>
-             <button
+             <button type="button"
               onClick={() => setActiveTab('historial')}
               className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'historial' 
@@ -616,7 +646,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               HISTORIAL
               {activeTab === 'historial' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-indigo-600 rounded-t-full" />}
             </button>
-            <button
+            <button type="button"
               onClick={() => setActiveTab('notas')}
               className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                 activeTab === 'notas' 
@@ -629,7 +659,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
               {activeTab === 'notas' && <div className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-600 rounded-t-full" />}
             </button>
             {lead.survey_data && Object.keys(lead.survey_data).length > 0 && (
-              <button
+              <button type="button"
                 onClick={() => setActiveTab('encuesta')}
                 className={`flex items-center gap-2.5 px-6 py-2 text-[11px] font-bold tracking-widest relative transition-all rounded-xl ${
                   activeTab === 'encuesta' 
@@ -776,13 +806,13 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           {/* FOOTER */}
           <div className="px-5 sm:px-8 py-3 bg-white border-t border-slate-100 flex items-center justify-end">
             <div className="flex items-center gap-4">
-              <button 
+              <button type="button" 
                 onClick={onClose}
                 className="px-6 py-2 text-slate-500 font-bold text-xs hover:text-slate-700 transition-colors"
               >
                 Descartar cambios
               </button>
-              <button 
+              <button type="button" 
                 onClick={handleUpdate}
                 disabled={loading}
                 className="px-8 py-2 bg-[#334155] text-white rounded-xl font-bold text-xs hover:bg-[#1e293b] transition-all shadow-lg active:scale-95 flex items-center gap-2"

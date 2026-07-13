@@ -84,7 +84,7 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
               <p className="text-xs text-slate-500 font-medium">Filtra por portal, altura, letra, orientación y dormitorios</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm">
+          <button type="button" onClick={onClose} className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm">
             <X size={20} />
           </button>
         </div>
@@ -166,7 +166,7 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
             </div>
           </div>
 
-          <button 
+          <button type="button" 
             onClick={() => { setPortal(''); setPlanta(''); setLetra(''); setOrientacion(''); setDormitorios(''); }}
             className="px-4 py-2.5 text-slate-400 hover:text-red-500 font-bold text-xs transition-colors"
           >
@@ -189,7 +189,7 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
                 const isAlreadyIn = alreadySelected.includes(p.id);
                 
                 return (
-                  <button
+                  <button type="button"
                     key={p.id}
                     onClick={() => toggleProperty(p.id)}
                     disabled={isAlreadyIn}
@@ -251,13 +251,13 @@ export default function PropertySelector({ isOpen, onClose, onSelect, alreadySel
             {selectedIds.length} selecc.
           </div>
           <div className="flex gap-2 sm:gap-3">
-            <button 
+            <button type="button" 
               onClick={onClose}
               className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
             >
               Cancelar
             </button>
-            <button 
+            <button type="button" 
               onClick={handleFinish}
               disabled={selectedIds.length === 0}
               className="px-8 py-2.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 disabled:opacity-30 active:scale-95 transition-all"

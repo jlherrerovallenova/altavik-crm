@@ -57,7 +57,7 @@ export function ProfileTab() {
       </div>
 
       <div className="pt-2">
-        <button
+        <button type="button"
           onClick={handleUpdateProfile}
           disabled={isSaving}
           className="flex items-center gap-2 bg-altavik-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-altavik-700 transition-colors disabled:opacity-50"

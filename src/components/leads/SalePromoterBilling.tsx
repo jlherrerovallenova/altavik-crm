@@ -80,7 +80,7 @@ export default function SalePromoterBilling({
                   <span className="text-xs font-bold text-slate-500">%</span>
                 </div>
               </div>
-              <button
+              <button type="button"
                 onClick={() => updateCommissionPercentage(sale.commission_percentage !== undefined && sale.commission_percentage !== null ? sale.commission_percentage : 3.0)}
                 disabled={loading}
                 className="px-3 py-1.5 bg-altavik-600 hover:bg-altavik-700 text-white text-[10px] font-bold rounded shadow-sm self-end mb-0.5 active:scale-95 transition-all"
@@ -148,7 +148,7 @@ export default function SalePromoterBilling({
                       <p className="text-[9px] text-slate-400 mt-1">{hito.description}</p>
                       <p className="text-xs font-black text-slate-700 mt-1.5">Importe Estimado: {fmt(calculatedAmount)}</p>
                     </div>
-                    <button
+                    <button type="button"
                       onClick={() => savePromoterInvoice({ milestone: hito.key as any, amount: calculatedAmount, status: 'pending', issued_date: new Date().toISOString().slice(0, 10) })}
                       disabled={loading}
                       className="mt-3 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded shadow-sm active:scale-95 transition-all"
@@ -276,7 +276,7 @@ export default function SalePromoterBilling({
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                    <button
+                    <button type="button"
                       onClick={() => savePromoterInvoice(invoice)}
                       disabled={loading}
                       className="flex items-center gap-1 px-3 py-1.5 bg-altavik-600 hover:bg-altavik-700 text-white text-[10px] font-bold rounded shadow-sm active:scale-95 transition-all"

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "sync-emails": "node scripts/syncEmails.js",
     "reclean-emails": "node scripts/recleanEmails.js",
-    "worker": "node scripts/emailWorker.js"
+    "worker": "node scripts/emailWorker.js",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",

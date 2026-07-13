@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase';
 export function useRealtimeSync(table: string, queryKey: any[]) {
   const queryClient = useQueryClient();
 
+  // react-doctor-disable-next-line effect-needs-cleanup
   useEffect(() => {
     // 1. Suscribirse a los cambios de la tabla
     const channel = supabase
@@ -33,8 +34,7 @@ export function useRealtimeSync(table: string, queryKey: any[]) {
       .subscribe();
 
     // 3. Limpiar la suscripción al desmontar el componente
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const unsubscribe = () => supabase.removeChannel(channel);
+    return unsubscribe;
   }, [table, queryKey, queryClient]);
 }

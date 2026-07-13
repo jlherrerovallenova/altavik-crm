@@ -50,7 +50,7 @@ export function AppMessage({ title, message, type = 'info', onClose }: AppMessag
       </div>
 
       {onClose && (
-        <button
+        <button type="button"
           onClick={onClose}
           className="p-2 hover:bg-altavik-50 rounded-xl transition-colors text-slate-300 hover:text-slate-600"
         >

@@ -88,7 +88,7 @@ export function SendNewsletterModal({ isOpen, onClose, onSend, isSending }: Send
                         <h3 className="text-xl font-bold text-slate-800">Enviar Campaña</h3>
                         <p className="text-sm text-slate-500 mt-1">Elige los destinatarios para este envío.</p>
                     </div>
-                    <button
+                    <button type="button"
                         onClick={onClose}
                         disabled={isSending}
                         className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-200"
@@ -248,14 +248,14 @@ export function SendNewsletterModal({ isOpen, onClose, onSend, isSending }: Send
                         )}
                     </div>
                     <div className="flex gap-3">
-                        <button
+                        <button type="button"
                             onClick={onClose}
                             disabled={isSending}
                             className="px-5 py-2.5 font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                         >
                             Cancelar
                         </button>
-                        <button
+                        <button type="button"
                             onClick={handleSend}
                             disabled={isSending || leadsLoading || (audience === 'manual' && selectedLeads.length === 0)}
                             className="flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-altavik-600 hover:bg-altavik-700 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"

@@ -124,7 +124,7 @@ export default function SaleDocumentDossier({
                 <div className="mt-4 pt-3 border-t border-dashed border-slate-200/60 flex justify-end gap-2">
                   {doc ? (
                     <>
-                      <button
+                      <button type="button"
                         disabled={isDeleting || (loadingPreview && previewName !== doc.name)}
                         onClick={() => handlePreview(doc.file_path, doc.name)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-700 border border-slate-200 rounded-lg transition-all active:scale-95 shadow-sm"
@@ -136,14 +136,14 @@ export default function SaleDocumentDossier({
                         )}
                         Ver
                       </button>
-                      <button
+                      <button type="button"
                         disabled={isDeleting}
                         onClick={() => handleDownload(doc.file_path, doc.name)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-700 border border-slate-200 rounded-lg transition-all active:scale-95 shadow-sm"
                       >
                         <Download size={11} /> Descargar
                       </button>
-                      <button
+                      <button type="button"
                         disabled={isDeleting}
                         onClick={() => handleDelete(doc.id, doc.file_path)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-[10px] font-bold text-red-600 border border-red-100 rounded-lg transition-all active:scale-95 shadow-sm"
@@ -222,7 +222,7 @@ export default function SaleDocumentDossier({
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <button
+                      <button type="button"
                         disabled={isDeleting || (loadingPreview && previewName !== doc.name)}
                         onClick={() => handlePreview(doc.file_path, doc.name)}
                         className="p-1.5 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 rounded-md border border-slate-200 transition-all active:scale-95 shadow-sm"
@@ -234,7 +234,7 @@ export default function SaleDocumentDossier({
                           <Eye size={12} />
                         )}
                       </button>
-                      <button
+                      <button type="button"
                         disabled={isDeleting}
                         onClick={() => handleDownload(doc.file_path, doc.name)}
                         className="p-1.5 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 rounded-md border border-slate-200 transition-all active:scale-95 shadow-sm"
@@ -242,7 +242,7 @@ export default function SaleDocumentDossier({
                       >
                         <Download size={12} />
                       </button>
-                      <button
+                      <button type="button"
                         disabled={isDeleting}
                         onClick={() => handleDelete(doc.id, doc.file_path)}
                         className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-md border border-red-100 transition-all active:scale-95 shadow-sm"

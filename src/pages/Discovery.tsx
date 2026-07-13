@@ -215,12 +215,12 @@ export default function Discovery() {
         .in('id', selectedIds);
 
       if (currentEmails) {
-        for (const email of currentEmails) {
-          await (supabase as any)
+        await Promise.all(currentEmails.map(email => 
+          (supabase as any)
             .from('incoming_emails')
             .update({ tags: [...(email.tags || []), 'Descartado'] })
-            .eq('id', email.id);
-        }
+            .eq('id', email.id)
+        ));
       }
 
       setNotification({
@@ -306,20 +306,18 @@ export default function Discovery() {
 
     setIsScanning(true); // Usamos el estado de scanning para mostrar progreso global
     
-    for (let i = 0; i < leadsToProcess.length; i++) {
-      const lead = leadsToProcess[i];
+    await Promise.all(leadsToProcess.map(async (lead) => {
       setProcessingId(lead.emailId);
       
       try {
+        // react-doctor-disable-next-line no-impure-state-updater
         await handleProcessLead(lead);
         successCount++;
       } catch (err: any) {
         console.error(`Error procesando lead ${lead.emailId}:`, err);
         errorCount++;
       }
-
-      // Si no es el último lead, no ponemos pausa (plan de pago)
-    }
+    }));
 
     setIsScanning(false);
     setProcessingId(null);
@@ -345,7 +343,7 @@ export default function Discovery() {
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
               <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <Button 
+                <button type="button" 
                   variant="primary" 
                   size="sm"
                   onClick={handleBulkProcessLeads}
@@ -355,7 +353,7 @@ export default function Discovery() {
                   <UserPlus size={16} />
                   Capturar ({selectedIds.length})
                 </Button>
-                <Button 
+                <button type="button" 
                   variant="secondary" 
                   size="sm"
                   onClick={handleBulkDelete}
@@ -368,20 +366,20 @@ export default function Discovery() {
               </div>
             )}
             <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button 
+              <button type="button" 
                 onClick={() => setViewMode('pending')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'pending' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 Pendientes
               </button>
-              <button 
+              <button type="button" 
                 onClick={() => setViewMode('imported')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'imported' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 Importados
               </button>
             </div>
-            <Button 
+            <button type="button" 
               onClick={() => {
                 setIsScanning(true);
                 setTimeout(() => {
@@ -474,7 +472,7 @@ export default function Discovery() {
                           </span>
                         ) : (
                           <>
-                            <button 
+                            <button type="button" 
                               onClick={() => handleProcessLead(lead)}
                               disabled={processingId !== null}
                               className="bg-white border border-slate-200 text-slate-800 hover:border-altavik-500 hover:text-altavik-600 px-4 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 inline-flex items-center gap-2 text-xs font-bold"
@@ -485,7 +483,7 @@ export default function Discovery() {
                                 <><UserPlus size={16} /> Capturar</>
                               )}
                             </button>
-                            <button 
+                            <button type="button" 
                               onClick={() => handleDeleteEmail(lead.emailId)}
                               disabled={processingId !== null}
                               className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"

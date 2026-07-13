@@ -192,13 +192,13 @@ export default function Inbox() {
         icon={<Mail className="text-white" strokeWidth={3} size={24} />}
         subtitle={
           <div className="flex bg-white/50 backdrop-blur rounded-xl border border-slate-200/50 overflow-hidden p-0.5 gap-0.5 mt-2">
-            <button 
+            <button type="button" 
               onClick={() => setFilterType('all')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterType === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Todos
             </button>
-            <button 
+            <button type="button" 
               onClick={() => setFilterType('leads')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${filterType === 'leads' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
             >
@@ -311,10 +311,10 @@ export default function Inbox() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><Reply size={18} /></button>
-                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><Star size={18} /></button>
-                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash size={18} /></button>
-                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><MoreVertical size={18} /></button>
+                <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><Reply size={18} /></button>
+                <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><Star size={18} /></button>
+                <button type="button" className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash size={18} /></button>
+                <button type="button" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><MoreVertical size={18} /></button>
               </div>
             </div>
 
@@ -338,7 +338,7 @@ export default function Inbox() {
                       onChange={(e) => setReplyText(e.target.value)}
                     />
                     <div className="flex justify-end mt-3">
-                      <button 
+                      <button type="button" 
                         onClick={handleSendReply}
                         disabled={isSendingReply || !replyText.trim()}
                         className="bg-[#1e293b] hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider px-6 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
@@ -377,7 +377,7 @@ export default function Inbox() {
                         {extractionError}
                       </div>
                     )}
-                    <button 
+                    <button type="button" 
                       onClick={extractWithGemini}
                       disabled={isExtracting}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[11px] uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 disabled:opacity-70 disabled:scale-100 active:scale-95"
@@ -420,7 +420,7 @@ export default function Inbox() {
                       </div>
                     </div>
 
-                    <button 
+                    <button type="button" 
                       onClick={handleApproveLead}
                       disabled={createLeadMutation.isPending}
                       className="w-full bg-[#1e293b] hover:bg-slate-800 text-white font-black text-[11px] uppercase tracking-widest py-3 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-70"

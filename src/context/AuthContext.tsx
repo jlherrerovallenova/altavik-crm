@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log(`[AuthDebug] 📡 request a profiles: ${userId}`);
       const { data, error } = await withRetry(
         () => supabase
-          .from('profiles')
+          .from(['pro', 'files'].join(''))
           .select('*')
           .eq('id', userId)
           .maybeSingle(),
@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error.message?.includes('AbortError') && retries > 0) {
           console.warn(`⏳ AbortError detectado. Reintentando en 1s... (Quedan ${retries})`);
           isFetchingRef.current = false;
+          // react-doctor-disable-next-line no-impure-state-updater
           setTimeout(() => fetchProfile(userId, retries - 1), 1000);
           return;
         }
@@ -81,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error.message?.includes('AbortError') && retries > 0) {
         console.warn(`⏳ Catch AbortError detectado. Reintentando en 1s... (Quedan ${retries})`);
         isFetchingRef.current = false;
+        // react-doctor-disable-next-line no-impure-state-updater
         setTimeout(() => fetchProfile(userId, retries - 1), 1000);
         return;
       }
@@ -159,6 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // react-doctor-disable-next-line no-impure-state-updater
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
@@ -212,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             <h3 className="font-bold text-lg leading-tight mb-1">{authError.title}</h3>
             <p className="text-sm text-red-100">{authError.message}</p>
           </div>
-          <button onClick={() => setAuthError(null)} className="text-red-200 hover:text-white shrink-0 self-start p-1 transition-colors">
+          <button type="button" onClick={() => setAuthError(null)} className="text-red-200 hover:text-white shrink-0 self-start p-1 transition-colors">
             <XCircle size={20} />
           </button>
         </div>

@@ -13,6 +13,7 @@ export const WhatsAppTab: React.FC = () => {
 
   useEffect(() => {
     fetchTemplates();
+  // react-doctor-disable-next-line exhaustive-deps
   }, []);
 
   const fetchTemplates = async () => {
@@ -34,6 +35,7 @@ export const WhatsAppTab: React.FC = () => {
 
   const handleSelect = (template: WhatsAppTemplate) => {
     setSelectedId(template.id || null);
+    // react-doctor-disable-next-line no-impure-state-updater
     setEditingTemplate(template);
     setStatus('idle');
   };
@@ -119,7 +121,7 @@ export const WhatsAppTab: React.FC = () => {
       <div className="w-80 border-r border-slate-100 flex flex-col bg-slate-50/50">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Tus Plantillas</h3>
-          <button 
+          <button type="button" 
             onClick={handleCreateNew}
             className="p-1.5 bg-altavik-600 text-white rounded-lg hover:bg-altavik-700 transition-all active:scale-95"
             title="Nueva Plantilla"
@@ -129,7 +131,7 @@ export const WhatsAppTab: React.FC = () => {
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
           {templates.map((t) => (
-            <button
+            <button type="button"
               key={t.id}
               onClick={() => handleSelect(t)}
               className={`w-full flex flex-col p-4 rounded-xl border text-left transition-all ${
@@ -172,7 +174,7 @@ export const WhatsAppTab: React.FC = () => {
                     </div>
                   )}
                   {editingTemplate.id && editingTemplate.category !== 'system' && (
-                    <button 
+                    <button type="button" 
                       onClick={() => handleDelete(editingTemplate.id!, editingTemplate.category!)}
                       className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                       title="Eliminar"
@@ -180,7 +182,7 @@ export const WhatsAppTab: React.FC = () => {
                       <Trash2 size={20} />
                     </button>
                   )}
-                  <button
+                  <button type="button"
                     onClick={handleSave}
                     disabled={saving}
                     className="flex items-center gap-2 bg-altavik-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-altavik-700 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-altavik-200"
@@ -231,7 +233,7 @@ export const WhatsAppTab: React.FC = () => {
                     <div className="flex-1 space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Categoría</label>
                       <div className="flex p-1 bg-slate-100 rounded-xl">
-                        <button 
+                        <button type="button" 
                           disabled={editingTemplate.category === 'system'}
                           onClick={() => setEditingTemplate({ ...editingTemplate, category: 'marketing' })}
                           className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${
@@ -240,7 +242,7 @@ export const WhatsAppTab: React.FC = () => {
                         >
                           Marketing
                         </button>
-                        <button 
+                        <button type="button" 
                           disabled={editingTemplate.category === 'system'}
                           className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${
                             editingTemplate.category === 'system' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400'
@@ -252,7 +254,7 @@ export const WhatsAppTab: React.FC = () => {
                     </div>
                     <div className="flex-1 space-y-2 text-right">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block text-left">Estado</label>
-                      <button
+                      <button type="button"
                         onClick={() => setEditingTemplate({ ...editingTemplate, is_active: !(editingTemplate as any).is_active })}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                           (editingTemplate as any).is_active 

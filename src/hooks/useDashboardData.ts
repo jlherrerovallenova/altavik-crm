@@ -26,11 +26,12 @@ export function useDashboardData(userId: string | undefined) {
   const { data: statsData, isLoading: loadingStats, refetch: refetchStats } = useQuery({
     queryKey: ['dashboard_stats', userId],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('leads')
-        .select('*', { count: 'exact', head: true });
-        
-      const { data: sourceData } = await supabase.from('leads').select('source');
+      const [countRes, sourceRes] = await Promise.all([
+        supabase.from('leads').select('*', { count: 'exact', head: true }),
+        supabase.from('leads').select('source')
+      ]);
+      const count = countRes.count;
+      const sourceData = sourceRes.data;
       
       let topSources: SourceStat[] = [];
       const total = count || 0;

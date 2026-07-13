@@ -84,7 +84,7 @@ export function ClientsTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <button
+        <button type="button"
           onClick={() => setIsImportModalOpen(true)}
           className="p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-altavik-400 transition-all flex flex-col items-center text-center group"
         >
@@ -95,7 +95,7 @@ export function ClientsTab() {
           <p className="text-[11px] text-slate-500 mt-1">Cargar desde Excel</p>
         </button>
 
-        <button
+        <button type="button"
           onClick={() => setIsExportModalOpen(true)}
           className="p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-emerald-400 transition-all flex flex-col items-center text-center group"
         >
@@ -106,7 +106,7 @@ export function ClientsTab() {
           <p className="text-[11px] text-slate-500 mt-1">Descargar Backup</p>
         </button>
 
-        <button
+        <button type="button"
           onClick={() => setIsDuplicateModalOpen(true)}
           className="p-6 bg-slate-50 rounded-2xl border border-slate-200 hover:border-amber-400 transition-all flex flex-col items-center text-center group"
         >
@@ -144,7 +144,7 @@ export function ClientsTab() {
               ))}
             </select>
           </div>
-          <button
+          <button type="button"
             onClick={handleDeleteLead}
             disabled={!leadToDelete || isDeleting}
             className="px-8 py-2.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"

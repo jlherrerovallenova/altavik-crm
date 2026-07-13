@@ -117,7 +117,7 @@ export function DailyBriefingModal({ waReplies, onClose, onMarkRepliesSeen }: Da
                   {totalAlerts} pendientes
                 </div>
               )}
-              <button onClick={handleClose} className="text-slate-400 hover:text-white transition-colors">
+              <button type="button" onClick={handleClose} className="text-slate-400 hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -137,7 +137,7 @@ export function DailyBriefingModal({ waReplies, onClose, onMarkRepliesSeen }: Da
               </div>
               <div className="px-6 py-3 space-y-2">
                 {waReplies.map(reply => (
-                  <button
+                  <button type="button"
                     key={reply.id}
                     onClick={() => { handleClose(); navigate(`/leads?highlight=${reply.lead_id}`); }}
                     className="w-full flex items-start gap-3 p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all text-left group"
@@ -216,14 +216,14 @@ export function DailyBriefingModal({ waReplies, onClose, onMarkRepliesSeen }: Da
 
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex gap-3">
-          <button
+          <button type="button"
             onClick={() => { handleClose(); navigate('/agenda'); }}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors"
           >
             <Calendar size={15} />
             Ver agenda completa
           </button>
-          <button
+          <button type="button"
             onClick={handleClose}
             className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors"
           >

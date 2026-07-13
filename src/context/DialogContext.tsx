@@ -79,7 +79,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                                     <h3 className="text-lg font-bold text-slate-900 mb-2">{dialog.title}</h3>
                                     <p className="text-sm text-slate-600 leading-relaxed">{dialog.message}</p>
                                 </div>
-                                <button
+                                <button type="button"
                                     onClick={() => handleClose(false)}
                                     className="text-slate-400 hover:text-slate-600 transition-colors"
                                 >
@@ -90,14 +90,14 @@ export function DialogProvider({ children }: { children: ReactNode }) {
 
                         <div className="bg-slate-50 p-4 border-t border-slate-100 flex gap-3 justify-end">
                             {dialog.type === 'confirm' && (
-                                <button
+                                <button type="button"
                                     onClick={() => handleClose(false)}
                                     className="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-200/50 transition-colors"
                                 >
                                     {dialog.cancelText}
                                 </button>
                             )}
-                            <button
+                            <button type="button"
                                 onClick={() => handleClose(true)}
                                 className={`px-4 py-2 rounded-lg text-sm font-bold text-white shadow-sm transition-all active:scale-95 ${dialog.type === 'confirm'
                                     ? 'bg-red-600 hover:bg-red-700'

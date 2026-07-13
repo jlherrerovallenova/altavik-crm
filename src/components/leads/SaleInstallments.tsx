@@ -19,7 +19,7 @@ export default function SaleInstallments({ installments, monthlyAmount, fmt, tog
 
   return (
     <section className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-      <button
+      <button type="button"
         onClick={() => setShowInstallments(v => !v)}
         className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100 hover:bg-slate-100 transition-colors"
       >
@@ -49,7 +49,7 @@ export default function SaleInstallments({ installments, monthlyAmount, fmt, tog
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <button onClick={() => toggleInstallment(inst)} className={`shrink-0 transition-transform hover:scale-110 ${inst.paid ? 'text-green-500' : 'text-slate-300 hover:text-purple-500'}`}>
+                  <button type="button" onClick={() => toggleInstallment(inst)} className={`shrink-0 transition-transform hover:scale-110 ${inst.paid ? 'text-green-500' : 'text-slate-300 hover:text-purple-500'}`}>
                     {inst.paid ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                   </button>
                   <div>

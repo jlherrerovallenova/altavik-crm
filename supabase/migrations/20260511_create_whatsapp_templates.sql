@@ -13,11 +13,11 @@ ALTER TABLE whatsapp_templates ENABLE ROW LEVEL SECURITY;
 
 -- Policy for all authenticated users to read templates
 CREATE POLICY "Allow authenticated read access" ON whatsapp_templates
-  FOR SELECT TO authenticated USING (true);
+  FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
 
 -- Policy for authenticated users to manage templates
 CREATE POLICY "Allow authenticated management" ON whatsapp_templates
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO authenticated USING (auth.uid() IS NOT NULL);
 
 -- Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE whatsapp_templates;

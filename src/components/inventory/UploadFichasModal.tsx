@@ -25,77 +25,75 @@ export default function UploadFichasModal({ isOpen, onClose, onSuccess }: Props)
 
   const handleUpload = async () => {
     setUploading(true);
-    const newResults = [...results];
+    await Promise.all(files.map(async (file, i) => {
+      const fileName = file.name.toUpperCase();
+      let matchedProperties: { id: string }[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileName = file.name.toUpperCase();
-        let matchedProperties: { id: string }[] = [];
-  
-        try {
-          // 1. Extraer el primer número que aparezca en el nombre (el nº de orden)
-          const nOrdenMatch = fileName.match(/(\d+)/);
-          const nOrden = nOrdenMatch ? nOrdenMatch[1] : null;
+      try {
+        // 1. Extraer el primer número que aparezca en el nombre (el nº de orden)
+        const nOrdenMatch = fileName.match(/(\d+)/);
+        const nOrden = nOrdenMatch ? nOrdenMatch[1] : null;
 
-          if (!nOrden) {
-            newResults[i] = { 
-              name: file.name, 
-              status: 'error', 
-              message: 'El nombre del archivo no contiene un número de orden' 
-            };
-            setResults([...newResults]);
-            continue;
-          }
-
-          // 2. Buscar en la base de datos por n_orden
-          const { data, error: findError } = await (supabase as any)
-            .from('inventory')
-            .select('id')
-            .eq('n_orden', nOrden);
-
-          if (findError) throw findError;
-
-          if (!data || data.length === 0) {
-            newResults[i] = { 
-              name: file.name, 
-              status: 'error', 
-              message: `No existe la vivienda con Nº Orden ${nOrden} en la base de datos` 
-            };
-            setResults([...newResults]);
-            continue;
-          }
-
-          matchedProperties = data;
-
-          // 3. Subir a Storage
-          const filePath = `fichas/${Date.now()}_${file.name}`;
-          const { error: uploadError } = await supabase.storage
-            .from('property-files')
-            .upload(filePath, file);
-  
-          if (uploadError) throw uploadError;
-  
-          // 4. Obtener URL pública
-          const { data: { publicUrl } } = supabase.storage
-            .from('property-files')
-            .getPublicUrl(filePath);
-  
-          // 5. Asociar en la tabla inventory
-          for (const p of matchedProperties) {
-            await (supabase as any).from('inventory').update({ ficha_url: publicUrl }).eq('id', p.id);
-          }
-  
-          newResults[i] = { 
-            name: file.name, 
-            status: 'success', 
-            message: `Asociada(s) a vivienda(s) Nº ${nOrden}` 
-          };
-  
-        } catch (error: any) {
-          newResults[i] = { name: file.name, status: 'error', message: error.message };
+        if (!nOrden) {
+          setResults(prev => {
+            const next = [...prev];
+            next[i] = { name: file.name, status: 'error', message: 'El nombre del archivo no contiene un número de orden' };
+            return next;
+          });
+          return;
         }
-        setResults([...newResults]);
+
+        // 2. Buscar en la base de datos por n_orden
+        const { data, error: findError } = await (supabase as any)
+          .from('inventory')
+          .select('id')
+          .eq('n_orden', nOrden);
+
+        if (findError) throw findError;
+
+        if (!data || data.length === 0) {
+          setResults(prev => {
+            const next = [...prev];
+            next[i] = { name: file.name, status: 'error', message: `No existe la vivienda con Nº Orden ${nOrden} en la base de datos` };
+            return next;
+          });
+          return;
+        }
+
+        matchedProperties = data;
+
+        // 3. Subir a Storage
+        const filePath = `fichas/${Date.now()}_${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('property-files')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 4. Obtener URL pública
+        const { data: { publicUrl } } = supabase.storage
+          .from('property-files')
+          .getPublicUrl(filePath);
+
+        // 5. Asociar en la tabla inventory en paralelo
+        await Promise.all(matchedProperties.map(p => 
+          (supabase as any).from('inventory').update({ ficha_url: publicUrl }).eq('id', p.id)
+        ));
+
+        setResults(prev => {
+          const next = [...prev];
+          next[i] = { name: file.name, status: 'success', message: `Asociada(s) a vivienda(s) Nº ${nOrden}` };
+          return next;
+        });
+
+      } catch (error: any) {
+        setResults(prev => {
+          const next = [...prev];
+          next[i] = { name: file.name, status: 'error', message: error.message };
+          return next;
+        });
       }
+    }));
 
     setUploading(false);
     if (onSuccess) onSuccess();
@@ -114,7 +112,7 @@ export default function UploadFichasModal({ isOpen, onClose, onSuccess }: Props)
               <p className="text-sm text-slate-500">Asocia automáticamente los PDFs por el número de orden.</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <X size={20} className="text-slate-400" />
           </button>
         </div>
@@ -143,6 +141,7 @@ export default function UploadFichasModal({ isOpen, onClose, onSuccess }: Props)
           ) : (
             <div className="space-y-3">
               {results.map((res, idx) => (
+                // react-doctor-disable-next-line no-array-index-as-key
                 <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="flex items-center gap-3">
                     <FileText size={18} className="text-slate-400" />
@@ -167,14 +166,14 @@ export default function UploadFichasModal({ isOpen, onClose, onSuccess }: Props)
         </div>
 
         <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
-          <button
+          <button type="button"
             onClick={onClose}
             className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
           >
             {results.some(r => r.status === 'success') ? 'Cerrar' : 'Cancelar'}
           </button>
           {files.length > 0 && !results.every(r => r.status === 'success') && (
-            <button
+            <button type="button"
               onClick={handleUpload}
               disabled={uploading}
               className="px-8 py-3 bg-altavik-600 text-white font-bold rounded-xl shadow-lg hover:bg-altavik-700 transition-all active:scale-95 flex items-center gap-2"

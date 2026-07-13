@@ -19,6 +19,6 @@ BEGIN
         SELECT 1 FROM pg_policies 
         WHERE tablename = 'leads' AND policyname = 'Public feedback update'
     ) THEN
-        EXECUTE 'CREATE POLICY "Public feedback update" ON leads FOR UPDATE TO anon USING (true) WITH CHECK (true)';
+        EXECUTE 'CREATE POLICY "Public feedback update" ON leads FOR UPDATE TO anon USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL)';
     END IF;
 END $$;

@@ -33,7 +33,7 @@ export function AgendaListItem({ task, onToggle, onDelete, onWhatsApp, formatDat
     <div className="py-4 flex items-center justify-between group hover:pl-2 transition-all rounded-2xl">
       <div className="flex items-center gap-4">
         {!readOnly && !hideToggle && (
-          <button
+          <button type="button"
             onClick={onToggle}
             className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all border-2 hover:rotate-12 hover:scale-105 group-hover:shadow-lg shadow-slate-200/50 ${
               task.completed 
@@ -106,7 +106,7 @@ export function AgendaListItem({ task, onToggle, onDelete, onWhatsApp, formatDat
       {!readOnly && (
         <div className="opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1 transform translate-x-3 group-hover:translate-x-0">
           {onWhatsApp && (
-            <button
+            <button type="button"
               onClick={onWhatsApp}
               className="p-2.5 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
               title="Enviar recordatorio por WhatsApp"
@@ -114,7 +114,7 @@ export function AgendaListItem({ task, onToggle, onDelete, onWhatsApp, formatDat
               <MessageCircle size={18} />
             </button>
           )}
-          <button
+          <button type="button"
             onClick={onDelete}
             className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
           >

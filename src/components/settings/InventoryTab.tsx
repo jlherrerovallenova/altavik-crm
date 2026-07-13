@@ -92,7 +92,7 @@ export function InventoryTab() {
       <div className="flex flex-col gap-4 max-w-4xl">
         {/* Acciones Rápidas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
+          <button type="button"
             onClick={() => setIsModalOpen(true)}
             className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-altavik-300 transition-all flex flex-col items-center text-center group"
           >
@@ -103,7 +103,7 @@ export function InventoryTab() {
             <p className="text-[11px] text-slate-500 mt-1">Manualmente</p>
           </button>
 
-          <button
+          <button type="button"
             onClick={() => setIsImportModalOpen(true)}
             className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-blue-300 transition-all flex flex-col items-center text-center group"
           >
@@ -114,7 +114,7 @@ export function InventoryTab() {
             <p className="text-[11px] text-slate-500 mt-1">Excel/CSV</p>
           </button>
 
-          <button
+          <button type="button"
             onClick={() => setIsFichasModalOpen(true)}
             className="p-5 bg-slate-50 rounded-2xl border border-slate-200 hover:border-purple-300 transition-all flex flex-col items-center text-center group"
           >
@@ -151,7 +151,7 @@ export function InventoryTab() {
                 </option>
               ))}
             </select>
-            <button
+            <button type="button"
               onClick={handleDeleteSingleProperty}
               disabled={!propertyToDelete || isDeleting}
               className="px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"

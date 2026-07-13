@@ -33,8 +33,8 @@ serve(async (req) => {
 
     let sentCount = 0;
 
-    for (const lead of leads) {
-      if (!lead.phone) continue;
+    await Promise.all(leads.map(async (lead) => {
+      if (!lead.phone) return;
 
       // 2. Comprobar si ya le hemos enviado el seguimiento
       const { data: history } = await supabase
@@ -48,7 +48,7 @@ serve(async (req) => {
 
       if (history) {
         // Ya se le envió el seguimiento, saltamos.
-        continue;
+        return;
       }
 
       // 3. Comprobar si el cliente ya nos ha respondido alguna vez por WhatsApp
@@ -64,7 +64,7 @@ serve(async (req) => {
 
       if (conv) {
         // Si hay conversación abierta, significa que ha habido interacción. No mandamos el bot.
-        continue;
+        return;
       }
 
       // 4. Enviar el WhatsApp (Plantilla oficial)
@@ -102,7 +102,7 @@ serve(async (req) => {
       } else {
         console.error(`Error sending follow-up to ${lead.phone}:`, result)
       }
-    }
+    }));
 
     return new Response(JSON.stringify({ message: "Follow-up cron executed.", sent: sentCount }), { status: 200, headers: { 'Content-Type': 'application/json' } })
 

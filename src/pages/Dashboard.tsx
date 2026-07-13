@@ -177,6 +177,7 @@ www.residencialaltavik.com`;
         {stats.topSources.map((source, idx) => {
           const colors: Array<'indigo' | 'emerald' | 'amber' | 'rose'> = ['indigo', 'emerald', 'amber', 'rose'];
           return (
+            // react-doctor-disable-next-line no-array-index-as-key
             <div key={idx} className="col-span-12 sm:col-span-6 lg:col-span-3">
               <StatCard
                 title={`ORIGEN: ${source.name.toUpperCase()}`}
@@ -202,7 +203,7 @@ www.residencialaltavik.com`;
               <p className="text-xs text-slate-500 font-bold mt-1.5 ml-1">Seguimiento de acciones prioritarias</p>
             </div>
 
-            <button
+            <button type="button"
               onClick={() => navigate('/agenda')}
               className="text-[10px] font-black uppercase tracking-wider text-altavik-600 hover:text-altavik-700 transition-all bg-white px-4 py-2 rounded-xl border border-altavik-200/50 shadow-sm hover:bg-altavik-50"
             >
@@ -305,7 +306,7 @@ www.residencialaltavik.com`;
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-[10px] font-bold text-slate-400 mb-1">{formatDateTime(lead.created_at)}</p>
-                      <button className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100/50 shadow-sm transition-all group-hover:bg-indigo-600 group-hover:text-white">Abrir Ficha</button>
+                      <button type="button" className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100/50 shadow-sm transition-all group-hover:bg-indigo-600 group-hover:text-white">Abrir Ficha</button>
                     </div>
                   </div>
                 ))
@@ -362,7 +363,7 @@ www.residencialaltavik.com`;
                 </h3>
                 <p className="text-[10px] text-slate-500 font-medium mt-1">Últimas entradas al sistema</p>
               </div>
-              <button onClick={() => navigate('/leads')} className="text-[10px] font-bold text-green-700 hover:text-green-800 bg-white hover:bg-green-50 px-3 py-1.5 rounded-lg border border-green-200/60 shadow-sm transition-all">
+              <button type="button" onClick={() => navigate('/leads')} className="text-[10px] font-bold text-green-700 hover:text-green-800 bg-white hover:bg-green-50 px-3 py-1.5 rounded-lg border border-green-200/60 shadow-sm transition-all">
                 Ver todos
               </button>
             </div>

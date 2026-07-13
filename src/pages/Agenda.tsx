@@ -1,5 +1,6 @@
 // src/pages/Agenda.tsx
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -37,11 +38,12 @@ export default function Agenda() {
   const [totalItems, setTotalItems] = useState(0);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed' | 'today' | 'overdue'>('pending');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const location = useLocation();
   const { showConfirm, showAlert } = useDialog();
 
   useEffect(() => {
     // Check for query parameters (?filter=today, ?filter=overdue, etc.)
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = new URLSearchParams(location.search);
     const filterParam = searchParams.get('filter') as any;
     
     if (filterParam && ['all', 'pending', 'completed', 'today', 'overdue'].includes(filterParam)) {
@@ -52,7 +54,7 @@ export default function Agenda() {
     if (searchParams.get('create') === 'true') {
       setIsCreateModalOpen(true);
     }
-  }, [window.location.search]); // React to URL changes
+  }, [location.search]); // React to URL changes
 
   useEffect(() => {
     fetchAgenda();
@@ -157,26 +159,26 @@ export default function Agenda() {
         icon={<CalendarIcon strokeWidth={3} size={24} />}
         subtitle={
           <div className="flex bg-white/50 backdrop-blur rounded-xl border border-slate-200/50 overflow-hidden p-0.5 gap-0.5 mt-2">
-            <button
+            <button type="button"
               onClick={() => { setFilterStatus('today'); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Hoy
             </button>
-            <button
+            <button type="button"
               onClick={() => { setFilterStatus('overdue'); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'overdue' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Vencidas
             </button>
             <div className="w-px h-3 bg-slate-200 my-auto mx-0.5"></div>
-            <button
+            <button type="button"
               onClick={() => { setFilterStatus('pending'); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'pending' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               Pendientes
             </button>
-            <button
+            <button type="button"
               onClick={() => { setFilterStatus('completed'); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterStatus === 'completed' ? 'bg-altavik-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
@@ -185,7 +187,7 @@ export default function Agenda() {
           </div>
         }
         actions={
-          <Button
+          <button type="button"
             onClick={() => setIsCreateModalOpen(true)}
             size="lg"
           >
@@ -215,7 +217,7 @@ export default function Agenda() {
               const dateObj = new Date(item.due_date);
               return (
                 <div key={item.id} className={`p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors group ${item.completed ? 'opacity-60 bg-slate-50/50' : ''}`}>
-                  <button
+                  <button type="button"
                     onClick={() => toggleStatus(item)}
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-altavik-500 border-altavik-500 text-white' : 'border-slate-300 hover:border-altavik-500 text-transparent'}`}
                   >
@@ -246,7 +248,7 @@ export default function Agenda() {
 
                    <div className="text-right flex items-center gap-4">
                      {item.type === 'Visita' && item.leads?.phone && (
-                       <button
+                       <button type="button"
                          onClick={() => {
                            const now = new Date();
                            const hour = now.getHours();
@@ -273,7 +275,7 @@ export default function Agenda() {
                      <p className="text-sm font-bold text-slate-700">
                       {dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                     </p>
-                    <button
+                    <button type="button"
                       onClick={() => deleteItem(item.id)}
                       className="text-slate-300 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
                     >
@@ -293,10 +295,10 @@ export default function Agenda() {
               Página {page} de {totalPages || 1}
             </span>
             <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 bg-white border rounded-lg disabled:opacity-50">
+              <button type="button" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 bg-white border rounded-lg disabled:opacity-50">
                 <ChevronLeft size={16} />
               </button>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-2 bg-white border rounded-lg disabled:opacity-50">
+              <button type="button" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-2 bg-white border rounded-lg disabled:opacity-50">
                 <ChevronRight size={16} />
               </button>
             </div>

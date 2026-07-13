@@ -166,7 +166,7 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
               <p className="text-xs text-slate-500">Datos técnicos del activo en Altavik</p>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-200"
           >

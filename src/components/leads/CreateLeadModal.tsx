@@ -229,7 +229,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                 </div>
                 <h2 className="text-xl font-bold text-[#1e293b]">Nuevo Contacto</h2>
             </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
             <X size={24} />
           </button>
         </div>

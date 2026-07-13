@@ -69,7 +69,7 @@ export default function MortgageSimulatorModal({ isOpen, onClose, property, onGe
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-800">
+          <button type="button" onClick={onClose} className="text-slate-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-800">
             <X size={20} />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function MortgageSimulatorModal({ isOpen, onClose, property, onGe
           </div>
 
           {/* Botones */}
-          <button
+          <button type="button"
             onClick={handleGenerate}
             disabled={isGenerating}
             className="w-full bg-altavik-600 hover:bg-altavik-700 active:scale-95 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-altavik-500/20 disabled:opacity-60"
@@ -154,7 +154,7 @@ export default function MortgageSimulatorModal({ isOpen, onClose, property, onGe
             {isGenerating ? 'Generando...' : 'Generar PDF'}
           </button>
 
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full text-slate-500 font-semibold py-2 rounded-xl hover:bg-slate-50 transition-colors text-sm"
           >

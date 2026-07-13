@@ -44,7 +44,7 @@ export default function ClientLayout() {
                 <span className="hidden sm:block">{client.name}</span>
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-              <button
+              <button type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
               >

@@ -195,8 +195,8 @@ export function DocumentsTab() {
                                 if (e.key === 'Escape') setIsEditingDoc(null);
                               }}
                             />
-                            <button onClick={() => handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name })} className="text-altavik-600 p-1 hover:bg-altavik-100 rounded shrink-0"><Save size={16} /></button>
-                            <button onClick={() => setIsEditingDoc(null)} className="text-slate-400 p-1 hover:bg-slate-200 rounded shrink-0"><X size={16} /></button>
+                            <button type="button" onClick={() => handleRename({ fullPath: doc.fullPath, category: doc.category, name: doc.name })} className="text-altavik-600 p-1 hover:bg-altavik-100 rounded shrink-0"><Save size={16} /></button>
+                            <button type="button" onClick={() => setIsEditingDoc(null)} className="text-slate-400 p-1 hover:bg-slate-200 rounded shrink-0"><X size={16} /></button>
                           </div>
                         ) : (
                           <span className="text-sm font-medium text-slate-700 truncate block" title={doc.name}>{doc.name}</span>
@@ -211,21 +211,21 @@ export function DocumentsTab() {
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
+                        <button type="button"
                           onClick={() => handlePreview(doc.fullPath)}
                           className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-100 rounded-md"
                           title="Previsualizar"
                         >
                           <Eye size={16} />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => { setIsEditingDoc({ fullPath: doc.fullPath, category: doc.category }); setNewName(doc.name); }}
                           className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-md"
                           title="Renombrar Archivo"
                         >
                           <Edit3 size={16} />
                         </button>
-                        <button
+                        <button type="button"
                           onClick={() => handleDelete(doc)}
                           className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-md"
                           title="Borrar Archivo"

@@ -183,7 +183,7 @@ export default function ImportInventoryModal({ isOpen, onClose, onSuccess }: Pro
             </h2>
             <p className="text-sm text-slate-500 mt-1">Sube tu Excel y relaciona las columnas con los campos del sistema.</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-lg">
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-lg">
             <X size={24} />
           </button>
         </div>
@@ -217,7 +217,7 @@ export default function ImportInventoryModal({ isOpen, onClose, onSuccess }: Pro
                   <CheckCircle className="text-altavik-600" size={20} />
                   <span className="text-altavik-900 font-bold">Archivo Cargado: <span className="text-altavik-700">{fileName}</span></span>
                 </div>
-                <button onClick={() => setStep(1)} className="text-xs font-bold text-altavik-600 hover:underline">Cambiar archivo</button>
+                <button type="button" onClick={() => setStep(1)} className="text-xs font-bold text-altavik-600 hover:underline">Cambiar archivo</button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -263,10 +263,10 @@ export default function ImportInventoryModal({ isOpen, onClose, onSuccess }: Pro
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
           {step === 2 && (
             <>
-              <button onClick={onClose} className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-all">
+              <button type="button" onClick={onClose} className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-all">
                 Cancelar
               </button>
-              <button
+              <button type="button"
                 onClick={handleImport}
                 disabled={loading}
                 className="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"

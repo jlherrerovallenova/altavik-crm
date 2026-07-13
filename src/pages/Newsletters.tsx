@@ -146,7 +146,7 @@ export default function Newsletters() {
                     </p>
                 }
                 actions={
-                    <Button
+                    <button type="button"
                         onClick={handleCreate}
                         size="lg"
                     >
@@ -161,7 +161,7 @@ export default function Newsletters() {
                         <Mail size={48} className="text-slate-300 mb-4" />
                         <h3 className="text-lg font-bold text-slate-700 mb-1">Crea tu primera campaña</h3>
                         <p className="max-w-md mx-auto mb-6 text-sm">Usa nuestro editor visual para diseñar correos de aspecto profesional en minutos.</p>
-                        <button onClick={handleCreate} className="text-altavik-600 font-bold hover:underline">
+                        <button type="button" onClick={handleCreate} className="text-altavik-600 font-bold hover:underline">
                             Comenzar ahora
                         </button>
                     </div>
@@ -203,20 +203,20 @@ export default function Newsletters() {
                                     </td>
                                     <td className="px-6 py-4 align-middle">
                                         <div className="flex items-center gap-3">
-                                            <button
+                                            <button type="button"
                                                 onClick={() => navigate(`/newsletters/${nl.id}`)}
                                                 className="text-altavik-600 hover:text-altavik-800 transition-colors tooltip flex items-center font-bold text-sm"
                                             >
                                                 {nl.status === 'draft' ? 'Editar' : 'Ver/Editar'}
                                             </button>
-                                            <button
+                                            <button type="button"
                                                 onClick={() => handleDuplicate(nl)}
                                                 className="text-slate-400 hover:text-altavik-600 transition-colors p-1 rounded hover:bg-altavik-50"
                                                 title="Duplicar campaña"
                                             >
                                                 <Copy size={16} />
                                             </button>
-                                            <button
+                                            <button type="button"
                                                 onClick={() => handleDelete(nl.id)}
                                                 className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50"
                                                 title="Eliminar campaña"

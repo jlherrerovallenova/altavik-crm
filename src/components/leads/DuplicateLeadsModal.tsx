@@ -139,7 +139,7 @@ export const DuplicateLeadsModal: React.FC<DuplicateLeadsModalProps> = ({ isOpen
               <p className="text-sm text-slate-500">Buscando coincidencias por Email o Teléfono.</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -169,6 +169,7 @@ export const DuplicateLeadsModal: React.FC<DuplicateLeadsModalProps> = ({ isOpen
               </div>
 
               {duplicates.map((group, idx) => (
+                // react-doctor-disable-next-line no-array-index-as-key
                 <div key={`${group.type}-${group.key}-${idx}`} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                   <div className="px-5 py-3 bg-slate-50 border-b flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -206,14 +207,14 @@ export const DuplicateLeadsModal: React.FC<DuplicateLeadsModalProps> = ({ isOpen
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button 
+                          <button type="button" 
                             onClick={() => window.open(`/leads?search=${lead.email || lead.phone || lead.name}`, '_blank')}
                             className="p-2 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-colors"
                             title="Ver en tabla"
                           >
                             <ExternalLink size={16} />
                           </button>
-                          <button 
+                          <button type="button" 
                             onClick={() => handleDeleteLead(lead.id, lead.name)}
                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Eliminar registro"
@@ -231,7 +232,7 @@ export const DuplicateLeadsModal: React.FC<DuplicateLeadsModalProps> = ({ isOpen
         </div>
 
         <div className="p-6 border-t bg-white flex justify-end">
-          <button
+          <button type="button"
             onClick={onClose}
             className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
           >

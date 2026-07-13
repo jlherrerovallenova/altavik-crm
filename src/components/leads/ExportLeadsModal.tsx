@@ -139,7 +139,7 @@ export default function ExportLeadsModal({ isOpen, onClose }: Props) {
             <FileText className="text-red-600" size={20} /> {/* Icono rojo para PDF */}
             Exportar PDF
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -186,13 +186,13 @@ export default function ExportLeadsModal({ isOpen, onClose }: Props) {
           </div>
 
           <div className="pt-2 flex gap-3">
-            <button
+            <button type="button"
               onClick={onClose}
               className="flex-1 px-4 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors text-xs"
             >
               Cancelar
             </button>
-            <button
+            <button type="button"
               onClick={handleExport}
               disabled={loading}
               className="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"

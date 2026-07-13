@@ -61,7 +61,7 @@ export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
       </div>
       
       {!hasFeedback ? (
-        <button
+        <button type="button"
           onClick={onSend}
           className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow-lg sm:transform sm:translate-x-2 sm:group-hover:translate-x-0 active:scale-95 w-full sm:w-auto"
         >

@@ -77,7 +77,7 @@ export function IntegrationsTab() {
               className="flex-1 p-2.5 text-sm border bg-white rounded-lg outline-none focus:ring-2 focus:ring-altavik-500/20 focus:border-altavik-500 transition-all font-mono"
               placeholder="Ej. 285017"
             />
-            <button
+            <button type="button"
               onClick={() => handleSaveIntegration('unlayer_project_id', unlayerProjectId, setIsSavingUnlayer)}
               disabled={isSavingUnlayer}
               className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors shrink-0 disabled:opacity-50"
@@ -127,7 +127,7 @@ export function IntegrationsTab() {
                   {showResendApiKey ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-              <button
+              <button type="button"
                 onClick={() => handleSaveIntegration('resend_api_key', resendApiKey, setIsSavingResend)}
                 disabled={isSavingResend || !resendApiKey.trim()}
                 className="flex items-center gap-1.5 bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"

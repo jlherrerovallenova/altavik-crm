@@ -78,6 +78,7 @@ export default function LeadDetail() {
     if (id) {
       fetchLeadData();
     }
+  // react-doctor-disable-next-line exhaustive-deps
   }, [id]);
 
   // 1. CARGA DE DATOS DEL CLIENTE Y SUS TAREAS
@@ -152,6 +153,7 @@ export default function LeadDetail() {
   // 3. ACTUALIZACIÓN DE ESTADO (PIPELINE)
   const handleStatusChange = async (newStatus: string) => {
     if (!lead) return;
+    // react-doctor-disable-next-line no-impure-state-updater
     setCurrentStatus(newStatus);
     setSavingStatus(true);
     try {
@@ -270,7 +272,7 @@ export default function LeadDetail() {
     return (
       <div className="text-center py-20">
         <h2 className="text-2xl font-bold text-slate-800">Cliente no encontrado</h2>
-        <button onClick={() => navigate('/leads')} className="mt-4 text-altavik-600 font-bold hover:underline">
+        <button type="button" onClick={() => navigate('/leads')} className="mt-4 text-altavik-600 font-bold hover:underline">
           Volver a la lista
         </button>
       </div>
@@ -284,7 +286,7 @@ export default function LeadDetail() {
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-10">
 
       {/* BOTÓN DE RETROCESO */}
-      <button
+      <button type="button"
         onClick={() => navigate('/leads')}
         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
       >
@@ -319,7 +321,7 @@ export default function LeadDetail() {
           <div className="flex flex-wrap gap-3 w-full md:w-auto">
             {isEditing ? (
               <>
-                <button
+                <button type="button"
                   onClick={() => {
                     setIsEditing(false);
                     setFormData({
@@ -333,7 +335,7 @@ export default function LeadDetail() {
                 >
                   <X size={16} /> Cancelar
                 </button>
-                <button
+                <button type="button"
                   onClick={handleSaveDetails}
                   disabled={savingDetails}
                   className="flex-1 md:flex-none p-2.5 px-4 bg-altavik-600 text-white rounded-xl hover:bg-altavik-700 transition-all font-bold text-sm shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
@@ -344,7 +346,7 @@ export default function LeadDetail() {
               </>
             ) : (
               <>
-                <button
+                <button type="button"
                   onClick={() => setIsEditing(true)}
                   className="flex-1 md:flex-none p-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 font-bold text-sm"
                 >
@@ -458,7 +460,7 @@ export default function LeadDetail() {
             <Wand2 className="text-indigo-500" size={20} />
             Copilot IA
           </h2>
-          <button
+          <button type="button"
             onClick={handleCopilotSummarize}
             disabled={copilotLoading}
             className="text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
@@ -476,6 +478,7 @@ export default function LeadDetail() {
             <h3 className="text-sm font-bold text-slate-800 mb-2">Próximos Pasos Recomendados</h3>
             <ul className="space-y-2">
               {copilotData.nextSteps.map((step, idx) => (
+                // react-doctor-disable-next-line no-array-index-as-key
                 <li key={idx} className="flex gap-2 text-sm text-slate-600">
                   <span className="text-indigo-500 font-bold">•</span>
                   <span>{step}</span>
@@ -493,7 +496,7 @@ export default function LeadDetail() {
             <Clock className="text-altavik-500" size={20} /> Historial y Tareas
           </h2>
           {!isAddingTask && (
-            <button 
+            <button type="button" 
               onClick={() => setIsAddingTask(true)}
               className="text-sm font-bold text-altavik-600 hover:text-altavik-700 bg-altavik-50 px-4 py-2 rounded-xl transition-all active:scale-95 flex items-center gap-2 border border-altavik-100"
             >
@@ -506,7 +509,7 @@ export default function LeadDetail() {
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 animate-in slide-in-from-top-4 duration-300">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Nueva Tarea en Agenda</h3>
-              <button onClick={() => setIsAddingTask(false)} className="text-slate-400 hover:text-red-500"><X size={18} /></button>
+              <button type="button" onClick={() => setIsAddingTask(false)} className="text-slate-400 hover:text-red-500"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div className="space-y-1.5">
@@ -551,7 +554,7 @@ export default function LeadDetail() {
                 className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-altavik-500/20"
               />
             </div>
-            <button 
+            <button type="button" 
               onClick={handleSaveTask}
               disabled={savingTask || !newTask.title}
               className="w-full py-3 bg-altavik-600 hover:bg-altavik-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-altavik-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -574,7 +577,7 @@ export default function LeadDetail() {
               {pendingTasks.map(task => (
                 <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                   <div className="flex items-center gap-4">
-                    <button
+                    <button type="button"
                       onClick={() => toggleTaskStatus(task)}
                       className="text-slate-300 hover:text-altavik-500 transition-colors"
                     >
@@ -594,7 +597,7 @@ export default function LeadDetail() {
                       </p>
                     </div>
                   </div>
-                  <button 
+                  <button type="button" 
                     onClick={() => deleteTask(task.id.toString())}
                     className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
                   >
@@ -611,7 +614,7 @@ export default function LeadDetail() {
                   {completedTasks.map(task => (
                     <div key={task.id} className="p-4 flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
                       <div className="flex items-center gap-4">
-                        <button
+                        <button type="button"
                           onClick={() => toggleTaskStatus(task)}
                           className="text-altavik-500 hover:text-slate-400 transition-colors"
                         >

@@ -233,7 +233,7 @@ export default function ImportLeadsModal({ isOpen, onClose, onSuccess }: Props) 
                             Sube un archivo CSV o Excel (.xlsx, .xls) para añadir múltiples clientes.
                         </p>
                     </div>
-                    <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-lg">
+                    <button type="button" onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-lg">
                         <X size={24} />
                     </button>
                 </div>
@@ -264,7 +264,7 @@ export default function ImportLeadsModal({ isOpen, onClose, onSuccess }: Props) 
                                 ref={fileInputRef}
                                 onChange={handleFileUpload}
                             />
-                            <button
+                            <button type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 className="px-6 py-3 bg-altavik-600 text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:bg-altavik-700 active:scale-95 transition-all text-sm"
                             >
@@ -283,7 +283,7 @@ export default function ImportLeadsModal({ isOpen, onClose, onSuccess }: Props) 
                                         <p className="text-sm text-altavik-700">Se han encontrado <b>{parsedData.length}</b> registros válidos en "{fileName}".</p>
                                     </div>
                                 </div>
-                                <button
+                                <button type="button"
                                     onClick={() => setStep(1)}
                                     className="text-sm font-bold text-altavik-600 hover:text-altavik-800 transition-colors"
                                 >
@@ -333,13 +333,13 @@ export default function ImportLeadsModal({ isOpen, onClose, onSuccess }: Props) 
 
                 {/* Footer */}
                 <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex gap-3 justify-end shrink-0">
-                    <button
+                    <button type="button"
                         onClick={handleClose}
                         className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-colors"
                     >
                         Cancelar
                     </button>
-                    <button
+                    <button type="button"
                         onClick={step === 1 ? () => fileInputRef.current?.click() : handleImport}
                         disabled={loading || (step === 2 && parsedData.length === 0)}
                         className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"

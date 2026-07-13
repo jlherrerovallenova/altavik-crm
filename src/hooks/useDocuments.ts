@@ -26,16 +26,16 @@ export function useDocuments() {
             // Listar TODO en el bucket 'documents' de forma recursiva (si es posible)
             const foldersToList = ['', 'General', ...DOCUMENT_CATEGORIES];
             
-            for (const folder of foldersToList) {
+            const results = await Promise.all(foldersToList.map(async folder => {
                 const { data, error } = await supabase.storage.from('documents').list(folder);
                 if (error) {
                     console.error(`Error listando ${folder || 'raíz'}:`, error);
-                    continue;
+                    return [];
                 }
 
                 if (data) {
                     const validFiles = data.filter(f => f.name !== '.emptyFolderPlaceholder' && f.name !== '.emptyFolder' && f.id);
-                    const docsWithMeta = validFiles.map(doc => {
+                    return validFiles.map(doc => {
                         const path = folder ? `${folder}/${doc.name}` : doc.name;
                         const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(path);
                         return {
@@ -45,11 +45,12 @@ export function useDocuments() {
                             url: publicUrl
                         };
                     });
-
-                    // @ts-ignore
-                    allDocs = [...allDocs, ...docsWithMeta];
                 }
-            }
+                return [];
+            }));
+
+            // @ts-ignore
+            allDocs = results.flat();
 
             // Eliminar duplicados si los hay (por si un archivo sale en raíz y carpeta, aunque raro)
             const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.fullPath, item])).values());

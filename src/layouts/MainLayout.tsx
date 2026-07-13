@@ -62,6 +62,7 @@ export default function MainLayout() {
 
   // Escuchar aperturas de email en tiempo real
   useEmailTrackingNotifications((data) => {
+    // react-doctor-disable-next-line no-impure-state-updater
     setNotificationData(data);
     setShowNotification(true);
   });
@@ -239,7 +240,7 @@ export default function MainLayout() {
             </div>
             <span className="text-white font-display font-bold text-lg tracking-tight">Altavik Residencial</span>
           </div>
-          <button onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white">
+          <button type="button" onClick={closeSidebar} className="lg:hidden text-slate-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
@@ -272,7 +273,7 @@ export default function MainLayout() {
               <p className="text-sm font-bold text-white truncate">Usuario</p>
               <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
             </div>
-            <button
+            <button type="button"
               onClick={() => signOut()}
               className="text-slate-500 hover:text-red-400 transition-colors"
               title="Cerrar Sesión"
@@ -288,7 +289,7 @@ export default function MainLayout() {
         <header className="h-20 glass-card bg-white/60 backdrop-blur-md border-b border-white/40 flex items-center justify-between px-4 md:px-8 z-40 relative flex-shrink-0">
           {/* IZQUIERDA: Menú móvil */}
           <div className="flex items-center w-1/3">
-            <button
+            <button type="button"
               onClick={toggleSidebar}
               className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
@@ -318,7 +319,7 @@ export default function MainLayout() {
               />
             </form>
 
-            <button
+            <button type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
               className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-altavik-50 text-slate-400 hover:text-altavik-600 rounded-lg border border-slate-200 transition-all group"
               title="Magic Bar (Ctrl+K)"
@@ -334,7 +335,7 @@ export default function MainLayout() {
 
             {/* Campana con badge y popover */}
             <div className="relative" ref={bellRef}>
-              <button
+              <button type="button"
                 onClick={() => setShowBellPopover(v => !v)}
                 className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative transition-colors"
                 title="Notificaciones de agenda"

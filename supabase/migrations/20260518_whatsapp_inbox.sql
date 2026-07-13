@@ -35,3 +35,10 @@ CREATE INDEX IF NOT EXISTS idx_wa_messages_conv ON wa_messages(conversation_id, 
 -- Habilitar Realtime en estas tablas
 ALTER PUBLICATION supabase_realtime ADD TABLE wa_conversations;
 ALTER PUBLICATION supabase_realtime ADD TABLE wa_messages;
+
+-- Habilitar y configurar Row Level Security (RLS)
+ALTER TABLE wa_conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wa_messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can access WA conversations" ON wa_conversations FOR ALL USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Authenticated users can access WA messages" ON wa_messages FOR ALL USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL);

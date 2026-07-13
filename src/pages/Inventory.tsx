@@ -381,7 +381,7 @@ export default function Inventory() {
           </p>
         }
         actions={
-          <Button
+          <button type="button"
             onClick={handleExportPDF}
             disabled={loading || isExporting || filteredProperties.length === 0}
             isLoading={isExporting}
@@ -469,7 +469,7 @@ export default function Inventory() {
               </select>
             </div>
 
-            <button
+            <button type="button"
               onClick={resetFilters}
               className="p-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0"
               title="Limpiar Filtros"
@@ -612,7 +612,7 @@ export default function Inventory() {
                             <PencilRuler size={18} />
                           </a>
                         )}
-                        <button
+                        <button type="button"
                           onClick={() => {
                             setSelectedPropertyForPayment(property);
                             setIsPaymentModalOpen(true);
@@ -623,7 +623,7 @@ export default function Inventory() {
                           <Euro size={18} />
                         </button>
 
-                        <button
+                        <button type="button"
                           onClick={() => {
                             setEditingProperty(property);
                             setIsModalOpen(true);
@@ -654,7 +654,7 @@ export default function Inventory() {
               Mostrando <span className="text-slate-900 font-bold">{startIndex + 1}</span> a <span className="text-slate-900 font-bold">{Math.min(startIndex + itemsPerPage, filteredProperties.length)}</span> de <span className="text-slate-900 font-bold">{filteredProperties.length}</span> viviendas
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <button type="button"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all"
@@ -668,7 +668,7 @@ export default function Inventory() {
                   .map((page, index, array) => (
                     <React.Fragment key={page}>
                       {index > 0 && array[index - 1] !== page - 1 && <span className="px-2 text-slate-400">...</span>}
-                      <button
+                      <button type="button"
                         onClick={() => setCurrentPage(page)}
                         className={`w-10 h-10 rounded-xl font-bold transition-all ${
                           currentPage === page 
@@ -682,7 +682,7 @@ export default function Inventory() {
                   ))}
               </div>
 
-              <button
+              <button type="button"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all"

@@ -41,8 +41,8 @@ BEGIN
             ON public.leads 
             FOR ALL 
             TO authenticated 
-            USING (true) 
-            WITH CHECK (true);
+            USING (auth.uid() IS NOT NULL) 
+            WITH CHECK (auth.uid() IS NOT NULL);
     END IF;
 
     -- Política de inventario para personal
@@ -51,8 +51,8 @@ BEGIN
             ON public.inventory 
             FOR ALL 
             TO authenticated 
-            USING (true) 
-            WITH CHECK (true);
+            USING (auth.uid() IS NOT NULL) 
+            WITH CHECK (auth.uid() IS NOT NULL);
     END IF;
 
     -- Política de agenda para personal
@@ -61,7 +61,7 @@ BEGIN
             ON public.agenda 
             FOR ALL 
             TO authenticated 
-            USING (true) 
-            WITH CHECK (true);
+            USING (auth.uid() IS NOT NULL) 
+            WITH CHECK (auth.uid() IS NOT NULL);
     END IF;
 END $$;

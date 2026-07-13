@@ -96,9 +96,12 @@ serve(async (req) => {
             }));
 
             const RESEND_CHUNK_SIZE = 100;
+            const chunks = [];
             for (let i = 0; i < resendBatch.length; i += RESEND_CHUNK_SIZE) {
-                const chunk = resendBatch.slice(i, i + RESEND_CHUNK_SIZE);
-                
+                chunks.push(resendBatch.slice(i, i + RESEND_CHUNK_SIZE));
+            }
+            
+            await Promise.all(chunks.map(async (chunk) => {
                 const res = await fetch('https://api.resend.com/emails/batch', {
                     method: 'POST',
                     headers: {
@@ -114,7 +117,7 @@ serve(async (req) => {
                     // Podríamos decidir continuar o parar. Aquí paramos por seguridad.
                     throw new Error(errBody.message || `Resend Error: ${res.statusText}`);
                 }
-            }
+            }));
 
             totalSent += leads.length;
             console.log(`Progreso: ${totalSent} emails procesados...`);

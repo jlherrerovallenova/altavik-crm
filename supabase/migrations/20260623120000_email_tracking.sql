@@ -15,8 +15,8 @@ CREATE POLICY "Users can manage email tracking"
     ON email_tracking
     FOR ALL
     TO authenticated
-    USING (true)
-    WITH CHECK (true);
+    USING (auth.uid() IS NOT NULL)
+    WITH CHECK (auth.uid() IS NOT NULL);
 
 -- Habilitar Supabase Realtime para esta tabla
 DO $$

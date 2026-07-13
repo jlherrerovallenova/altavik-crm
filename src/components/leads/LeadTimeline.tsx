@@ -44,30 +44,23 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
 
   useEffect(() => {
     fetchAggregatedEvents();
+  // react-doctor-disable-next-line exhaustive-deps
   }, [leadId]);
 
   async function fetchAggregatedEvents() {
     try {
       setLoading(true);
       
-      // 1. Fetch de tabla lead_history (logs explícitos)
-      const { data: historyData } = await (supabase as any)
-        .from('lead_history')
-        .select('*')
-        .eq('lead_id', leadId);
-
-      // 2. Fetch de tabla agenda (tareas completadas)
-      const { data: tasksData } = await (supabase as any)
-        .from('agenda')
-        .select('*')
-        .eq('lead_id', leadId)
-        .eq('completed', true);
-
-      // 3. Fetch de documentos enviados
-      const { data: docsData } = await (supabase as any)
-        .from('sent_documents')
-        .select('*')
-        .eq('lead_id', leadId);
+      // Fetch the history, agenda, and sent docs in parallel
+      const [
+        { data: historyData },
+        { data: tasksData },
+        { data: docsData }
+      ] = await Promise.all([
+        (supabase as any).from('lead_history').select('*').eq('lead_id', leadId),
+        (supabase as any).from('agenda').select('*').eq('lead_id', leadId).eq('completed', true),
+        (supabase as any).from('sent_documents').select('*').eq('lead_id', leadId)
+      ]);
 
       // 4. Fetch de email_tracking
       const { data: trackingData } = await (supabase as any)
@@ -231,7 +224,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                     </p>
                   )}
                   <div className="mt-1">
-                    <button
+                    <button type="button"
                       onClick={() => toggleEmailExpand(event.id)}
                       className="text-[10px] font-black text-altavik-600 hover:text-altavik-700 flex items-center gap-1 cursor-pointer bg-altavik-50 hover:bg-altavik-100/80 px-2.5 py-1 rounded-lg transition-all"
                     >

@@ -4,13 +4,13 @@
 DROP POLICY IF EXISTS "Allow all access to authenticated users" ON public.incoming_emails;
 
 CREATE POLICY "Enable insert for all" ON public.incoming_emails
-    FOR INSERT WITH CHECK (true);
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Enable select for all" ON public.incoming_emails
-    FOR SELECT USING (true);
+    FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Enable update for all" ON public.incoming_emails
-    FOR UPDATE USING (true);
+    FOR UPDATE USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Enable delete for all" ON public.incoming_emails
-    FOR DELETE USING (true);
+    FOR DELETE USING (auth.uid() IS NOT NULL);

@@ -29,10 +29,10 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
     }
   }, [templates, selectedTemplateId]);
 
-  if (!isOpen) return null;
-
   const [isSendingAll, setIsSendingAll] = useState(false);
   const isCloudConfigured = import.meta.env.VITE_ENABLE_WHATSAPP_CLOUD !== 'false';
+
+  if (!isOpen) return null;
 
   const handleSendToLead = async (lead: Lead) => {
     const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
@@ -151,7 +151,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
               <p className="text-emerald-100 text-xs font-bold uppercase tracking-widest mt-1 opacity-80">{title}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl">
+          <button type="button" onClick={onClose} className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-xl">
             <X size={24} />
           </button>
         </div>
@@ -244,7 +244,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
                       </div>
                     </div>
                     
-                    <button
+                    <button type="button"
                       onClick={() => handleSendToLead(lead)}
                       disabled={!lead.phone}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
@@ -270,7 +270,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
           </p>
           <div className="flex gap-3">
             {isCloudConfigured && leads.length > sentLeads.length && (
-              <button
+              <button type="button"
                 onClick={handleSendAll}
                 disabled={isSendingAll}
                 className="px-8 py-2.5 bg-emerald-600 text-white font-black text-sm rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-200"
@@ -288,7 +288,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
                 )}
               </button>
             )}
-            <button
+            <button type="button"
               onClick={onClose}
               className="px-6 py-2.5 text-slate-500 font-bold text-sm hover:bg-slate-200 rounded-xl transition-all"
             >

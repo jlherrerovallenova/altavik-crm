@@ -109,13 +109,13 @@ export default function Sales() {
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-          <button
+          <button type="button"
             onClick={() => setStatusFilter('all')}
             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all border ${statusFilter === 'all' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
           >
             Todas las operaciones
           </button>
-          <button
+          <button type="button"
             onClick={() => setStatusFilter('completada')}
             className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all border ${statusFilter === 'completada' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'}`}
           >
@@ -202,7 +202,7 @@ export default function Sales() {
                         {formatDate(sale.escritura_date || sale.contract_date)}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button 
+                        <button type="button" 
                           className="text-xs font-bold text-altavik-600 hover:text-altavik-800 bg-altavik-50 hover:bg-altavik-100 px-3 py-1.5 rounded transition-colors"
                           onClick={() => navigate(`/leads?search=${encodeURIComponent(sale.lead.name)}`)}
                         >

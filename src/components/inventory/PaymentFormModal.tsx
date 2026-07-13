@@ -98,7 +98,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
               <h2 className="text-xl font-bold text-slate-900 leading-tight">FORMA DE PAGO</h2>
             </div>
           </div>
-          <button 
+          <button type="button" 
             onClick={onClose}
             className="p-3 text-slate-400 hover:text-slate-900 hover:bg-white rounded-2xl transition-all shadow-sm hover:shadow-md"
           >
@@ -181,6 +181,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                     "Cantidades avaladas por entidad bancaria.",
                     "Personalización de acabados disponible."
                   ].map((text, idx) => (
+                    // react-doctor-disable-next-line no-array-index-as-key
                     <div key={idx} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-slate-600 text-xs font-medium">
                       <CheckCircle2 size={16} className="text-altavik-500 mt-0.5" />
                       {text}
@@ -204,6 +205,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                   { icon: Calendar, title: "3. Cuotas Mensuales", date: "24 mensualidades", amount: monthlyQuotaTotal, desc: `24 cuotas de ${formatCurrency(monthlyAmount)}` },
                   { icon: BadgeCheck, title: "4. Escrituración", date: "Entrega de llaves", amount: eightyPercent, desc: "Mediante préstamo hipotecario" }
                 ].map((step, idx) => (
+                  // react-doctor-disable-next-line no-array-index-as-key
                   <div key={idx} className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">
                     <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:border-altavik-200 group-hover:text-altavik-600 transition-colors shadow-sm">
                       <step.icon size={20} />
@@ -246,13 +248,13 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
         {/* Footer Actions */}
         <div className="px-8 py-5 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
           <div className="flex items-center gap-3">
-            <button 
+            <button type="button" 
               onClick={onClose}
               className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all text-sm"
             >
               Cerrar Preview
             </button>
-            <button 
+            <button type="button" 
               onClick={() => setShowSimulator(true)}
               className="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-xl shadow-slate-200 hover:bg-slate-800 hover:shadow-altavik-100 active:scale-95 transition-all flex items-center gap-2 text-sm"
             >
