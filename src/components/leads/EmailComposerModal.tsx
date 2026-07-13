@@ -569,7 +569,8 @@ Juan Herrero - TERRAVALL`);
 
           {/* CAMPOS (Scrollable) */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar">
-            {method === 'email' && (
+            <div className="space-y-4">
+              {method === 'email' && (
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Asunto</label>
                 <input
