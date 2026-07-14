@@ -187,7 +187,7 @@ export default function Agenda() {
           </div>
         }
         actions={
-          <button type="button"
+          <Button
             onClick={() => setIsCreateModalOpen(true)}
             size="lg"
           >

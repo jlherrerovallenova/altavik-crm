@@ -381,7 +381,7 @@ export default function Inventory() {
           </p>
         }
         actions={
-          <button type="button"
+          <Button
             onClick={handleExportPDF}
             disabled={loading || isExporting || filteredProperties.length === 0}
             isLoading={isExporting}

@@ -212,10 +212,10 @@ export default function Discovery() {
       const { data: currentEmails } = await supabase
         .from('incoming_emails')
         .select('id, tags')
-        .in('id', selectedIds);
+        .in('id', selectedIds) as any;
 
       if (currentEmails) {
-        await Promise.all(currentEmails.map(email => 
+        await Promise.all(currentEmails.map((email: any) => 
           (supabase as any)
             .from('incoming_emails')
             .update({ tags: [...(email.tags || []), 'Descartado'] })
@@ -260,7 +260,7 @@ export default function Discovery() {
         .from('incoming_emails')
         .select('tags')
         .eq('id', emailId)
-        .single();
+        .single() as any;
 
       const { error } = await (supabase as any)
         .from('incoming_emails')
@@ -343,7 +343,7 @@ export default function Discovery() {
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
               <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <button type="button" 
+                <Button
                   variant="primary" 
                   size="sm"
                   onClick={handleBulkProcessLeads}
@@ -353,7 +353,7 @@ export default function Discovery() {
                   <UserPlus size={16} />
                   Capturar ({selectedIds.length})
                 </Button>
-                <button type="button" 
+                <Button
                   variant="secondary" 
                   size="sm"
                   onClick={handleBulkDelete}
@@ -379,7 +379,7 @@ export default function Discovery() {
                 Importados
               </button>
             </div>
-            <button type="button" 
+            <Button
               onClick={() => {
                 setIsScanning(true);
                 setTimeout(() => {

@@ -47,9 +47,9 @@ export default function Inbox() {
   // 1. Cargar emails de leads existentes para detección inmediata
   useEffect(() => {
     const fetchLeadEmails = async () => {
-      const { data } = await supabase.from('leads').select('email');
+      const { data } = await supabase.from('leads').select('email') as any;
       if (data) {
-        const emailSet = new Set(data.map(l => l.email?.toLowerCase()).filter(Boolean) as string[]);
+        const emailSet = new Set(data.map((l: any) => l.email?.toLowerCase()).filter(Boolean) as string[]);
         setExistingLeadEmails(emailSet);
       }
     };
@@ -86,10 +86,10 @@ export default function Inbox() {
         const { data: duplicates } = await supabase
           .from('leads')
           .select('id, name')
-          .or(duplicateQuery.join(','));
+          .or(duplicateQuery.join(',')) as any;
 
         if (duplicates && duplicates.length > 0) {
-          const names = duplicates.map(d => d.name).join(', ');
+          const names = duplicates.map((d: any) => d.name).join(', ');
           const proceed = await showConfirm({
             title: 'Posible Duplicado detectado',
             message: `Ya existe un lead con estos datos (${names}). ¿Estás seguro de que quieres crear una nueva ficha?`,

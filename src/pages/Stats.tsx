@@ -485,7 +485,7 @@ export default function Stats() {
               <option value="12m">Anual</option>
               <option value="all">Histórico total</option>
             </select>
-            <button type="button" 
+            <Button 
               variant="secondary"
               onClick={handleDownloadPDF}
               disabled={loading || rawLeads.length === 0}
@@ -494,7 +494,7 @@ export default function Stats() {
               <FileText size={18} className="text-red-500" />
               PDF
             </Button>
-            <button type="button" 
+            <Button 
               variant="secondary"
               onClick={handleDownload}
               disabled={loading || rawLeads.length === 0}
@@ -685,7 +685,7 @@ export default function Stats() {
                   <option key={m.value} value={m.value}>{m.label}</option>
                 ))}
               </select>
-              <button type="button" 
+              <Button 
                 variant="secondary" 
                 size="sm" 
                 className="h-8 text-[10px] font-black tracking-widest gap-1.5 border-slate-200"
