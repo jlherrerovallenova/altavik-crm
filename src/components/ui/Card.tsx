@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 interface CardProps {
   children: React.ReactNode;
@@ -23,13 +22,10 @@ export const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className={`${baseStyles} ${variants[variant]} ${noPadding ? '' : 'p-6'} ${className}`}
+    <div 
+      className={`${baseStyles} ${variants[variant]} ${noPadding ? '' : 'p-6'} animate-in fade-in slide-in-from-bottom-5 duration-500 ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   );
 };

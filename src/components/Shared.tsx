@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, X, Info, ChevronDown, Check } from 'lucide-react';
 
 // Icono personalizado de Idealista
@@ -10,7 +9,6 @@ export const IdealistaIcon = ({ className = "" }: { className?: string; size?: n
 );
 
 // 1. Tarjeta de Estadísticas
-// (StatCard implementation remains same)
 export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any) {
   const colors = {
     primary: 'bg-blue-500',
@@ -23,11 +21,8 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
   const activeColor = colors[type as keyof typeof colors] || colors.neutral;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all"
+    <div 
+      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all animate-in fade-in zoom-in-95 duration-300"
     >
       <div className="flex justify-between items-start z-10">
         <div>
@@ -44,13 +39,12 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
         </p>
       </div>
       <div className={`absolute bottom-0 left-0 w-full h-1 ${activeColor}`}></div>
-    </motion.div>
+    </div>
   );
 }
 
 // 2. Badge de Estado (CONECTADO A DB)
 export function StageBadge({ stage }: { stage: string }) {
-  // Mapeo directo de los valores de la base de datos a Estilos y Etiquetas
   const config: any = {
      'new':         { label: 'Nuevo', class: 'bg-slate-100 text-slate-600 border-slate-200' },
      'contacted':   { label: 'Contactado', class: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -99,11 +93,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
   const theme = themes[type];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 50, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', bounce: 0.4, duration: 0.5 }}
+    <div 
       className={`
       fixed bottom-6 right-6 z-[100]
       w-full max-w-sm overflow-hidden
@@ -119,7 +109,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
       <button type="button" onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
         <X strokeWidth={2.5} size={16} />
       </button>
-    </motion.div>
+    </div>
   );
 };
 
@@ -161,16 +151,11 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
         <ChevronDown strokeWidth={2.5} size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      <AnimatePresence>
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto py-1"
+          <div 
+            className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-2 duration-200"
           >
             {options.map((option) => (
               <button
@@ -190,10 +175,10 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
                 {value === option.id && <Check size={16} className="text-altavik-600" />}
               </button>
             ))}
-          </motion.div>
+          </div>
         </>
       )}
-      </AnimatePresence>
     </div>
   );
-}
+}
+
