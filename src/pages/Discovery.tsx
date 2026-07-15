@@ -209,13 +209,13 @@ export default function Discovery() {
     try {
       setLoading(true);
       // Para borrado masivo, necesitamos actualizar cada uno para añadir el tag
-      const { data: currentEmails } = await supabase
+      const { data: currentEmails } = await (supabase as any)
         .from('incoming_emails')
         .select('id, tags')
         .in('id', selectedIds);
 
       if (currentEmails) {
-        await Promise.all(currentEmails.map(email => 
+        await Promise.all((currentEmails as any[]).map((email: any) => 
           (supabase as any)
             .from('incoming_emails')
             .update({ tags: [...(email.tags || []), 'Descartado'] })
@@ -256,7 +256,7 @@ export default function Discovery() {
 
     try {
       // Obtener tags actuales
-      const { data: emailData } = await supabase
+      const { data: emailData } = await (supabase as any)
         .from('incoming_emails')
         .select('tags')
         .eq('id', emailId)
@@ -343,7 +343,7 @@ export default function Discovery() {
           <div className="flex items-center gap-3">
             {selectedIds.length > 0 && (
               <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <button type="button" 
+                <Button type="button" 
                   variant="primary" 
                   size="sm"
                   onClick={handleBulkProcessLeads}
@@ -353,7 +353,7 @@ export default function Discovery() {
                   <UserPlus size={16} />
                   Capturar ({selectedIds.length})
                 </Button>
-                <button type="button" 
+                <Button type="button" 
                   variant="secondary" 
                   size="sm"
                   onClick={handleBulkDelete}
@@ -379,7 +379,7 @@ export default function Discovery() {
                 Importados
               </button>
             </div>
-            <button type="button" 
+            <Button type="button" 
               onClick={() => {
                 setIsScanning(true);
                 setTimeout(() => {

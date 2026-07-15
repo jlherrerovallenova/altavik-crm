@@ -12,6 +12,7 @@ interface Props {
 }
 
 import { useCreateLead } from '../../hooks/useLeads';
+import { useAutosave } from '../../hooks/useAutosave';
 
 const SOURCE_CONFIG = [
   { id: 'Idealista', label: 'Idealista', icon: IdealistaIcon, color: 'text-[#deff30]' },
@@ -27,7 +28,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
   const createMutation = useCreateLead();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useAutosave('draft-create-lead', {
     name: '',
     email: '',
     phone: '',
@@ -74,7 +75,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
 
     // 2. Buscamos el Teléfono (9-15 dígitos, permitiendo espacios/guiones)
     const phoneMatch = pasteText.match(/(?:\+?34\s?)?[6789][0-9\s-]{8,13}/);
-    let phone = phoneMatch ? phoneMatch[0].trim().replace(/\s/g, '') : null;
+    const phone = phoneMatch ? phoneMatch[0].trim().replace(/\s/g, '') : null;
 
     // 3. Buscamos el Nombre (Heurística: línea anterior al email o teléfono, o tras "Contactado por")
     let name = '';
@@ -203,12 +204,12 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
 
       createMutation.mutate(payload, {
         onSuccess: () => {
-          setFormData({ name: '', email: '', phone: '', source: 'Idealista', notes: '' });
+          clearFormData();
           onSuccess();
           onClose();
         },
         onError: (err: any) => {
-          setErrorMsg(err.message || 'Error al guardar el cliente.');
+          setErrorMsg(err.message || 'Error al crear el lead. Inténtalo de nuevo.');
         }
       });
 

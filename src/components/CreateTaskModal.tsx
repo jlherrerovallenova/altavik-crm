@@ -4,6 +4,7 @@ import { X, Clock, User, Save, Loader2, Search, Smartphone, CheckCircle2 } from 
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
+import { useAutosave } from '../hooks/useAutosave';
 import type { Database } from '../types/supabase';
 
 type Lead = Database['public']['Tables']['leads']['Row'];
@@ -24,7 +25,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
   const [isSearching, setIsSearching] = useState(false);
   const [showWhatsAppSuccess, setShowWhatsAppSuccess] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useAutosave('draft-create-task', {
     title: '',
     type: 'Llamada' as Database['public']['Tables']['agenda']['Row']['type'],
     date: new Date().toISOString().split('T')[0],
@@ -112,12 +113,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
       onSuccess();
 
       if (formData.type !== 'Visita' || !selectedLead?.phone) {
-        setFormData({
-          title: '',
-          type: 'Llamada',
-          date: new Date().toISOString().split('T')[0],
-          time: '10:00',
-        });
+        clearFormData();
         setSelectedLead(null);
         setSearchTerm('');
       }
@@ -141,12 +137,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
           <button type="button" 
             onClick={() => {
               if (showWhatsAppSuccess) {
-                setFormData({
-                  title: '',
-                  type: 'Llamada',
-                  date: new Date().toISOString().split('T')[0],
-                  time: '10:00',
-                });
+                clearFormData();
                 setSelectedLead(null);
                 setShowWhatsAppSuccess(false);
               }
@@ -198,12 +189,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
                   window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(text)}`, '_blank');
                   onClose();
                   // Reset form
-                  setFormData({
-                    title: '',
-                    type: 'Llamada',
-                    date: new Date().toISOString().split('T')[0],
-                    time: '10:00',
-                  });
+                  clearFormData();
                   setSelectedLead(null);
                   setShowWhatsAppSuccess(false);
                 }}
@@ -215,12 +201,7 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
                 onClick={() => {
                   onClose();
                   // Reset form
-                  setFormData({
-                    title: '',
-                    type: 'Llamada',
-                    date: new Date().toISOString().split('T')[0],
-                    time: '10:00',
-                  });
+                  clearFormData();
                   setSelectedLead(null);
                   setShowWhatsAppSuccess(false);
                 }}

@@ -152,7 +152,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       )
       .subscribe();
 
-    const unsubscribe = () => supabase.removeChannel(trackingChannel);
+    const unsubscribe = () => { supabase.removeChannel(trackingChannel); };
     return unsubscribe;
   // react-doctor-disable-next-line exhaustive-deps
   }, [lead.id, fetchHistory]);
@@ -176,7 +176,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       )
       .subscribe();
 
-    const unsubscribe = () => supabase.removeChannel(agendaChannel);
+    const unsubscribe = () => { supabase.removeChannel(agendaChannel); };
     return unsubscribe;
   // react-doctor-disable-next-line exhaustive-deps
   }, [lead.id, fetchTasks]);

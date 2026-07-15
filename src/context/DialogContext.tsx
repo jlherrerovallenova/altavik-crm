@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Info, X } from 'lucide-react';
 
 interface DialogOptions {
@@ -66,9 +67,21 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         <DialogContext.Provider value={{ showConfirm, showAlert }}>
             {children}
 
+            <AnimatePresence>
             {dialog.isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+                >
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                        transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+                        className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+                    >
                         <div className="p-6">
                             <div className="flex items-start gap-4">
                                 <div className={`p-3 rounded-full shrink-0 ${dialog.type === 'confirm' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
@@ -107,9 +120,10 @@ export function DialogProvider({ children }: { children: ReactNode }) {
                                 {dialog.confirmText}
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             )}
+            </AnimatePresence>
         </DialogContext.Provider>
     );
 }

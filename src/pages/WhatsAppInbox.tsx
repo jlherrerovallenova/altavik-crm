@@ -102,7 +102,7 @@ export default function WhatsAppInbox() {
         addDebug(`Realtime wa_inbox estado: ${status}`);
       });
 
-    const unsubscribe = () => supabase.removeChannel(channel);
+    const unsubscribe = () => { supabase.removeChannel(channel); };
     return unsubscribe;
   }, [session, fetchConversations]);
 
@@ -172,7 +172,7 @@ export default function WhatsAppInbox() {
         addDebug(`Realtime wa_msgs_${selectedConv.id.substring(0,6)} estado: ${status}`);
       });
 
-    const unsubscribe = () => supabase.removeChannel(channel);
+    const unsubscribe = () => { supabase.removeChannel(channel); };
     return unsubscribe;
   }, [selectedConv]);
 

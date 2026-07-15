@@ -46,7 +46,7 @@ export function useEmailTrackingNotifications(
       )
       .subscribe();
 
-    const unsubscribe = () => supabase.removeChannel(channel);
+    const unsubscribe = () => { supabase.removeChannel(channel); };
     return unsubscribe;
   }, [showNotification]);
 }

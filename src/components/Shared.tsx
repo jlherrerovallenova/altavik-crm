@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, X, Info, ChevronDown, Check } from 'lucide-react';
 
 // Icono personalizado de Idealista
@@ -22,7 +23,12 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
   const activeColor = colors[type as keyof typeof colors] || colors.neutral;
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all"
+    >
       <div className="flex justify-between items-start z-10">
         <div>
           <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
@@ -38,7 +44,7 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
         </p>
       </div>
       <div className={`absolute bottom-0 left-0 w-full h-1 ${activeColor}`}></div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -93,7 +99,12 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
   const theme = themes[type];
 
   return (
-    <div className={`
+    <motion.div 
+      initial={{ opacity: 0, x: 50, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: 'spring', bounce: 0.4, duration: 0.5 }}
+      className={`
       fixed bottom-6 right-6 z-[100]
       w-full max-w-sm overflow-hidden
       ${theme.style} rounded-xl shadow-lg shadow-slate-900/20
@@ -108,7 +119,7 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
       <button type="button" onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
         <X strokeWidth={2.5} size={16} />
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -150,10 +161,17 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
         <ChevronDown strokeWidth={2.5} size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
+      <AnimatePresence>
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 py-1">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto py-1"
+          >
             {options.map((option) => (
               <button
                 key={option.id}
@@ -172,9 +190,10 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
                 {value === option.id && <Check size={16} className="text-altavik-600" />}
               </button>
             ))}
-          </div>
+          </motion.div>
         </>
       )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -47,9 +47,9 @@ export default function Inbox() {
   // 1. Cargar emails de leads existentes para detección inmediata
   useEffect(() => {
     const fetchLeadEmails = async () => {
-      const { data } = await supabase.from('leads').select('email');
+      const { data } = await (supabase as any).from('leads').select('email');
       if (data) {
-        const emailSet = new Set(data.map(l => l.email?.toLowerCase()).filter(Boolean) as string[]);
+        const emailSet = new Set((data as any[]).map((l: any) => l.email?.toLowerCase()).filter(Boolean) as string[]);
         setExistingLeadEmails(emailSet);
       }
     };
@@ -78,18 +78,18 @@ export default function Inbox() {
       const emailToCheck = extractionResult.email === 'No proporcionado' ? null : extractionResult.email;
       const phoneToCheck = extractionResult.phone === 'No proporcionado' ? null : extractionResult.phone;
 
-      let duplicateQuery = [];
+      const duplicateQuery = [];
       if (emailToCheck) duplicateQuery.push(`email.eq.${emailToCheck}`);
       if (phoneToCheck) duplicateQuery.push(`phone.eq.${phoneToCheck}`);
 
       if (duplicateQuery.length > 0) {
-        const { data: duplicates } = await supabase
+        const { data: duplicates } = await (supabase as any)
           .from('leads')
           .select('id, name')
           .or(duplicateQuery.join(','));
 
         if (duplicates && duplicates.length > 0) {
-          const names = duplicates.map(d => d.name).join(', ');
+          const names = (duplicates as any[]).map((d: any) => d.name).join(', ');
           const proceed = await showConfirm({
             title: 'Posible Duplicado detectado',
             message: `Ya existe un lead con estos datos (${names}). ¿Estás seguro de que quieres crear una nueva ficha?`,
