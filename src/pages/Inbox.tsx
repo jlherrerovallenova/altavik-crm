@@ -86,7 +86,7 @@ export default function Inbox() {
         const { data: duplicates } = await (supabase as any)
           .from('leads')
           .select('id, name')
-          .or(duplicateQuery.join(','));
+          .or(duplicateQuery.join(',')) as any;
 
         if (duplicates && duplicates.length > 0) {
           const names = (duplicates as any[]).map((d: any) => d.name).join(', ');

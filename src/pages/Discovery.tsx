@@ -212,7 +212,7 @@ export default function Discovery() {
       const { data: currentEmails } = await (supabase as any)
         .from('incoming_emails')
         .select('id, tags')
-        .in('id', selectedIds);
+        .in('id', selectedIds) as any;
 
       if (currentEmails) {
         await Promise.all((currentEmails as any[]).map((email: any) => 
@@ -260,7 +260,7 @@ export default function Discovery() {
         .from('incoming_emails')
         .select('tags')
         .eq('id', emailId)
-        .single();
+        .single() as any;
 
       const { error } = await (supabase as any)
         .from('incoming_emails')
