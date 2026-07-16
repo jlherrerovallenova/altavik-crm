@@ -705,7 +705,6 @@ Juan Herrero - TERRAVALL`);
               )}
             </div>
           )}
-            </div>
           </div> {/* Fin de los campos (Scrollable) */}
 
           {/* FOOTER */}
