@@ -90,7 +90,7 @@ serve(async (req) => {
         const result = await response.json();
         console.log(`Raw result from ${modelId}:`, JSON.stringify(result));
         
-        let textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (!textOutput) {
           const finishReason = result.candidates?.[0]?.finishReason;

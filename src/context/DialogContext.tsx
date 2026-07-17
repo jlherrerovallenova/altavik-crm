@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, type ReactNode } from 'react';
-import { AlertTriangle, Info, X } from 'lucide-react';
+import { TriangleAlert as AlertTriangle, Info, X } from 'lucide-react';
 
 interface DialogOptions {
     title: string;
@@ -67,8 +67,12 @@ export function DialogProvider({ children }: { children: ReactNode }) {
             {children}
 
             {dialog.isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300"
+                    >
                         <div className="p-6">
                             <div className="flex items-start gap-4">
                                 <div className={`p-3 rounded-full shrink-0 ${dialog.type === 'confirm' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'

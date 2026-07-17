@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
+import { useAutosave } from '../../hooks/useAutosave';
 
 interface PropertyFormData {
   n_orden: string;
@@ -39,7 +40,7 @@ interface Props {
 export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initialData }: Props) {
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
-  const [formData, setFormData] = useState<PropertyFormData>({
+  const [formData, setFormData, clearFormData] = useAutosave<PropertyFormData>(`draft-property-${initialData?.id || 'new'}`, {
     n_orden: initialData?.n_orden || '',
     planta: initialData?.planta || '',
     portal: initialData?.portal || '',
@@ -125,23 +126,7 @@ export default function CreatePropertyModal({ isOpen, onClose, onSuccess, initia
       onClose();
 
       if (!initialData?.id) {
-        setFormData({
-          n_orden: '',
-          planta: '',
-          portal: '',
-          letra: '',
-          orientacion: '',
-          dormitorios: '3',
-          banos: '2',
-          sup_util: '',
-          sup_construida: '',
-          sup_terrazas: '0.00',
-          sup_porche: '0.00',
-          garaje: 'SÍ',
-          trastero: 'SÍ',
-          precio: '',
-          estado_vivienda: 'DISPONIBLE'
-        });
+        clearFormData();
       }
     } catch (error: any) {
       console.error('Error saving property:', error);

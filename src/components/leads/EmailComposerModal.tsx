@@ -8,6 +8,7 @@ import PropertySelector from './PropertySelector';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import { useWhatsAppTemplates } from '../../hooks/useWhatsAppTemplates';
 import { parseTemplate, getWhatsAppUrl, getGreeting, sendWhatsAppCloudAPI, META_PRIMER_CONTACTO_TEMPLATE, META_PRIMER_CONTACTO_BODY } from '../../services/whatsappService';
+import { useAutosave } from '../../hooks/useAutosave';
 
 const shortenUrl = async (url: string) => {
   // Intentamos primero con v.gd
@@ -64,7 +65,7 @@ export default function EmailComposerModal({
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
   const { session } = useAuth();
-  const [method, setMethod] = useState<'email' | 'whatsapp'>(initialMethod || 'email');
+  const [method, setMethod, clearMethod] = useAutosave<'email' | 'whatsapp'>(`draft-email-method-${leadId}`, initialMethod || 'email');
 
   const createTaskRecord = async (sentMethod: 'email' | 'whatsapp', trackingId?: string) => {
     try {
@@ -93,11 +94,11 @@ export default function EmailComposerModal({
   };
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const [subject, setSubject] = useState(`Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
+  const [subject, setSubject, clearSubject] = useAutosave(`draft-email-subj-${leadId}`, `Documentación RESIDENCIAL ALTAVIK - TERRAVALL`);
   const { templates, loading: loadingTemplates } = useWhatsAppTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage, clearMessage] = useAutosave(`draft-email-msg-${leadId}`, '');
 
   // Efecto para inicializar el mensaje con el template por defecto si se solicita
   useEffect(() => {
@@ -167,7 +168,7 @@ Juan Herrero - TERRAVALL`);
     }
   };
 
-  const [selectedDocs, setSelectedDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
+  const [selectedDocs, setSelectedDocs, clearDocs] = useAutosave<{ name: string; url: string; category?: string }[]>(`draft-email-docs-${leadId}`, []);
   const [customDocs, setCustomDocs] = useState<{ name: string; url: string; category?: string }[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
   
@@ -332,6 +333,10 @@ Juan Herrero - TERRAVALL`);
       }
 
       if (onSentSuccess) onSentSuccess();
+      clearMethod();
+      clearSubject();
+      clearMessage();
+      clearDocs();
     } catch (error) {
       console.error('Error al guardar el historial o actualizar estado:', error);
     }

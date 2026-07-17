@@ -4,6 +4,7 @@ import { X, Loader2, Calendar, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
+import { useAutosave } from '../hooks/useAutosave';
 
 interface Props {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export default function CreateAppointmentModal({ isOpen, onClose, onSuccess, lea
   const { showAlert } = useDialog();
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useAutosave('draft-create-appointment', {
     title: '',
     contact_name: '',
     due_date: new Date().toISOString().split('T')[0],
@@ -57,14 +58,7 @@ export default function CreateAppointmentModal({ isOpen, onClose, onSuccess, lea
 
       onSuccess();
       onClose();
-      // Resetear formulario (manteniendo fecha de hoy)
-      setFormData(prev => ({
-        ...prev,
-        title: '',
-        contact_name: '',
-        type: 'call',
-        priority: 'medium'
-      }));
+      clearFormData();
 
     } catch (error) {
       console.error('Error creando cita:', error);

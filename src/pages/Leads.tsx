@@ -150,7 +150,7 @@ export default function Leads() {
         }
         actions={
           <>
-            <Button onClick={() => setIsCreateModalOpen(true)} size="lg">
+            <Button type="button" onClick={() => setIsCreateModalOpen(true)} size="lg">
               <Plus size={18} strokeWidth={3} />
               Nuevo Contacto
             </Button>
@@ -203,7 +203,7 @@ export default function Leads() {
             />
 
             {hasActiveFilters && (
-              <Button variant="danger" size="sm" onClick={clearFilters} className="shrink-0 aspect-square p-0 w-11 h-11">
+              <Button type="button" variant="danger" size="sm" onClick={clearFilters} className="shrink-0 aspect-square p-0 w-11 h-11">
                 <FilterX strokeWidth={3} size={20} />
               </Button>
             )}

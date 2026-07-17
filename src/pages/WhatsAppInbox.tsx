@@ -102,9 +102,8 @@ export default function WhatsAppInbox() {
         addDebug(`Realtime wa_inbox estado: ${status}`);
       });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const unsubscribe = () => { supabase.removeChannel(channel); };
+    return unsubscribe;
   }, [session, fetchConversations]);
 
   // Cargar mensajes de una conversación
@@ -173,9 +172,8 @@ export default function WhatsAppInbox() {
         addDebug(`Realtime wa_msgs_${selectedConv.id.substring(0,6)} estado: ${status}`);
       });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const unsubscribe = () => { supabase.removeChannel(channel); };
+    return unsubscribe;
   }, [selectedConv]);
 
   // Enviar mensaje de respuesta

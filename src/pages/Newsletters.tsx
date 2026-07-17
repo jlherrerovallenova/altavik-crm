@@ -146,7 +146,7 @@ export default function Newsletters() {
                     </p>
                 }
                 actions={
-                    <Button
+                    <Button type="button"
                         onClick={handleCreate}
                         size="lg"
                     >

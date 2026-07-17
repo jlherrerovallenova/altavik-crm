@@ -33,8 +33,8 @@ export function useRealtimeSync(table: string, queryKey: any[]) {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // 3. Limpiar la suscripción al desmontar el componente
+    const unsubscribe = () => { supabase.removeChannel(channel); };
+    return unsubscribe;
   }, [table, queryKey, queryClient]);
 }

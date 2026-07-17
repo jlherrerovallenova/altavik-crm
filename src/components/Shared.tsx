@@ -9,7 +9,6 @@ export const IdealistaIcon = ({ className = "" }: { className?: string; size?: n
 );
 
 // 1. Tarjeta de Estadísticas
-// (StatCard implementation remains same)
 export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any) {
   const colors = {
     primary: 'bg-blue-500',
@@ -22,7 +21,9 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
   const activeColor = colors[type as keyof typeof colors] || colors.neutral;
 
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all">
+    <div 
+      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-slate-300 transition-all animate-in fade-in zoom-in-95 duration-300"
+    >
       <div className="flex justify-between items-start z-10">
         <div>
           <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
@@ -44,7 +45,6 @@ export function StatCard({ title, value, subtext, icon, type = 'neutral' }: any)
 
 // 2. Badge de Estado (CONECTADO A DB)
 export function StageBadge({ stage }: { stage: string }) {
-  // Mapeo directo de los valores de la base de datos a Estilos y Etiquetas
   const config: any = {
      'new':         { label: 'Nuevo', class: 'bg-slate-100 text-slate-600 border-slate-200' },
      'contacted':   { label: 'Contactado', class: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -93,7 +93,8 @@ export const AppNotification: React.FC<AppNotificationProps> = ({
   const theme = themes[type];
 
   return (
-    <div className={`
+    <div 
+      className={`
       fixed bottom-6 right-6 z-[100]
       w-full max-w-sm overflow-hidden
       ${theme.style} rounded-xl shadow-lg shadow-slate-900/20
@@ -153,7 +154,9 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 py-1">
+          <div 
+            className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-[70] max-h-64 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-2 duration-200"
+          >
             {options.map((option) => (
               <button
                 key={option.id}
@@ -177,4 +180,5 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Seleccio
       )}
     </div>
   );
-}
+}
+

@@ -139,7 +139,7 @@ export default function ImportInventoryModal({ isOpen, onClose, onSuccess }: Pro
         const item: any = {};
         INVENTORY_FIELDS.forEach(field => {
           const fileHeader = mapping[field.key];
-          let value = fileHeader ? row[fileHeader] : undefined;
+          const value = fileHeader ? row[fileHeader] : undefined;
 
           if (field.type === 'number') {
             const num = parseFloat(String(value).replace(/[^0-9.,-]/g, '').replace(',', '.'));

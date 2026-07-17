@@ -381,7 +381,7 @@ export default function Inventory() {
           </p>
         }
         actions={
-          <Button
+          <Button type="button"
             onClick={handleExportPDF}
             disabled={loading || isExporting || filteredProperties.length === 0}
             isLoading={isExporting}
@@ -488,8 +488,84 @@ export default function Inventory() {
             <p className="text-slate-400 font-medium">Cargando inventario...</p>
           </div>
         ) : filteredProperties.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <>
+            {/* MOBILE VIEW */}
+            <div className="md:hidden flex flex-col gap-4 p-4 bg-slate-50/50">
+              {currentItems.map((property) => (
+                <div key={property.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 relative overflow-hidden flex flex-col gap-3">
+                  {property.estado_vivienda && property.estado_vivienda !== 'DISPONIBLE' && (
+                    <div className={`absolute top-0 left-0 right-0 py-1 text-center text-[10px] font-black uppercase tracking-widest ${
+                      property.estado_vivienda === 'RESERVADA' ? 'bg-indigo-500 text-white' : 
+                      property.estado_vivienda === 'BLOQUEADA' || property.estado_vivienda === 'NO DISPONIBLE' ? 'bg-red-500 text-white' :
+                      'bg-slate-200 text-slate-700'
+                    }`}>
+                      {property.estado_vivienda}
+                    </div>
+                  )}
+                  
+                  <div className={`flex items-start justify-between ${property.estado_vivienda && property.estado_vivienda !== 'DISPONIBLE' ? 'mt-4' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-inner shrink-0 ${
+                          property.estado_vivienda === 'RESERVADA' 
+                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' 
+                            : 'bg-altavik-50 text-altavik-600 border border-altavik-200'
+                        }`}>
+                        {property.n_orden}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Portal {property.portal}</p>
+                        <p className="text-lg font-black text-slate-800 leading-tight">Planta {property.planta} - {property.letra}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-2">
+                      <span className="inline-block px-3 py-1.5 rounded-lg bg-altavik-600 text-white font-black text-sm shadow-sm">
+                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(property.precio)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                       <BedDouble size={16} className="text-slate-400" />
+                       <span className="font-bold text-slate-700 text-sm">{property.dormitorios} Dorms</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                       <Bath size={16} className="text-slate-400" />
+                       <span className="font-bold text-slate-700 text-sm">{property.banos} Baños</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-1 border-t border-slate-100 pt-3">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Superficie</p>
+                      <p className="font-bold text-slate-700 text-sm">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² <span className="font-normal text-xs text-slate-400">útiles</span></p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Exterior</p>
+                      <p className="font-bold text-slate-700 text-sm">{((property.sup_terrazas || 0) + (property.sup_porche || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3 mt-1">
+                    {property.ficha_url && (
+                      <a href={property.ficha_url} target="_blank" rel="noopener noreferrer" className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all bg-white border border-slate-200">
+                        <PencilRuler size={18} />
+                      </a>
+                    )}
+                    <button type="button" onClick={() => { setSelectedPropertyForPayment(property); setIsPaymentModalOpen(true); }} className="p-2 text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all bg-white border border-slate-200">
+                      <Euro size={18} />
+                    </button>
+                    <button type="button" onClick={() => { setEditingProperty(property); setIsModalOpen(true); }} className="px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors flex items-center gap-2">
+                      <Edit2 size={16} /> Editar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP VIEW (Table) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white border-b border-slate-200">
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Nº Orden</th>
@@ -640,6 +716,7 @@ export default function Inventory() {
               </tbody>
             </table>
           </div>
+          </>
         ) : (
           <div className="py-20 text-center flex flex-col items-center">
             <Home size={40} className="text-slate-200 mb-4" />

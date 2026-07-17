@@ -312,7 +312,7 @@ export function FichaTab({
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-[1fr_135px_85px] gap-3">
+              <div className="grid grid-cols-[1fr_155px_90px] gap-3">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
                   <CustomSelect

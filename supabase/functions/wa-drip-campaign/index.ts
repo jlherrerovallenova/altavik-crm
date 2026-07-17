@@ -79,7 +79,7 @@ serve(async (req) => {
     }
 
     let processedCount = 0
-    let results = []
+    const results = []
 
     for (const lead of leads) {
       // 2. Buscar su última conversación

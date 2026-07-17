@@ -55,7 +55,7 @@ serve(async (req) => {
         // 2. Proceso de envío escalable (Paginación de DB + Lotes de Resend)
         let totalSent = 0;
         let hasMoreLeads = true;
-        let lastId = null; // Usamos cursor-based pagination si es posible o offset
+        const lastId = null; // Usamos cursor-based pagination si es posible o offset
         const DB_BATCH_SIZE = 500; // Cuántos leads traemos de la DB cada vez
 
         console.log(`Iniciando envío masivo para newsletter: ${newsletterId}`);
