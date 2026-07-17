@@ -7,6 +7,7 @@ interface FeedbackListItemProps {
     name: string;
     source: string | null;
     status: string;
+    feedback_sent?: boolean;
     feedback_rating: string | null;
     feedback_responded_at: string | null;
   };
@@ -15,6 +16,7 @@ interface FeedbackListItemProps {
 
 export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
   const hasFeedback = !!lead.feedback_rating;
+  const isSent = !!lead.feedback_sent;
   
   const ratingCfg = {
     mas_info: { icon: <Heart size={14} className="text-pink-500" />, label: 'Me interesa', color: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
@@ -40,6 +42,10 @@ export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
                 {ratingCfg?.icon}
                 <span className="truncate">{ratingCfg?.label}</span>
               </span>
+            ) : isSent ? (
+              <span className="text-[9px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-lg border border-blue-100 whitespace-nowrap">
+                SOLICITADA
+              </span>
             ) : (
               <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-200 whitespace-nowrap">
                 {lead.status === 'visiting' ? 'VISITÓ HACE +7 DÍAS' : 'VENTA CERRADA'}
@@ -53,6 +59,8 @@ export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
               <span className="text-slate-500 font-bold italic truncate">
                 {lead.feedback_responded_at ? new Date(lead.feedback_responded_at).toLocaleDateString() : ''}
               </span>
+            ) : isSent ? (
+              <span className="text-blue-600 font-bold">Encuesta enviada, esperando respuesta</span>
             ) : (
               <span className="text-altavik-600 font-bold">Esperando feedback</span>
             )}
@@ -65,7 +73,7 @@ export function FeedbackListItem({ lead, onSend }: FeedbackListItemProps) {
           onClick={onSend}
           className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[11px] font-black shadow-lg sm:transform sm:translate-x-2 sm:group-hover:translate-x-0 active:scale-95 w-full sm:w-auto"
         >
-          <Send size={14} /> ENVIAR ENCUESTA
+          <Send size={14} /> {isSent ? 'REENVIAR ENCUESTA' : 'ENVIAR ENCUESTA'}
         </button>
       ) : (
         <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-slate-100 text-center sm:text-left">

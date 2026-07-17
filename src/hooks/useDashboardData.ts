@@ -132,7 +132,7 @@ export function useDashboardData(userId: string | undefined) {
       const { data, error } = await supabase
         .from('leads')
         .select('id, name, email, source, created_at, status, feedback_sent, feedback_rating, feedback_responded_at')
-        .or(`status.in.(visiting,closed),feedback_rating.not.is.null`);
+        .or(`status.in.(visiting,closed),feedback_rating.not.is.null,feedback_sent.eq.true`);
       
       if (!error && data) {
         feedbackData = data;
