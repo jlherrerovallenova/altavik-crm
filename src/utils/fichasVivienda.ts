@@ -73,7 +73,11 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
   const borderGray = [226, 232, 240];
   const lightBlue = [241, 248, 255]; 
 
-  const basePrice = property.precio;
+  const basePrice = Number(property.precio) || 0;
+  const supUtil = Number(property.sup_util) || 0;
+  const dormitorios = Number(property.dormitorios) || 0;
+  const banos = Number(property.banos) || 0;
+
   const iva = basePrice * 0.1;
   const ajd = basePrice * 0.015;
   const totalWithIVA = basePrice + iva;
@@ -136,7 +140,7 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(deepBlue[0], deepBlue[1], deepBlue[2]);
-    doc.text(`P${property.portal} · ${property.planta} - ${property.letra}`, 25, 68);
+    doc.text(`P${property.portal || ''} · ${property.planta || ''} - ${property.letra || ''}`, 25, 68);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(darkGray[0], darkGray[1], darkGray[2]);
@@ -153,15 +157,15 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     doc.roundedRect(centerX - 2, 60.5, 4, 4, 0.5, 0.5);
     doc.line(centerX, 60.5, centerX, 64.5);
     doc.line(centerX - 2, 62.5, centerX + 2, 62.5);
-    doc.text(`${property.sup_util.toFixed(2)} m² Útiles`, 118, 64);
+    doc.text(`${supUtil.toFixed(2)} m² Útiles`, 118, 64);
     doc.roundedRect(centerX - 1.5, 68, 3, 4.5, 0.4, 0.4);
     doc.line(centerX - 1.5, 69.2, centerX + 1.5, 69.2);
     doc.roundedRect(centerX - 1.1, 68.3, 2.2, 0.6, 0.2, 0.2);
-    doc.text(`${property.dormitorios} Dormitorios`, 118, 72);
+    doc.text(`${dormitorios} Dormitorios`, 118, 72);
     doc.line(centerX - 2.5, 78.5, centerX - 2.5, 77.5);
     doc.line(centerX - 2.5, 77.5, centerX + 0.5, 77.5);
     doc.roundedRect(centerX, 77.5, 2.5, 0.8, 0.2, 0.2);
-    doc.text(`${property.banos} Baños`, 118, 80);
+    doc.text(`${banos} Baños`, 118, 80);
     doc.setFillColor(blueColor[0], blueColor[1], blueColor[2]);
     doc.roundedRect(15, 95, 180, 25, 4, 4, 'F');
     doc.setTextColor(255);
@@ -170,7 +174,7 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     doc.text('PRECIO BASE', 25, 106);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(formatCurrency(property.precio), 185, 106, { align: 'right' });
+    doc.text(formatCurrency(basePrice), 185, 106, { align: 'right' });
     doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(0.1);
     doc.line(25, 109.5, 185, 109.5);
@@ -286,7 +290,7 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     doc.text('PLAN DE FINANCIACIÓN', 195, 25, { align: 'right' });
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
     doc.setTextColor(softGray[0], softGray[1], softGray[2]);
-    doc.text(`SIMULACIÓN HIPOTECARIA  |  Viv. No. ${property.n_orden}  |  ${dateStr}`, 195, 32, { align: 'right' });
+    doc.text(`SIMULACIÓN HIPOTECARIA  |  Viv. No. ${property.n_orden || ''}  |  ${dateStr}`, 195, 32, { align: 'right' });
 
     // ── Sección título ─────────────────────────────────────────────────────────
     let y = 54;
@@ -491,8 +495,13 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     }
   } catch (e) {
     console.error("Error al generar PDF completo, generando solo forma de pago:", e);
-    generatePaymentFormPage();
-    try { doc.addPage(); generateMortgagePage(); doc.addPage(); generateCostPage(); } catch (_) {}
+    try {
+      generatePaymentFormPage();
+      doc.addPage(); generateMortgagePage();
+      doc.addPage(); generateCostPage();
+    } catch (fallbackErr) {
+      console.error("Error crítico en la generación de fallback de PDF:", fallbackErr);
+    }
   }
 
   const finalPdfOutput = doc.output('blob');

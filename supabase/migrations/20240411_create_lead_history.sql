@@ -12,13 +12,6 @@ CREATE TABLE IF NOT EXISTS public.lead_history (
 ALTER TABLE public.lead_history ENABLE ROW LEVEL SECURITY;
 
 -- Políticas básicas (lectura para autenticados)
-CREATE POLICY \
-Permitir
-lectura
-a
-autenticados\ ON public.lead_history FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
-CREATE POLICY \Permitir
-inserción
-a
-autenticados\ ON public.lead_history FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Permitir lectura a autenticados" ON public.lead_history FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+CREATE POLICY "Permitir inserción a autenticados" ON public.lead_history FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
 
