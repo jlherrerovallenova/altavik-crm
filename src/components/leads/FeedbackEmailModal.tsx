@@ -43,11 +43,38 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
 
     setLoading(true);
     try {
-      // 1. Preparar el contenido
-      const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
-      const emailHtml = getFeedbackEmailTemplate(lead.name, 'RESIDENCIAL ALTAVIK', lead.id, baseUrl);
+      // 1. Preparar el pixel de seguimiento
+      let trackingId = '';
+      let trackingPixelHtml = '';
+      try {
+        const { data: trackingRecord, error: trackingError } = await (supabase as any)
+          .from('email_tracking')
+          .insert([{ 
+            lead_id: lead.id, 
+            subject: 'Una breve opinión sobre Residencial Altavik' 
+          }])
+          .select()
+          .single();
 
-      // 2. Enviar vía Supabase Edge Function
+        if (trackingError) {
+          console.error("No se pudo registrar el tracking para la encuesta:", trackingError);
+        } else if (trackingRecord) {
+          trackingId = trackingRecord.id;
+          const trackingPixelUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-email-open?tracking_id=${trackingId}`;
+          trackingPixelHtml = `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+        }
+      } catch (err) {
+        console.error("Error al generar pixel de seguimiento:", err);
+      }
+
+      // 2. Preparar el contenido
+      const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
+      let emailHtml = getFeedbackEmailTemplate(lead.name, 'RESIDENCIAL ALTAVIK', lead.id, baseUrl);
+      if (trackingPixelHtml) {
+        emailHtml = emailHtml.replace('</body>', `${trackingPixelHtml}</body>`);
+      }
+
+      // 3. Enviar vía Supabase Edge Function
       const { data, error: sendError } = await supabase.functions.invoke('send-email', {
         body: {
           to: lead.email,
@@ -60,7 +87,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
         throw new Error(data?.error || sendError?.message || 'Error al enviar el email');
       }
 
-      // 3. Actualizar base de datos
+      // 4. Actualizar base de datos del lead
       const { error: dbError } = await (supabase as any)
         .from('leads')
         .update({ 
@@ -71,7 +98,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
 
       if (dbError) throw dbError;
 
-      // 4. Registrar en el historial del lead
+      // 5. Registrar en el historial del lead
       const { error: historyError } = await (supabase as any)
         .from('lead_history')
         .insert([{
@@ -81,12 +108,31 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           description: 'Solicitud de opinión de Residencial Altavik enviada al cliente.',
           metadata: {
             type: 'survey_request',
-            sent_at: new Date().toISOString()
+            sent_at: new Date().toISOString(),
+            tracking_id: trackingId
           }
         }]);
 
       if (historyError) {
         console.error('Error logging survey send to lead_history:', historyError);
+      }
+
+      // 6. Registrar en la agenda (como correo enviado) para que aparezca en la pestaña "Correos"
+      try {
+        const agendaPayload: any = {
+          lead_id: lead.id,
+          user_id: session?.user?.id,
+          title: `Envío Email: Solicitud de opinión`,
+          type: 'Email',
+          due_date: new Date().toISOString(),
+          completed: true
+        };
+        if (trackingId) {
+          agendaPayload.tracking_id = trackingId;
+        }
+        await (supabase as any).from('agenda').insert([agendaPayload]);
+      } catch (agendaErr) {
+        console.error('Error al crear tarea de agenda para encuesta:', agendaErr);
       }
 
       await showAlert({ 
