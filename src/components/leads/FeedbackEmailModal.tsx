@@ -1,11 +1,10 @@
 // src/components/leads/FeedbackEmailModal.tsx
 import { useState } from 'react';
-import { X, Send, CircleCheck as CheckCircle2, Loader as Loader2, MessageSquareQuote } from 'lucide-react';
+import { X, Send, Loader as Loader2, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
 import { useDialog } from '../../context/DialogContext';
 import { useAuth } from '../../context/AuthContext';
-import emailjs from '@emailjs/browser';
 
 interface Props {
   isOpen: boolean;
@@ -48,7 +47,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
       const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
       const emailHtml = getFeedbackEmailTemplate(lead.name, 'RESIDENCIAL ALTAVIK', lead.id, baseUrl);
 
-      // 2. Enviar vía Supabase Edge Function (Igual que en EmailComposerModal)
+      // 2. Enviar vía Supabase Edge Function
       const { data, error: sendError } = await supabase.functions.invoke('send-email', {
         body: {
           to: lead.email,
@@ -107,78 +106,46 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden border border-slate-100 scale-in-center">
-        
-        {/* Header con gradiente suave */}
-        <div className="bg-gradient-to-r from-altavik-600 to-emerald-500 px-8 py-10 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <MessageSquareQuote size={120} />
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-100 p-6 relative">
+        <button type="button" 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+        >
+          <X size={18} />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <MessageSquare size={20} />
           </div>
-          <button type="button" 
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-          
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mb-4">
-              <MessageSquareQuote size={24} />
-            </div>
-            <h2 className="text-2xl font-black tracking-tight">Solicitud de Opinión</h2>
-            <p className="text-emerald-50 opacity-90 text-sm mt-1">Envía una encuesta de satisfacción personalizada</p>
-          </div>
+          <h2 className="text-lg font-bold text-slate-800">Enviar Encuesta de Opinión</h2>
         </div>
 
-        <div className="p-8 space-y-8">
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-altavik-600 font-black text-sm shadow-sm">
-              {lead.name.substring(0, 2).toUpperCase()}
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Destinatario</p>
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">{lead.name}</h3>
-              <p className="text-sm font-medium text-slate-500">{lead.email || '⚠️ Sin correo electrónico'}</p>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Se va a enviar un correo electrónico a <strong className="text-slate-900">{lead.name}</strong> ({lead.email || 'Sin correo electrónico'}) solicitando su opinión sobre <strong>Residencial Altavik</strong>.
+          </p>
 
-          <div className="space-y-4">
-            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-altavik-500" />
-              ¿Qué incluye este envío?
-            </h4>
-            <ul className="grid grid-cols-1 gap-3">
-              {[
-                "Diseño premium corporativo",
-                "Botones interactivos de valoración",
-                "Registro automático en el CRM",
-                "Clasificación emocional del cliente"
-              ].map((item, i) => (
-                // react-doctor-disable-next-line no-array-index-as-key
-                <li key={i} className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50/50 p-3 rounded-xl border border-slate-100/50">
-                  <div className="w-1.5 h-1.5 rounded-full bg-altavik-400" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-100">
+            El correo electrónico contiene el nuevo diseño corporativo e incluye un botón interactivo para comenzar la encuesta de satisfacción.
+          </p>
+        </div>
 
-          <div className="flex gap-4 pt-2">
-            <button type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-4 rounded-2xl text-slate-500 font-bold hover:bg-slate-50 transition-all text-sm"
-            >
-              Cancelar
-            </button>
-            <button type="button"
-              onClick={handleSendFeedbackEmail}
-              disabled={loading || !lead.email}
-              className="flex-[2] px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              Enviar Invitación VIP
-            </button>
-          </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <button type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-sm font-semibold"
+          >
+            Cancelar
+          </button>
+          <button type="button"
+            onClick={handleSendFeedbackEmail}
+            disabled={loading || !lead.email}
+            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold shadow-md shadow-blue-500/10 hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {loading ? 'Enviando...' : 'Enviar encuesta'}
+          </button>
         </div>
       </div>
     </div>
