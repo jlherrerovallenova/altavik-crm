@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Phone, Mail, Zap, MessageCircle, ChevronRight, Star } from 'lucide-react';
+import { User, Phone, Mail, Zap, MessageCircle, ChevronRight, Star, Heart } from 'lucide-react';
 import { SourceIcon, StatusBadge, STATUS_CONFIG } from './LeadStatus';
 import type { Database } from '../../types/supabase';
 
@@ -10,9 +10,10 @@ interface LeadListItemProps {
   isSelected: boolean;
   onClick: () => void;
   onCompose: (lead: Lead, method: 'email' | 'whatsapp', template?: 'first_contact') => void;
+  onSendFeedback: (lead: Lead) => void;
 }
 
-export function LeadListItem({ lead, isSelected, onClick, onCompose }: LeadListItemProps) {
+export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedback }: LeadListItemProps) {
   const cfg = STATUS_CONFIG[lead.status || 'new'] || STATUS_CONFIG['new'];
   
   return (
@@ -77,6 +78,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose }: LeadListI
         <div className="flex items-center justify-start gap-1 transition-opacity">
           <button type="button" onClick={(e) => { e.stopPropagation(); onCompose(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
           <button type="button" onClick={(e) => { e.stopPropagation(); onCompose(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onSendFeedback(lead); }} className="p-1.5 text-slate-400 hover:text-pink-500 hover:bg-pink-50 rounded-lg transition-all" title="Enviar Encuesta de Opinión"><Heart strokeWidth={2.5} size={15} /></button>
           <ChevronRight strokeWidth={2.5} size={15} className="text-slate-300 group-hover:text-altavik-500 transition-colors" />
         </div>
       </div>
@@ -130,6 +132,9 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose }: LeadListI
             </button>
             <button type="button" onClick={(e) => { e.stopPropagation(); onCompose(lead, 'email'); }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all bg-slate-50/50 border border-slate-100" title="Email">
               <Mail strokeWidth={2.5} size={16} />
+            </button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onSendFeedback(lead); }} className="p-2 text-slate-400 hover:text-pink-500 hover:bg-pink-50 rounded-lg transition-all bg-slate-50/50 border border-slate-100" title="Enviar Encuesta de Opinión">
+              <Heart strokeWidth={2.5} size={16} />
             </button>
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
             <ChevronRight strokeWidth={2.5} size={18} className="text-slate-300" />

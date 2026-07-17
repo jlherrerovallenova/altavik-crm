@@ -34,6 +34,7 @@ import type { Database } from '../types/supabase';
 import CreateLeadModal from '../components/leads/CreateLeadModal';
 import LeadDetailModal from '../components/leads/LeadDetailModal';
 import EmailComposerModal from '../components/leads/EmailComposerModal';
+import FeedbackEmailModal from '../components/leads/FeedbackEmailModal';
 import { AppNotification } from '../components/AppNotification';
 import { LeadListItem } from '../components/leads/LeadListItem';
 import { STATUS_LABELS, STATUS_CONFIG } from '../components/leads/LeadStatus';
@@ -60,6 +61,8 @@ export default function Leads() {
   const [emailLead, setEmailLead] = useState<Lead | null>(null);
   const [initialMethod, setInitialMethod] = useState<'email' | 'whatsapp'>('email');
   const [initialTemplate, setInitialTemplate] = useState<'first_contact' | undefined>(undefined);
+  const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<Lead | null>(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -249,6 +252,10 @@ export default function Leads() {
                 isSelected={selectedLead?.id === lead.id} 
                 onClick={() => setSelectedLead(lead)} 
                 onCompose={handleCompose}
+                onSendFeedback={(l) => {
+                  setSelectedLeadForFeedback(l);
+                  setIsFeedbackModalOpen(true);
+                }}
               />
             ))}
           </div>
@@ -272,6 +279,14 @@ export default function Leads() {
       {selectedLead && <LeadDetailModal lead={selectedLead} onClose={() => setSelectedLead(null)} onUpdate={(del) => { refetch(); showMsg(del ? 'success' : 'info', del ? 'Borrado' : 'Actualizado', del ? 'Cliente borrado.' : 'Cambios guardados.'); }} />}
       {emailLead && <EmailComposerModal isOpen={!!emailLead} onClose={() => { setEmailLead(null); setInitialTemplate(undefined); }} leadId={emailLead.id} leadName={emailLead.name!} leadEmail={emailLead.email} leadPhone={emailLead.phone} availableDocs={availableDocs} onSentSuccess={() => showMsg('success', 'Mensaje enviado', 'Registrado.')} initialMethod={initialMethod} initialTemplate={initialTemplate} />}
       {notification.show && <AppNotification title={notification.title} message={notification.message} type={notification.type} onClose={() => setNotification({ ...notification, show: false })} />}
+      {selectedLeadForFeedback && (
+        <FeedbackEmailModal
+          isOpen={isFeedbackModalOpen}
+          onClose={() => setSelectedLeadForFeedback(null)}
+          lead={selectedLeadForFeedback}
+          onSuccess={() => { refetch(); showMsg('success', '¡Completado!', 'Encuesta enviada.'); }}
+        />
+      )}
     </div>
   );
 }
