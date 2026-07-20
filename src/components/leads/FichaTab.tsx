@@ -75,9 +75,13 @@ export function FichaTab({
                 )}
               </div>
             </div>
-            <div className="space-y-1 group sm:col-span-8">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico</label>
-              <input name="email" value={formData.email} onChange={handleChange} className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+            <div className="space-y-1 group sm:col-span-6">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico Principal</label>
+              <input name="email" value={formData.email} onChange={handleChange} placeholder="correo@ejemplo.com" className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
+            </div>
+            <div className="space-y-1 group sm:col-span-6">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Correo Electrónico Alternativo</label>
+              <input name="secondary_email" value={formData.secondary_email || ''} onChange={handleChange} placeholder="alternativo@ejemplo.com" className="w-full text-[14px] font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all shadow-sm" />
             </div>
             <div className="space-y-1 group sm:col-span-4">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-colors group-focus-within:text-blue-500">Origen del Contacto</label>

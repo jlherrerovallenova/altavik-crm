@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS promoter_invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   sale_id UUID NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
-  milestone TEXT NOT NULL CHECK (milestone IN ('contrato', 'escrituracion')),
+  milestone TEXT NOT NULL CHECK (milestone IN ('reserva', 'contrato', 'escrituracion')),
   amount NUMERIC(12,2) NOT NULL,
   invoice_number TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'paid', 'cancelled')),

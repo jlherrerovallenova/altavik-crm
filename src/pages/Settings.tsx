@@ -6,6 +6,7 @@ import { Settings as SettingsIcon } from 'lucide-react';
 // Subcomponents
 import { SettingsSidebar, type SettingsTab } from '../components/settings/SettingsSidebar';
 import { ProfileTab } from '../components/settings/ProfileTab';
+import { PromotionTab } from '../components/settings/PromotionTab';
 import { IntegrationsTab } from '../components/settings/IntegrationsTab';
 import { DocumentsTab } from '../components/settings/DocumentsTab';
 import { InventoryTab } from '../components/settings/InventoryTab';
@@ -18,6 +19,7 @@ const Settings: React.FC = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile': return <ProfileTab />;
+      case 'promotion': return <PromotionTab />;
       case 'integrations': return <IntegrationsTab />;
       case 'documents': return <DocumentsTab />;
       case 'inventory': return <InventoryTab />;

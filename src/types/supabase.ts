@@ -43,6 +43,7 @@ export interface Database {
           created_at: string
           name: string
           email: string | null
+          secondary_email?: string | null
           phone: string | null
           company: string | null
           status: 'new' | 'contacted' | 'qualified' | 'visiting' | 'proposal' | 'negotiation' | 'closed' | 'lost'
@@ -79,6 +80,7 @@ export interface Database {
           created_at?: string
           name: string
           email?: string | null
+          secondary_email?: string | null
           phone?: string | null
           company?: string | null
           status?: 'new' | 'contacted' | 'qualified' | 'visiting' | 'proposal' | 'negotiation' | 'closed' | 'lost'
@@ -111,6 +113,7 @@ export interface Database {
           created_at?: string
           name?: string
           email?: string | null
+          secondary_email?: string | null
           phone?: string | null
           company?: string | null
           status?: 'new' | 'contacted' | 'qualified' | 'visiting' | 'proposal' | 'negotiation' | 'closed' | 'lost'
@@ -349,7 +352,7 @@ export interface Database {
           id: string
           created_at: string
           sale_id: string
-          milestone: 'contrato' | 'escrituracion'
+          milestone: 'reserva' | 'contrato' | 'escrituracion'
           amount: number
           invoice_number: string | null
           status: 'pending' | 'sent' | 'paid' | 'cancelled'
@@ -361,7 +364,7 @@ export interface Database {
           id?: string
           created_at?: string
           sale_id: string
-          milestone: 'contrato' | 'escrituracion'
+          milestone: 'reserva' | 'contrato' | 'escrituracion'
           amount: number
           invoice_number?: string | null
           status?: 'pending' | 'sent' | 'paid' | 'cancelled'
@@ -373,7 +376,7 @@ export interface Database {
           id?: string
           created_at?: string
           sale_id?: string
-          milestone?: 'contrato' | 'escrituracion'
+          milestone?: 'reserva' | 'contrato' | 'escrituracion'
           amount?: number
           invoice_number?: string | null
           status?: 'pending' | 'sent' | 'paid' | 'cancelled'

@@ -15,7 +15,7 @@ export const getFeedbackEmailTemplate = (clientName: string, promotionName: stri
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Tu opinión sobre Residencial Altavik</title>
+      <title>Tu opinión sobre ${promotionName}</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.7; color: #334155; margin: 0; padding: 0; }
       </style>
@@ -25,7 +25,7 @@ export const getFeedbackEmailTemplate = (clientName: string, promotionName: stri
         
         <!-- Header Corporativo -->
         <div style="background-color: #ffffff; padding: 28px 20px; text-align: center; border-bottom: 2px solid #6b94b9;">
-          <img src="https://oenaworwtrblkmjvwjfs.supabase.co/storage/v1/object/public/documents/logo-altavik.png" alt="Altavik Residencial" style="height: 60px; max-height: 60px; width: auto; display: inline-block; border: none; outline: none;" />
+          <img src="https://oenaworwtrblkmjvwjfs.supabase.co/storage/v1/object/public/documents/logo-altavik.png" alt={promotionName} style="height: 60px; max-height: 60px; width: auto; display: inline-block; border: none; outline: none;" />
         </div>
 
         <!-- Contenido principal -->
@@ -52,7 +52,7 @@ export const getFeedbackEmailTemplate = (clientName: string, promotionName: stri
         <!-- Footer Legal -->
         <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #f1f5f9;">
           <div style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
-            &copy; ${new Date().getFullYear()} Altavik Real Estate S.L. <br>
+            &copy; ${new Date().getFullYear()} ${promotionName} <br>
             Has recibido este correo porque mostraste interés en una de nuestras promociones.
           </div>
         </div>

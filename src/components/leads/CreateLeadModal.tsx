@@ -31,6 +31,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
   const [formData, setFormData, clearFormData] = useAutosave('draft-create-lead', {
     name: '',
     email: '',
+    secondary_email: '',
     phone: '',
     source: 'Idealista',
     notes: ''
@@ -194,6 +195,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
       const payload: any = {
         name: formatTitleCase(formData.name.trim()),
         email: formData.email || null,
+        secondary_email: formData.secondary_email || null,
         phone: formData.phone ? formData.phone.replace(/\s+/g, '') : null,
         notes: formData.notes || null,
         source: formData.source,
@@ -293,7 +295,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Principal</label>
               <input
                 type="email"
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
@@ -302,6 +304,19 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Alternativo</label>
+              <input
+                type="email"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all text-sm font-semibold text-slate-700 shadow-sm"
+                placeholder="secundario@ejemplo.com"
+                value={formData.secondary_email || ''}
+                onChange={e => setFormData({ ...formData, secondary_email: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
               <div className="relative w-full group/phone">
@@ -325,9 +340,8 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Origen</label>
               <CustomSelect
                 value={formData.source}
@@ -339,6 +353,7 @@ export default function CreateLeadModal({ isOpen, onClose, onSuccess }: Props) {
                   color: s.color
                 }))}
               />
+            </div>
           </div>
 
           <div className="space-y-1.5">

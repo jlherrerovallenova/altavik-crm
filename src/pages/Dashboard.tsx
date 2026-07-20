@@ -1,10 +1,11 @@
 // src/pages/Dashboard.tsx
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Globe, Smartphone, Clock, Calendar, CircleCheck as CheckCircle2, Search, Plus, LayoutDashboard, Target, TrendingUp, Wand as Wand2, User, Mail } from 'lucide-react';
+import { Users, Globe, Smartphone, Clock, Calendar, CircleCheck as CheckCircle2, Search, Plus, LayoutDashboard, Target, TrendingUp, Wand as Wand2, User, Mail, Sun, Sunset } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { supabase } from '../lib/supabase';
+import { useSettings } from '../hooks/useSettings';
 
 // UI Components
 import FeedbackEmailModal from '../components/leads/FeedbackEmailModal';
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const { session } = useAuth();
   const { showConfirm } = useDialog();
   const navigate = useNavigate();
+  const { data: settings } = useSettings();
 
   const {
     stats,
@@ -40,9 +42,46 @@ export default function Dashboard() {
   } = useDashboardData(session?.user?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'futuras' | 'caducadas' | 'recientes' | 'feedback' | 'inboxia' | 'radar' | 'emails'>('futuras');
+  const [activeTab, setActiveTab] = useState<'hoy' | 'caducadas' | 'semana' | 'feedback' | 'emails'>('hoy');
   const [selectedLeadForFeedback, setSelectedLeadForFeedback] = useState<any | null>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+
+  const dateBoundaries = useMemo(() => {
+    const now = new Date();
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const dayOfWeek = now.getDay();
+    const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+    const endSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday, 23, 59, 59, 999);
+
+    const next7Days = new Date(startToday.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+    const endW = endSunday.getTime() > next7Days.getTime() ? endSunday : next7Days;
+
+    return {
+      startTodayTime: startToday.getTime(),
+      endTodayTime: endToday.getTime(),
+      endWeekTime: endW.getTime(),
+    };
+  }, []);
+
+  const todayCount = useMemo(() => agenda.filter(task => {
+    if (task.completed) return false;
+    const taskDate = new Date(task.due_date).getTime();
+    return taskDate >= dateBoundaries.startTodayTime && taskDate <= dateBoundaries.endTodayTime;
+  }).length, [agenda, dateBoundaries]);
+
+  const overdueCount = useMemo(() => agenda.filter(task => {
+    if (task.completed) return false;
+    const taskDate = new Date(task.due_date).getTime();
+    return taskDate < dateBoundaries.startTodayTime;
+  }).length, [agenda, dateBoundaries]);
+
+  const weekCount = useMemo(() => agenda.filter(task => {
+    if (task.completed) return false;
+    const taskDate = new Date(task.due_date).getTime();
+    return taskDate >= dateBoundaries.startTodayTime && taskDate <= dateBoundaries.endWeekTime;
+  }).length, [agenda, dateBoundaries]);
 
   const filteredAgenda = useMemo(() => agenda.filter(task => {
     const matchesSearch =
@@ -50,27 +89,92 @@ export default function Dashboard() {
       task.title.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
 
-    if (activeTab === 'recientes') {
-      return task.completed;
+    if (task.completed) return false;
+
+    const taskDate = new Date(task.due_date).getTime();
+
+    if (activeTab === 'hoy') {
+      return taskDate >= dateBoundaries.startTodayTime && taskDate <= dateBoundaries.endTodayTime;
     }
-
-    if (task.completed) return false;
-
-    const taskDate = new Date(task.due_date).getTime();
-    const isOverdue = taskDate < new Date().getTime();
-    if (activeTab === 'caducadas' && !isOverdue) return false;
-    if (activeTab === 'futuras' && isOverdue) return false;
+    if (activeTab === 'caducadas') {
+      return taskDate < dateBoundaries.startTodayTime;
+    }
+    if (activeTab === 'semana') {
+      return taskDate >= dateBoundaries.startTodayTime && taskDate <= dateBoundaries.endWeekTime;
+    }
     return true;
-  }), [agenda, searchQuery, activeTab]);
+  }), [agenda, searchQuery, activeTab, dateBoundaries]);
 
-  const overdueCount = useMemo(() => agenda.filter(task => {
-    if (task.completed) return false;
-    const taskDate = new Date(task.due_date).getTime();
-    return taskDate < new Date().getTime();
-  }).length, [agenda]);
-
-  const sentEmails = useMemo(() => agenda.filter(task => task.type === 'Email'), [agenda]);
+  const sentEmails = useMemo(() => {
+    return agenda
+      .filter(task => task.type === 'Email')
+      .sort((a, b) => new Date(b.due_date).getTime() - new Date(a.due_date).getTime());
+  }, [agenda]);
   const unopenedEmailsCount = useMemo(() => sentEmails.filter(e => !e.email_tracking || (e.email_tracking.status !== 'opened' && e.email_tracking.opens_count === 0)).length, [sentEmails]);
+
+  const getTasksForHour = (targetHour: number, period: 'morning' | 'afternoon') => {
+    return filteredAgenda.filter(task => {
+      const taskHour = new Date(task.due_date).getHours();
+      if (period === 'morning') {
+        if (targetHour === 9 && taskHour < 9) return true;
+        return taskHour === targetHour;
+      } else {
+        if (targetHour === 20 && taskHour > 20) return true;
+        return taskHour === targetHour;
+      }
+    });
+  };
+
+  const morningTaskCount = useMemo(() => {
+    return filteredAgenda.filter(task => {
+      const h = new Date(task.due_date).getHours();
+      return h <= 14;
+    }).length;
+  }, [filteredAgenda]);
+
+  const afternoonTaskCount = useMemo(() => {
+    return filteredAgenda.filter(task => {
+      const h = new Date(task.due_date).getHours();
+      return h >= 15;
+    }).length;
+  }, [filteredAgenda]);
+
+  const weekDays = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + distanceToMonday, 0, 0, 0, 0);
+    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+    return dayNames.map((name, index) => {
+      const dayStart = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index, 0, 0, 0, 0);
+      const dayEnd = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index, 23, 59, 59, 999);
+      const dateFormatted = dayStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      const isToday = now.getDate() === dayStart.getDate() && now.getMonth() === dayStart.getMonth() && now.getFullYear() === dayStart.getFullYear();
+
+      return {
+        name,
+        dateFormatted,
+        isToday,
+        startTime: dayStart.getTime(),
+        endTime: dayEnd.getTime()
+      };
+    });
+  }, []);
+
+  const getTasksForDay = (startTime: number, endTime: number) => {
+    return agenda.filter(task => {
+      if (task.completed) return false;
+      const matchesSearch =
+        task.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.title.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+
+      const taskTime = new Date(task.due_date).getTime();
+      return taskTime >= startTime && taskTime <= endTime;
+    });
+  };
 
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
@@ -107,10 +211,14 @@ export default function Dashboard() {
     const phone = task.leads?.phone;
     const hour = new Date().getHours();
     const greeting = hour < 14 ? 'Buenos días' : 'Buenas tardes';
+    const promotionName = settings?.promotion_name || 'Residencial Altavik';
+    const promotionWebsite = settings?.promotion_name 
+      ? `www.${settings.promotion_name.toLowerCase().replace(/\s+/g, '')}.com` 
+      : 'www.residencialaltavik.com';
     
     const message = `${greeting}, ${leadName}:
 
-Soy Juan Herrero, de Terravall, inmobiliaria comercializadora de Residencial Altavik.
+Soy Juan Herrero, de Terravall, inmobiliaria comercializadora de ${promotionName}.
 
 Le escribo para confirmar si pudo recibir el dossier informativo de la promoción que le enviamos hace unos días. Si no es así, le agradecería que revisase su carpeta de correo no deseado (SPAM); en caso de que siga sin localizarlo, por favor háganoslo saber y se lo haré llegar de inmediato.
 
@@ -119,7 +227,7 @@ Quedo a su entera disposición para resolver cualquier duda que pueda tener sobr
 Un cordial saludo,
 
 Juan Herrero
-www.residencialaltavik.com`;
+${promotionWebsite}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = phone 
@@ -214,7 +322,12 @@ www.residencialaltavik.com`;
           <div className="px-8 py-5 border-b border-slate-100/80">
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex p-1 bg-slate-100/50 backdrop-blur rounded-2xl w-full sm:w-auto overflow-x-auto custom-scrollbar">
-                <TabButton label="Próximas" active={activeTab === 'futuras'} onClick={() => setActiveTab('futuras')} />
+                <TabButton 
+                  label="Hoy" 
+                  count={todayCount > 0 ? todayCount : undefined} 
+                  active={activeTab === 'hoy'} 
+                  onClick={() => setActiveTab('hoy')} 
+                />
                 <TabButton 
                   label="Caducadas" 
                   count={overdueCount} 
@@ -223,23 +336,16 @@ www.residencialaltavik.com`;
                   variant="overdue" 
                 />
                 <TabButton 
-                  label="Recientes" 
-                  active={activeTab === 'recientes'} 
-                  onClick={() => setActiveTab('recientes')} 
-                  variant="primary" 
+                  label="Esta semana" 
+                  count={weekCount > 0 ? weekCount : undefined} 
+                  active={activeTab === 'semana'} 
+                  onClick={() => setActiveTab('semana')} 
                 />
                 <TabButton 
                   label="Opinión" 
                   count={feedbackLeads.length} 
                   active={activeTab === 'feedback'} 
                   onClick={() => setActiveTab('feedback')} 
-                  variant="primary" 
-                />
-                <TabButton 
-                  label="Nuevos (IA)" 
-                  count={autoImportedLeads.length} 
-                  active={activeTab === 'inboxia'} 
-                  onClick={() => setActiveTab('inboxia')} 
                   variant="primary" 
                 />
                 <TabButton 
@@ -264,15 +370,156 @@ www.residencialaltavik.com`;
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[480px] px-6 py-2 divide-y divide-slate-50">
-            {activeTab === 'radar' ? (
-              criticalLeads.length === 0 ? (
-                <EmptyState icon={<CheckCircle2 />} title="¡Sin fugas!" subtitle="No hay oportunidades en riesgo crítico de enfriamiento." />
-              ) : (
-                criticalLeads.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map(lead => (
-                  <RadarItem key={lead.id} lead={lead} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} />
-                ))
-              )
+          <div className="flex-1 overflow-y-auto max-h-[520px] px-6 py-2 divide-y divide-slate-50">
+            {activeTab === 'hoy' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 py-3">
+                {/* Columna Mañana: 09:00 a 14:00 */}
+                <div className="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-100/80 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-amber-700 flex items-center gap-2">
+                      <Sun size={15} className="text-amber-500" />
+                      Mañana (09:00 - 14:00)
+                    </h4>
+                    <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                      {morningTaskCount} {morningTaskCount === 1 ? 'tarea' : 'tareas'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {[9, 10, 11, 12, 13, 14].map(h => {
+                      const slotTasks = getTasksForHour(h, 'morning');
+                      const formattedHour = `${h.toString().padStart(2, '0')}:00`;
+                      return (
+                        <div key={h} className="group flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-100 shadow-2xs hover:border-amber-200 transition-all">
+                          <span className="text-[10px] font-black text-amber-700 bg-amber-50/80 px-2 py-1 rounded-lg border border-amber-100 shrink-0 font-mono mt-1">
+                            {formattedHour}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            {slotTasks.length === 0 ? (
+                              <span className="text-[11px] text-slate-300 font-medium italic block py-1">Disponible</span>
+                            ) : (
+                              <div className="divide-y divide-slate-50">
+                                {slotTasks.map(task => (
+                                  <AgendaListItem
+                                    key={task.id}
+                                    task={task}
+                                    onToggle={() => toggleTask(task)}
+                                    onDelete={() => deleteTask(task.id)}
+                                    formatDate={formatDateTime}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Columna Tarde: 15:00 a 20:00 */}
+                <div className="bg-slate-50/70 rounded-2xl p-3.5 border border-slate-100/80 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-indigo-700 flex items-center gap-2">
+                      <Sunset size={15} className="text-indigo-500" />
+                      Tarde (15:00 - 20:00)
+                    </h4>
+                    <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/60">
+                      {afternoonTaskCount} {afternoonTaskCount === 1 ? 'tarea' : 'tareas'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {[15, 16, 17, 18, 19, 20].map(h => {
+                      const slotTasks = getTasksForHour(h, 'afternoon');
+                      const formattedHour = `${h.toString().padStart(2, '0')}:00`;
+                      return (
+                        <div key={h} className="group flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-100 shadow-2xs hover:border-indigo-200 transition-all">
+                          <span className="text-[10px] font-black text-indigo-700 bg-indigo-50/80 px-2 py-1 rounded-lg border border-indigo-100 shrink-0 font-mono mt-1">
+                            {formattedHour}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            {slotTasks.length === 0 ? (
+                              <span className="text-[11px] text-slate-300 font-medium italic block py-1">Disponible</span>
+                            ) : (
+                              <div className="divide-y divide-slate-50">
+                                {slotTasks.map(task => (
+                                  <AgendaListItem
+                                    key={task.id}
+                                    task={task}
+                                    onToggle={() => toggleTask(task)}
+                                    onDelete={() => deleteTask(task.id)}
+                                    formatDate={formatDateTime}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'semana' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 py-3">
+                {weekDays.map((day) => {
+                  const dayTasks = getTasksForDay(day.startTime, day.endTime);
+                  return (
+                    <div 
+                      key={day.name} 
+                      className={`rounded-2xl p-3.5 border space-y-3 transition-all ${
+                        day.isToday 
+                          ? 'bg-altavik-50/40 border-altavik-200 shadow-xs' 
+                          : 'bg-slate-50/70 border-slate-100/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <h4 className={`text-xs font-black uppercase tracking-wider ${day.isToday ? 'text-altavik-700' : 'text-slate-700'}`}>
+                            {day.name}
+                          </h4>
+                          <span className="text-[10px] font-bold text-slate-400 capitalize">
+                            {day.dateFormatted}
+                          </span>
+                          {day.isToday && (
+                            <span className="text-[9px] font-black uppercase tracking-widest bg-altavik-600 text-white px-2 py-0.5 rounded-md">
+                              Hoy
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                          dayTasks.length > 0 
+                            ? 'text-altavik-700 bg-altavik-50 border-altavik-200' 
+                            : 'text-slate-400 bg-white border-slate-200'
+                        }`}>
+                          {dayTasks.length} {dayTasks.length === 1 ? 'tarea' : 'tareas'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {dayTasks.length === 0 ? (
+                          <div className="p-3 text-center rounded-xl bg-white/60 border border-dashed border-slate-200/80">
+                            <span className="text-[11px] text-slate-300 font-medium italic">Sin tareas agendadas</span>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-slate-100 bg-white rounded-xl border border-slate-100/80 p-2 shadow-2xs">
+                            {dayTasks.map(task => (
+                              <AgendaListItem
+                                key={task.id}
+                                task={task}
+                                onToggle={() => toggleTask(task)}
+                                onDelete={() => deleteTask(task.id)}
+                                formatDate={formatDateTime}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : activeTab === 'feedback' ? (
               feedbackLeads.length === 0 ? (
                 <EmptyState icon={<CheckCircle2 />} title="¡Todo en orden!" subtitle="No hay clientes esperando encuesta de opinión hoy." />
@@ -286,29 +533,6 @@ www.residencialaltavik.com`;
                       setIsFeedbackModalOpen(true);
                     }} 
                   />
-                ))
-              )
-            ) : activeTab === 'inboxia' ? (
-              autoImportedLeads.length === 0 ? (
-                <EmptyState icon={<Wand2 />} title="Bandeja IA Limpia" subtitle="No hay clientes importados automáticamente de momento." />
-              ) : (
-                autoImportedLeads.filter((l: any) => l.name.toLowerCase().includes(searchQuery.toLowerCase())).map((lead: any) => (
-                  <div key={lead.id} onClick={() => navigate(`/leads?search=${encodeURIComponent(lead.name)}`)} className="group relative bg-white border border-slate-100 hover:border-indigo-200 shadow-sm hover:shadow-md p-4 rounded-2xl transition-all cursor-pointer flex items-start gap-4 mx-4 my-2">
-                    <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                      <Wand2 size={20} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-bold text-slate-800 truncate">{lead.name}</h4>
-                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-wider rounded-md">Smart Inbox</span>
-                      </div>
-                      <p className="text-xs font-medium text-slate-500 line-clamp-1">{lead.source}</p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-[10px] font-bold text-slate-400 mb-1">{formatDateTime(lead.created_at)}</p>
-                      <button type="button" className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100/50 shadow-sm transition-all group-hover:bg-indigo-600 group-hover:text-white">Abrir Ficha</button>
-                    </div>
-                  </div>
                 ))
               )
             ) : activeTab === 'emails' ? (
@@ -333,8 +557,20 @@ www.residencialaltavik.com`;
             ) : filteredAgenda.length === 0 ? (
               <EmptyState 
                 icon={activeTab === 'caducadas' ? <CheckCircle2 /> : <Calendar />} 
-                title={activeTab === 'caducadas' ? "¡Al día!" : "Agenda despejada"} 
-                subtitle="No hay tareas que mostrar en esta sección." 
+                title={
+                  activeTab === 'caducadas' 
+                    ? "¡Al día!" 
+                    : activeTab === 'hoy' 
+                    ? "Sin tareas para hoy" 
+                    : "Semana despejada"
+                } 
+                subtitle={
+                  activeTab === 'caducadas' 
+                    ? "No hay tareas caducadas pendientes." 
+                    : activeTab === 'hoy' 
+                    ? "No tienes tareas programadas para el día de hoy." 
+                    : "No tienes tareas programadas para esta semana."
+                } 
               />
             ) : (
               filteredAgenda.map(task => (
@@ -344,7 +580,6 @@ www.residencialaltavik.com`;
                   onToggle={() => toggleTask(task)} 
                   onDelete={() => deleteTask(task.id)} 
                   formatDate={formatDateTime}
-                  readOnly={activeTab === 'recientes'}
                 />
               ))
             )}

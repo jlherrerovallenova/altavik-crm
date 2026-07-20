@@ -54,12 +54,19 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
   const iva = basePrice * 0.1;
   const ajd = basePrice * 0.015;
   const totalWithIVA = basePrice + iva;
-  const reserva = 6000;
-  const tenPercent = totalWithIVA * 0.1;
-  const firmaContrato = tenPercent - reserva;
-  const monthlyQuotaTotal = totalWithIVA * 0.1;
-  const monthlyAmount = monthlyQuotaTotal / 24;
-  const eightyPercent = totalWithIVA * 0.8;
+
+  // Dynamic promotion settings
+  const reserva = settings?.promotion_reservation_amount || 6000;
+  const contractPct = (settings?.promotion_contract_percentage ?? 10) / 100;
+  const installmentPct = (settings?.promotion_installment_percentage ?? 10) / 100;
+  const installmentCount = settings?.promotion_installment_count || 24;
+  const courtesyPct = (settings?.promotion_courtesy_percentage ?? 0) / 100;
+  const deedPct = Math.max(0, 1 - (contractPct + installmentPct + courtesyPct));
+
+  const firmaContrato = (totalWithIVA * contractPct) - reserva;
+  const monthlyQuotaTotal = totalWithIVA * installmentPct;
+  const monthlyAmount = monthlyQuotaTotal / installmentCount;
+  const eightyPercent = totalWithIVA * deedPct;
 
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('de-DE', {
@@ -73,7 +80,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
   const handleGenerateWithParams = async (params: MortgageParams) => {
     setIsGenerating(true);
     try {
-      const blob = await generatePropertyPDFBlob(property, params);
+      const blob = await generatePropertyPDFBlob(property, params, settings);
       const fileName = `Portal ${property.portal}_Planta ${property.planta}_Letra ${property.letra}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`;
       saveAs(blob, fileName);
       setShowSimulator(false);
@@ -122,7 +129,7 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
                     <div className="text-3xl font-bold mb-1 text-slate-900">P{property.portal} · {property.planta} - {property.letra}</div>
                     <div className="text-slate-500 font-medium text-lg flex items-center gap-2">
                       <Building2 size={18} className="text-altavik-500" />
-                      Residencial Altavik
+                      {settings?.promotion_name || 'Residencial Altavik'}
                     </div>
                   </div>
                 </div>
@@ -201,9 +208,9 @@ export default function PaymentFormModal({ isOpen, onClose, property }: PaymentF
               <div className="space-y-4">
                 {[
                   { icon: Home, title: "1. Reserva", date: "Inmediato", amount: reserva, desc: "Bloqueo de la unidad" },
-                  { icon: FileText, title: "2. Firma Contrato", date: "-", amount: firmaContrato, desc: "A la firma de la compraventa" },
-                  { icon: Calendar, title: "3. Cuotas Mensuales", date: "24 mensualidades", amount: monthlyQuotaTotal, desc: `24 cuotas de ${formatCurrency(monthlyAmount)}` },
-                  { icon: BadgeCheck, title: "4. Escrituración", date: "Entrega de llaves", amount: eightyPercent, desc: "Mediante préstamo hipotecario" }
+                  { icon: FileText, title: `2. Firma Contrato (${settings?.promotion_contract_percentage ?? 10}%)`, date: "-", amount: firmaContrato, desc: "A la firma de la compraventa" },
+                  { icon: Calendar, title: `3. Cuotas Mensuales (${settings?.promotion_installment_percentage ?? 10}%)`, date: `${installmentCount} mensualidades`, amount: monthlyQuotaTotal, desc: `${installmentCount} cuotas de ${formatCurrency(monthlyAmount)}` },
+                  { icon: BadgeCheck, title: `4. Escrituración (${Math.round(deedPct * 100)}%)`, date: "Entrega de llaves", amount: eightyPercent, desc: "Mediante préstamo hipotecario" }
                 ].map((step, idx) => (
                   // react-doctor-disable-next-line no-array-index-as-key
                   <div key={idx} className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">

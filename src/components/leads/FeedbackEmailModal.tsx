@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
 import { useDialog } from '../../context/DialogContext';
 import { useAuth } from '../../context/AuthContext';
+import { useSettings } from '../../hooks/useSettings';
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface Props {
     id: string;
     name: string;
     email: string | null;
+    secondary_email?: string | null;
     source: string | null;
   };
   onSuccess: () => void;
@@ -22,12 +24,16 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
   const [loading, setLoading] = useState(false);
   const { showAlert, showConfirm } = useDialog();
   const { session } = useAuth();
+  const { data: settings } = useSettings();
 
   if (!isOpen) return null;
 
+  const promotionName = settings?.promotion_name || 'Residencial Altavik';
+
   const handleSendFeedbackEmail = async () => {
-    if (!lead.email) {
-      await showAlert({ title: 'Error', message: 'El cliente no tiene un correo electrónico registrado.' });
+    const recipients = [lead.email, lead.secondary_email].filter(Boolean) as string[];
+    if (recipients.length === 0) {
+      await showAlert({ title: 'Error', message: 'El cliente no tiene ningún correo electrónico registrado.' });
       return;
     }
 
@@ -51,7 +57,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           .from('email_tracking')
           .insert([{ 
             lead_id: lead.id, 
-            subject: 'Una breve opinión sobre Residencial Altavik' 
+            subject: `Una breve opinión sobre ${promotionName}` 
           }])
           .select()
           .single();
@@ -69,16 +75,17 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
 
       // 2. Preparar el contenido
       const baseUrl = import.meta.env.VITE_PUBLIC_URL || window.location.origin;
-      let emailHtml = getFeedbackEmailTemplate(lead.name, 'RESIDENCIAL ALTAVIK', lead.id, baseUrl);
+      let emailHtml = getFeedbackEmailTemplate(lead.name, promotionName, lead.id, baseUrl);
       if (trackingPixelHtml) {
         emailHtml = emailHtml.replace('</body>', `${trackingPixelHtml}</body>`);
       }
 
       // 3. Enviar vía Supabase Edge Function
+      const recipients = [lead.email, lead.secondary_email].filter(Boolean) as string[];
       const { data, error: sendError } = await supabase.functions.invoke('send-email', {
         body: {
-          to: lead.email,
-          subject: 'Una breve opinión sobre Residencial Altavik',
+          to: recipients.length === 1 ? recipients[0] : recipients,
+          subject: `Una breve opinión sobre ${promotionName}`,
           html: emailHtml,
         },
       });
@@ -105,7 +112,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           lead_id: lead.id,
           user_id: session?.user?.id,
           event_type: 'email',
-          description: 'Solicitud de opinión de Residencial Altavik enviada al cliente.',
+          description: `Solicitud de opinión de ${promotionName} enviada al cliente.`,
           metadata: {
             type: 'survey_request',
             sent_at: new Date().toISOString(),
@@ -139,7 +146,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
         title: '¡Email Enviado!', 
         message: `Se ha enviado la solicitud de opinión a ${lead.name} correctamente.` 
       });
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -169,7 +176,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
 
         <div className="space-y-4">
           <p className="text-sm text-slate-600 leading-relaxed">
-            Se va a enviar un correo electrónico a <strong className="text-slate-900">{lead.name}</strong> ({lead.email || 'Sin correo electrónico'}) solicitando su opinión sobre <strong>Residencial Altavik</strong>.
+            Se va a enviar un correo electrónico a <strong className="text-slate-900">{lead.name}</strong> ({lead.email || 'Sin correo electrónico'}) solicitando su opinión sobre <strong>{promotionName}</strong>.
           </p>
 
           <p className="text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-100">

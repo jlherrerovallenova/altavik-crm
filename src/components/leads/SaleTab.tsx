@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Hop as Home, User, Users, FileText, Receipt, PenLine, CircleCheck as CheckCircle2, Circle, ChevronDown, ChevronUp, Loader as Loader2, Save, CalendarDays, BadgeEuro, Download, Upload, Trash2, Eye, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { generarReservaPdf, generarReservaDocx, type DatosReserva } from '../../utils/generarReserva';
+import { useSettings } from '../../hooks/useSettings';
 import { CustomSelect } from '../Shared';
 import SaleDocumentDossier from './SaleDocumentDossier';
 import SalePromoterBilling from './SalePromoterBilling';
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export default function SaleTab({ lead, onLeadUpdate }: Props) {
+  const { data: settings } = useSettings();
   const [properties, setProperties] = useState<InventoryRow[]>([]);
   const [sale, setSale] = useState<Sale | null>(null);
   const [installments, setInstallments] = useState<Installment[]>([]);
@@ -840,7 +842,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                 onClick={async () => {
                   setGeneratingDoc(true);
                   const d = buildDatos();
-                  if (d) await generarReservaPdf(d);
+                  if (d) await generarReservaPdf(d, true, settings);
                   setGeneratingDoc(false);
                 }}
                 className="flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all active:scale-95 shadow-sm"
@@ -853,7 +855,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                 onClick={async () => {
                   setGeneratingDoc(true);
                   const d = buildDatos();
-                  if (d) await generarReservaDocx(d);
+                  if (d) await generarReservaDocx(d, settings);
                   setGeneratingDoc(false);
                 }}
                 className="flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all active:scale-95 shadow-sm"
@@ -870,7 +872,7 @@ export default function SaleTab({ lead, onLeadUpdate }: Props) {
                 try {
                   const d = buildDatos();
                   if (!d) return;
-                  const blob = await generarReservaPdf(d, false);
+                  const blob = await generarReservaPdf(d, false, settings);
                   const { sendDocumentToSignWell } = await import('../../services/signwellService');
                   await sendDocumentToSignWell(
                     blob,

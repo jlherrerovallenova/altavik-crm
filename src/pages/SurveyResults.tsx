@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { MessageSquareQuote, BarChart3, Clock, AlertTriangle, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { PageHeader } from '../components/ui/PageHeader';
 
 interface SurveyLead {
   id: string;
@@ -84,16 +85,12 @@ export default function SurveyResults() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-3">
-            <MessageSquareQuote size={14} /> Encuestas
-          </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Estadísticas de Feedback</h1>
-          <p className="text-slate-500 mt-1">Análisis de respuestas enviadas por los clientes.</p>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+      <PageHeader
+        title="Estadísticas de Feedback"
+        icon={<MessageSquareQuote size={24} strokeWidth={3} />}
+        subtitle="Análisis de respuestas enviadas por los clientes."
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

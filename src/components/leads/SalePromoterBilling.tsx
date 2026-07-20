@@ -1,6 +1,7 @@
 import React from 'react';
 import { BadgeEuro, Lock, Save } from 'lucide-react';
 import type { Database } from '../../types/supabase';
+import { useSettings } from '../../hooks/useSettings';
 
 type Sale = Database['public']['Tables']['sales']['Row'];
 type PromoterInvoice = Database['public']['Tables']['promoter_invoices']['Row'];
@@ -28,6 +29,11 @@ export default function SalePromoterBilling({
   updateCommissionPercentage,
   savePromoterInvoice
 }: Props) {
+  const { data: settings } = useSettings();
+  const billingPctReservation = settings?.promotion_billing_pct_reservation ?? 25.00;
+  const billingPctContract = settings?.promotion_billing_pct_contract ?? 25.00;
+  const billingPctDeed = settings?.promotion_billing_pct_deed ?? 50.00;
+
   return (
     <section className="bg-white rounded-xl border border-slate-100 shadow-sm animate-in fade-in duration-300">
       <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100 rounded-t-xl">
@@ -94,21 +100,40 @@ export default function SalePromoterBilling({
                 {fmt((sale.sale_price || 0) * ((sale.commission_percentage !== undefined && sale.commission_percentage !== null ? sale.commission_percentage : 3.0) / 100))}
               </span>
             </div>
+            <div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Comisión Captador ({settings?.promotion_captador_commission_percentage ?? 1}%)</span>
+              <span className="text-sm font-bold text-slate-700 block mt-1">
+                {fmt((sale.sale_price || 0) * ((settings?.promotion_captador_commission_percentage ?? 1.0) / 100))}
+              </span>
+            </div>
+            <div>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Comisión Vendedor ({settings?.promotion_vendedor_commission_percentage ?? 2}%)</span>
+              <span className="text-sm font-bold text-slate-700 block mt-1">
+                {fmt((sale.sale_price || 0) * ((settings?.promotion_vendedor_commission_percentage ?? 2.0) / 100))}
+              </span>
+            </div>
           </div>
 
           {/* Hitos de facturación */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
+                key: 'reserva',
+                title: `1º Hito (${billingPctReservation}%) — Reserva de Vivienda`,
+                description: 'Se cobra al formalizarse la reserva de la vivienda.',
+                requirement: 'reserva',
+                requirementLabel: 'Reserva'
+              },
+              {
                 key: 'contrato',
-                title: '1º Hito (50%) — Contrato de Compraventa',
+                title: `2º Hito (${billingPctContract}%) — Contrato de Compraventa`,
                 description: 'Se cobra al formalizarse la firma del contrato privado de compraventa.',
                 requirement: 'contrato',
                 requirementLabel: 'Contrato de Compraventa'
               },
               {
                 key: 'escrituracion',
-                title: '2º Hito (50%) — Escrituración',
+                title: `3º Hito (${billingPctDeed}%) — Escrituración`,
                 description: 'Se cobra al formalizarse la firma de la escritura de venta ante notario.',
                 requirement: 'escrituracion',
                 requirementLabel: 'Escrituración'
@@ -116,6 +141,11 @@ export default function SalePromoterBilling({
             ].map(hito => {
               const invoice = promoterInvoices.find(inv => inv.milestone === hito.key);
               const isStepReached = SALE_STEPS.findIndex(s => s.key === sale.sale_status) >= SALE_STEPS.findIndex(s => s.key === hito.requirement) || sale.sale_status === 'completada';
+
+              let pct = 0.50;
+              if (hito.key === 'reserva') pct = billingPctReservation / 100;
+              else if (hito.key === 'contrato') pct = billingPctContract / 100;
+              else if (hito.key === 'escrituracion') pct = billingPctDeed / 100;
 
               // Si no se ha alcanzado la fase del hito
               if (!isStepReached) {
@@ -135,9 +165,9 @@ export default function SalePromoterBilling({
                 );
               }
 
-              // Si se ha alcanzado pero no existe hito en BD (caso de ventas antiguas), proveer opción de crearlo
+              // Si se ha alcanzado pero no existe hito en BD (caso de ventas antiguas o nuevas), proveer opción de crearlo
               if (!invoice) {
-                const calculatedAmount = parseFloat(((sale.sale_price || 0) * ((sale.commission_percentage !== undefined && sale.commission_percentage !== null ? sale.commission_percentage : 3.0) / 100) * 0.5).toFixed(2));
+                const calculatedAmount = parseFloat(((sale.sale_price || 0) * ((sale.commission_percentage !== undefined && sale.commission_percentage !== null ? sale.commission_percentage : 3.0) / 100) * pct).toFixed(2));
                 return (
                   <div key={hito.key} className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/20 flex flex-col justify-center items-center text-center gap-2 py-8">
                     <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100">

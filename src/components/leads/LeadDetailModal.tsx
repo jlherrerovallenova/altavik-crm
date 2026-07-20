@@ -58,6 +58,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const availableDocs = rawDocs.filter(d => d.url).map(d => ({ name: d.name, url: d.url!, category: d.category }));
   const [sentHistory, setSentHistory] = useState<any[]>([]);
   const [waData, setWaData] = useState<any | null>(null);
+  const [resendDraft, setResendDraft] = useState<{ subject?: string; message?: string; docs?: string[] } | null>(null);
 
   // Mutations
   const updateMutation = useUpdateLead();
@@ -97,6 +98,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   const [formData, setFormData] = useState({
     name: lead.name || '',
     email: lead.email || '',
+    secondary_email: lead.secondary_email || '',
     phone: lead.phone || '',
     status: lead.status || 'new',
     source: lead.source || 'Web',
@@ -131,6 +133,17 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
   // react-doctor-disable-next-line exhaustive-deps
   // react-doctor-disable-next-line exhaustive-deps
   }, [lead.id, fetchHistory, fetchTasks, fetchWaData]);
+
+  useEffect(() => {
+    const handleResend = (e: Event) => {
+      const draft = (e as CustomEvent).detail;
+      setResendDraft(draft);
+      setEmailModalMethod('email');
+      setIsEmailModalOpen(true);
+    };
+    window.addEventListener('altavik-resend-email', handleResend as EventListener);
+    return () => window.removeEventListener('altavik-resend-email', handleResend as EventListener);
+  }, []);
 
   // react-doctor-disable-next-line effect-needs-cleanup
   useEffect(() => {
@@ -717,7 +730,14 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
 
             {activeTab === 'historial' && (
               <div className="max-w-4xl mx-auto py-4">
-                <LeadTimeline leadId={lead.id} />
+                <LeadTimeline 
+                  leadId={lead.id} 
+                  onResendEmail={(draft) => {
+                    setResendDraft(draft);
+                    setEmailModalMethod('email');
+                    setIsEmailModalOpen(true);
+                  }}
+                />
               </div>
             )}
 
@@ -830,17 +850,23 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
           onClose={() => {
             setIsEmailModalOpen(false);
             setFirstContactTemplateActive(false);
+            setResendDraft(null);
           }}
           leadId={lead.id}
           leadName={formData.name}
           leadEmail={formData.email}
+          leadSecondaryEmail={formData.secondary_email}
           leadPhone={formData.phone}
           availableDocs={availableDocs}
           initialMethod={emailModalMethod}
           initialTemplate={firstContactTemplateActive ? 'first_contact' : undefined}
+          initialSubject={resendDraft?.subject}
+          initialMessage={resendDraft?.message}
+          initialSelectedDocNames={resendDraft?.docs}
           onSentSuccess={() => {
             fetchHistory();
             fetchTasks();
+            setResendDraft(null);
           }}
         />
       )}
@@ -849,7 +875,7 @@ Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
         <FeedbackEmailModal
           isOpen={isFeedbackModalOpen}
           onClose={() => setIsFeedbackModalOpen(false)}
-          lead={lead}
+          lead={{ ...lead, email: formData.email, secondary_email: formData.secondary_email }}
           onSuccess={() => onUpdate()}
         />
       )}

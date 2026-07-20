@@ -59,7 +59,7 @@ export interface MortgageParams {
   entryPct: number;     // ej: 0.20
 }
 
-export async function generatePropertyPDFBlob(property: Property, mortgageParams?: MortgageParams): Promise<Blob> {
+export async function generatePropertyPDFBlob(property: Property, mortgageParams?: MortgageParams, promotionSettings?: any): Promise<Blob> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -81,12 +81,19 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
   const iva = basePrice * 0.1;
   const ajd = basePrice * 0.015;
   const totalWithIVA = basePrice + iva;
-  const reserva = 6000;
-  const tenPercent = totalWithIVA * 0.1;
-  const firmaContrato = tenPercent - reserva;
-  const monthlyQuotaTotal = totalWithIVA * 0.1;
-  const monthlyAmount = monthlyQuotaTotal / 24;
-  const eightyPercent = totalWithIVA * 0.8;
+
+  // Dynamic promotion settings
+  const reserva = promotionSettings?.promotion_reservation_amount || 6000;
+  const contractPct = (promotionSettings?.promotion_contract_percentage ?? 10) / 100;
+  const installmentPct = (promotionSettings?.promotion_installment_percentage ?? 10) / 100;
+  const installmentCount = promotionSettings?.promotion_installment_count || 24;
+  const courtesyPct = (promotionSettings?.promotion_courtesy_percentage ?? 0) / 100;
+  const deedPct = Math.max(0, 1 - (contractPct + installmentPct + courtesyPct));
+
+  const firmaContrato = (totalWithIVA * contractPct) - reserva;
+  const monthlyQuotaTotal = totalWithIVA * installmentPct;
+  const monthlyAmount = monthlyQuotaTotal / installmentCount;
+  const eightyPercent = totalWithIVA * deedPct;
 
   const [logoAltavik, logoHabitarum, logoTerravall] = await Promise.all([
     getBase64Image('/logo-altavik.png'),
@@ -231,9 +238,9 @@ export async function generatePropertyPDFBlob(property: Property, mortgageParams
     doc.text('IVA (10%)', 155, currentY, { align: 'right' });
     doc.text('TOTAL A PAGAR', 185, currentY, { align: 'right' });
     currentY += 4; 
-    drawStep(2, 'Firma de Contrato', 'Firma de la Compraventa (10% - reserva)', '', firmaContrato);
-    drawStep(3, 'Aplazamiento 10%', `24 cuotas mensuales de ${formatCurrency(monthlyAmount)}`, '24 MESES', monthlyQuotaTotal);
-    drawStep(4, 'Entrega de Llaves', 'Desembolso final y escrituración', 'ENTREGA', eightyPercent);
+    drawStep(2, 'Firma de Contrato', `Firma de la Compraventa (${Math.round(contractPct * 100)}% - reserva)`, '', firmaContrato);
+    drawStep(3, `Aplazamiento ${Math.round(installmentPct * 100)}%`, `${installmentCount} cuotas mensuales de ${formatCurrency(monthlyAmount)}`, `${installmentCount} MESES`, monthlyQuotaTotal);
+    drawStep(4, 'Entrega de Llaves', `Desembolso final y escrituración (${Math.round(deedPct * 100)}%)`, 'ENTREGA', eightyPercent);
     currentY += 4; 
     doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
     doc.line(15, currentY, 195, currentY);

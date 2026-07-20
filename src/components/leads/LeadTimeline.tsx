@@ -10,7 +10,8 @@ import {
   StickyNote,
   Clock,
   Check,
-  CheckCheck
+  CheckCheck,
+  RotateCcw
 } from 'lucide-react';
 
 interface TimelineEvent {
@@ -19,6 +20,11 @@ interface TimelineEvent {
   event_type: string;
   description: string;
   metadata?: any;
+}
+
+interface LeadTimelineProps {
+  leadId: string;
+  onResendEmail?: (draft: { subject?: string; message?: string; docs?: string[] }) => void;
 }
 
 const EVENT_CONFIG: Record<string, { icon: any; color: string; label: string }> = {
@@ -32,7 +38,7 @@ const EVENT_CONFIG: Record<string, { icon: any; color: string; label: string }> 
   feedback: { icon: MessageSquare, color: 'bg-pink-100 text-pink-600', label: 'Encuesta' },
 };
 
-export default function LeadTimeline({ leadId }: { leadId: string }) {
+export default function LeadTimeline({ leadId, onResendEmail }: LeadTimelineProps) {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [trackingRecords, setTrackingRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -201,7 +207,7 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                         <CheckCheck size={12} className="text-emerald-500" />
                         Abierto{opensLabel}
                         {lastOpenedAt && (
-                          <span className="text-slate-400 font-normal">
+                          <span className="text-slate-400 font-normal ml-1">
                             {new Date(lastOpenedAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
@@ -216,26 +222,60 @@ export default function LeadTimeline({ leadId }: { leadId: string }) {
                 );
               })()}
               
-              {(event.event_type === 'email' || event.event_type === 'document' || event.event_type === 'whatsapp') && event.metadata?.body && (
-                <div className="mt-3 border-t border-slate-100 pt-2.5">
-                  {event.metadata.subject && (
-                    <p className="text-[11px] text-slate-500 font-bold mb-1">
-                      Asunto: <span className="font-semibold text-slate-700">{event.metadata.subject}</span>
-                    </p>
-                  )}
-                  <div className="mt-1">
-                    <button type="button"
-                      onClick={() => toggleEmailExpand(event.id)}
-                      className="text-[10px] font-black text-altavik-600 hover:text-altavik-700 flex items-center gap-1 cursor-pointer bg-altavik-50 hover:bg-altavik-100/80 px-2.5 py-1 rounded-lg transition-all"
-                    >
-                      {expandedEmails[event.id] ? 'Ocultar mensaje' : 'Ver mensaje completo'}
-                    </button>
-                    {expandedEmails[event.id] && (
-                      <div className="mt-2.5 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-100 text-[12px] text-slate-600 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto font-medium">
-                        {event.metadata.body}
-                      </div>
+              {/* ACCIONES DEL CORREO (VER / REENVIAR) */}
+              {((event.event_type === 'email' || event.event_type === 'document' || event.description.toLowerCase().includes('email') || event.description.toLowerCase().includes('documento')) || event.metadata?.body) && (
+                <div className="mt-3 border-t border-slate-100 pt-2.5 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {event.metadata?.body && (
+                      <button 
+                        type="button"
+                        onClick={() => toggleEmailExpand(event.id)}
+                        className="text-[10px] font-black text-slate-600 hover:text-slate-800 flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200/80 px-2.5 py-1 rounded-lg transition-all"
+                      >
+                        {expandedEmails[event.id] ? 'Ocultar mensaje' : 'Ver mensaje completo'}
+                      </button>
+                    )}
+
+                    {(onResendEmail || true) && (
+                      event.event_type === 'email' || 
+                      event.event_type === 'document' || 
+                      event.description.toLowerCase().includes('email') || 
+                      event.description.toLowerCase().includes('documento')
+                    ) && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const draft = {
+                            subject: event.metadata?.subject || (event.description.startsWith('Envío') ? event.description : `Reenvío: ${event.description}`),
+                            message: event.metadata?.body || '',
+                            docs: event.metadata?.docs || (event.metadata?.doc_name ? event.metadata.doc_name.split('||') : [])
+                          };
+                          if (onResendEmail) {
+                            onResendEmail(draft);
+                          } else {
+                            window.dispatchEvent(new CustomEvent('altavik-resend-email', { detail: draft }));
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm active:scale-95 cursor-pointer"
+                        title="Abrir formulario para modificar y reenviar este correo"
+                      >
+                        <RotateCcw size={13} strokeWidth={2.5} />
+                        Reenviar correo
+                      </button>
                     )}
                   </div>
+                </div>
+              )}
+
+              {event.metadata?.subject && (
+                <p className="text-[11px] text-slate-500 font-bold mt-2">
+                  Asunto: <span className="font-semibold text-slate-700">{event.metadata.subject}</span>
+                </p>
+              )}
+
+              {expandedEmails[event.id] && event.metadata?.body && (
+                <div className="mt-2.5 p-3.5 bg-slate-50/50 rounded-2xl border border-slate-100 text-[12px] text-slate-600 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto font-medium">
+                  {event.metadata.body}
                 </div>
               )}
             </div>

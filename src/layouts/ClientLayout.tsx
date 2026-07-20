@@ -2,10 +2,12 @@ import React from 'react';
 import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useClientAuth } from '../context/ClientAuthContext';
 import { LogOut, Home, User, Loader2 } from 'lucide-react';
+import { useSettings } from '../hooks/useSettings';
 
 export default function ClientLayout() {
   const { client, loading, logout } = useClientAuth();
   const navigate = useNavigate();
+  const { data: settings } = useSettings();
 
   if (loading) {
     return (
@@ -25,6 +27,8 @@ export default function ClientLayout() {
     navigate('/client/login');
   };
 
+  const promotionName = settings?.promotion_name || 'Residencial Altavik';
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top Navbar */}
@@ -33,7 +37,7 @@ export default function ClientLayout() {
           <div className="flex justify-between h-16 items-center">
             {/* Logo and Brand */}
             <div className="flex items-center gap-3">
-              <img src="/logo-altavik.png" alt="Residencial Altavik" className="h-8 object-contain" />
+              <img src="/logo-altavik.png" alt={promotionName} className="h-8 object-contain" />
               <span className="text-lg font-semibold text-slate-800 hidden sm:block">Área de Clientes</span>
             </div>
 
@@ -74,7 +78,7 @@ export default function ClientLayout() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Residencial Altavik. Todos los derechos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} {promotionName}. Todos los derechos reservados.</p>
           <p className="mt-1">Si tienes alguna duda, contacta con tu asesor comercial.</p>
         </div>
       </footer>

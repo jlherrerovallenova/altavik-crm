@@ -32,6 +32,7 @@ import PaymentFormModal from '../components/inventory/PaymentFormModal';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { useSettings } from '../hooks/useSettings';
 
 interface Property {
   id: string;
@@ -55,6 +56,7 @@ interface Property {
 }
 
 export default function Inventory() {
+  const { data: settings } = useSettings();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -367,6 +369,10 @@ export default function Inventory() {
     }
   };
 
+  const soldAndReservedCount = properties.filter(p => p.estado_vivienda === 'RESERVADO' || p.estado_vivienda === 'VENDIDO').length;
+  const maxSales = settings?.promotion_max_promoter_sales ?? 10;
+  const pctSales = maxSales > 0 ? Math.min(100, Math.round((soldAndReservedCount / maxSales) * 100)) : 0;
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-6">
       <PageHeader 
@@ -390,6 +396,29 @@ export default function Inventory() {
           </Button>
         }
       />
+
+      {maxSales > 0 && (
+        <Card variant="glass" className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 border-l-4 border-l-altavik-500 bg-altavik-50/20 shadow-sm animate-in fade-in duration-300">
+          <div className="space-y-1">
+            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Cupo de Ventas del Promotor</h4>
+            <p className="text-sm font-bold text-slate-800">
+              Se han formalizado <span className="text-altavik-700 font-extrabold">{soldAndReservedCount}</span> de <span className="font-extrabold">{maxSales}</span> ventas del cupo de promotor configurado.
+            </p>
+          </div>
+          <div className="flex-1 max-w-sm w-full space-y-2">
+            <div className="flex justify-between text-xs font-black text-slate-500 uppercase tracking-wider">
+              <span>Progreso de Cupo</span>
+              <span>{pctSales}% ({soldAndReservedCount}/{maxSales})</span>
+            </div>
+            <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${pctSales >= 100 ? 'bg-emerald-500' : pctSales >= 80 ? 'bg-amber-500' : 'bg-altavik-600'}`} 
+                style={{ width: `${pctSales}%` }}
+              />
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card variant="glass" noPadding className="mb-6">
         <div className="flex flex-col lg:flex-row gap-3 items-center p-3">

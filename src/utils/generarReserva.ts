@@ -90,7 +90,7 @@ function numeroALetras(n: number): string {
  * Genera el DOCX de reserva usando la plantilla del repositorio (con marcadores {campo})
  * y lo descarga automáticamente.
  */
-export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
+export async function generarReservaDocx(datos: DatosReserva, promotionSettings?: any): Promise<void> {
   // Cargar la plantilla desde public/ con un parámetro para evitar caché
   const response = await fetch(`/plantilla_reserva.docx?t=${Date.now()}`);
   const arrayBuffer = await response.arrayBuffer();
@@ -100,6 +100,18 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
     paragraphLoop: true,
     linebreaks: true,
   });
+
+  const contractPct = (promotionSettings?.promotion_contract_percentage ?? 10) / 100;
+  const installmentPct = (promotionSettings?.promotion_installment_percentage ?? 10) / 100;
+  const installmentCount = promotionSettings?.promotion_installment_count || 24;
+  const courtesyPct = (promotionSettings?.promotion_courtesy_percentage ?? 0) / 100;
+  const deedPct = Math.max(0, 1 - (contractPct + installmentPct + courtesyPct));
+
+  const totalConIva = datos.precio * 1.10;
+  const pagoContrato = (totalConIva * contractPct) - datos.importeReserva;
+  const pagoMensualidades = totalConIva * installmentPct;
+  const cuotaMensual = pagoMensualidades / installmentCount;
+  const pagoEscritura = totalConIva * deedPct;
 
   const compradorLinea = datos.nombreCotitular
     ? `D/Dª. ${datos.nombre}, con DNI ${datos.dni}, y D/Dª. ${datos.nombreCotitular}, con DNI ${datos.dniCotitular || '_______'}, ambos en estado civil ${datos.estadoCivil}, nacionalidad ${datos.nacionalidad}, y con domicilio a efectos de notificaciones en ${datos.domicilio}, ${datos.codigoPostal} ${datos.localidad} (${datos.provincia})`
@@ -139,12 +151,12 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
       IMPORTE_RESERVA_LETRAS: numeroALetras(datos.importeReserva),
       // Nuevas marcas solicitadas
       IVA_10: formatEur(datos.precio * 0.10),
-      TOTAL_CON_IVA: formatEur(datos.precio * 1.10),
-      TOTAL_CON_IVA_LETRAS: numeroALetras(datos.precio * 1.10),
-      PAGO_CONTRATO: formatEur((datos.precio * 1.10 * 0.10) - datos.importeReserva),
-      PAGO_MENSUALIDADES: formatEur(datos.precio * 1.10 * 0.10),
-      CUOTA_MENSUAL: formatEur((datos.precio * 1.10 * 0.10) / 24),
-      PAGO_ESCRITURA: formatEur(datos.precio * 1.10 * 0.80),
+      TOTAL_CON_IVA: formatEur(totalConIva),
+      TOTAL_CON_IVA_LETRAS: numeroALetras(totalConIva),
+      PAGO_CONTRATO: formatEur(pagoContrato),
+      PAGO_MENSUALIDADES: formatEur(pagoMensualidades),
+      CUOTA_MENSUAL: formatEur(cuotaMensual),
+      PAGO_ESCRITURA: formatEur(pagoEscritura),
     });
 
     doc.render();
@@ -164,7 +176,7 @@ export async function generarReservaDocx(datos: DatosReserva): Promise<void> {
 /**
  * Genera el PDF de reserva con jsPDF replicando el contenido del contrato.
  */
-export async function generarReservaPdf(datos: DatosReserva, download: boolean = true): Promise<Blob> {
+export async function generarReservaPdf(datos: DatosReserva, download: boolean = true, promotionSettings?: any): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const pageW = 210;
@@ -209,12 +221,23 @@ export async function generarReservaPdf(datos: DatosReserva, download: boolean =
     y += Math.max(lines.length * 4.5, 5);
   };
 
+  const contractPct = (promotionSettings?.promotion_contract_percentage ?? 10) / 100;
+  const installmentPct = (promotionSettings?.promotion_installment_percentage ?? 10) / 100;
+  const installmentCount = promotionSettings?.promotion_installment_count || 24;
+  const courtesyPct = (promotionSettings?.promotion_courtesy_percentage ?? 0) / 100;
+  const deedPct = Math.max(0, 1 - (contractPct + installmentPct + courtesyPct));
+
   const iva = datos.precio * 0.10;
   const totalConIva = datos.precio + iva;
-  const compraContrato = iva + iva * 0.10 - datos.importeReserva;
-  const mensualidadTotal = iva * 1.10;
-  const mensualidad = mensualidadTotal / 24;
-  const escritura = datos.precio * 0.80 * 1.10;
+  const compraContrato = (totalConIva * contractPct) - datos.importeReserva;
+  const mensualidadTotal = totalConIva * installmentPct;
+  const mensualidad = mensualidadTotal / installmentCount;
+  const escritura = totalConIva * deedPct;
+
+  const promoterName = promotionSettings?.promotion_promoter || 'RESIDENCIAL ALTAVIK, S.L.';
+  const emailVal = promotionSettings?.promotion_name 
+    ? `administracion@${promotionSettings.promotion_name.toLowerCase().replace(/\s+/g, '')}.es` 
+    : 'administracion@residencialaltavik.es';
 
   // ─── CABECERA ───────────────────────────────────────────────────
   doc.setFillColor(15, 52, 96);
@@ -222,11 +245,11 @@ export async function generarReservaPdf(datos: DatosReserva, download: boolean =
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('RESIDENCIAL ALTAVIK, S.L.', margin, 12);
+  doc.text(promoterName, margin, 12);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text('Paseo de Zorrilla 98, 1º B — Valladolid', margin, 19);
-  doc.text('administracion@residencialaltavik.es', margin, 24);
+  doc.text(emailVal, margin, 24);
 
   y = 36;
 
@@ -280,13 +303,13 @@ export async function generarReservaPdf(datos: DatosReserva, download: boolean =
   y += 2;
   addLine('1. Reserva (hoy)', formatEur(datos.importeReserva));
   addLine('2. Contrato de compraventa', formatEur(compraContrato));
-  addLine('3. Mensualidades (24 × ...)', `${formatEur(mensualidadTotal)} total — ${formatEur(mensualidad)}/mes`);
-  addLine('4. Escrituración (80% + IVA)', formatEur(escritura));
+  addLine('3. Mensualidades (' + installmentCount + ' × ...)', `${formatEur(mensualidadTotal)} total — ${formatEur(mensualidad)}/mes`);
+  addLine('4. Escrituración (' + Math.round(deedPct * 100) + '% + IVA)', formatEur(escritura));
 
   // ─── TEXTO DEL CONTRATO ─────────────────────────────────────────
   addSection('PRIMERA. — OBJETO');
   addText(
-    `RESIDENCIAL ALTAVIK, S.L. reserva a favor de ${datos.nombre}${datos.nombreCotitular ? ` y ${datos.nombreCotitular}` : ''} la vivienda descrita en el apartado anterior, con una señal de reserva de ${formatEur(datos.importeReserva)} (${numeroALetras(datos.importeReserva)} EUROS), que se entrega en este acto.`, 9
+    `${promoterName} reserva a favor de ${datos.nombre}${datos.nombreCotitular ? ` y ${datos.nombreCotitular}` : ''} la vivienda descrita en el apartado anterior, con una señal de reserva de ${formatEur(datos.importeReserva)} (${numeroALetras(datos.importeReserva)} EUROS), que se entrega en este acto.`, 9
   );
 
   addSection('SEGUNDA. — PRECIO Y FORMA DE PAGO');
@@ -294,13 +317,13 @@ export async function generarReservaPdf(datos: DatosReserva, download: boolean =
     `El precio total de la compraventa, IVA incluido, asciende a ${formatEur(totalConIva)}. El COMPRADOR abonará dicho precio de la siguiente forma:\n` +
     `a) ${formatEur(datos.importeReserva)} en concepto de reserva, abonados en este acto.\n` +
     `b) ${formatEur(compraContrato)} a la firma del contrato de compraventa.\n` +
-    `c) ${formatEur(mensualidadTotal)} mediante 24 mensualidades de ${formatEur(mensualidad)} cada una.\n` +
+    `c) ${formatEur(mensualidadTotal)} mediante ${installmentCount} mensualidades de ${formatEur(mensualidad)} cada una.\n` +
     `d) ${formatEur(escritura)} restantes a la firma de la escritura pública de compraventa.`, 9
   );
 
   addSection('TERCERA. — PROTECCIÓN DE DATOS');
   addText(
-    'En cumplimiento del Reglamento General de Protección de Datos (RGPD) y la Ley Orgánica 3/2018, los datos personales del COMPRADOR serán tratados por RESIDENCIAL ALTAVIK, S.L., responsable del tratamiento, con la finalidad de gestionar la relación contractual. Para más información y ejercicio de derechos: administracion@residencialaltavik.es o www.aepd.es.',
+    `En cumplimiento del Reglamento General de Protección de Datos (RGPD) y la Ley Orgánica 3/2018, los datos personales del COMPRADOR serán tratados por ${promoterName}, responsable del tratamiento, con la finalidad de gestionar la relación contractual. Para más información y ejercicio de derechos: ${emailVal} o www.aepd.es.`,
     9
   );
 
@@ -326,7 +349,7 @@ export async function generarReservaPdf(datos: DatosReserva, download: boolean =
   doc.setTextColor(80, 80, 80);
   doc.text('LA PARTE VENDEDORA', margin + 37, y + 5, { align: 'center' });
   doc.text('D. ANTONIO ROBERTO PASTRANA GONZÁLEZ', margin + 37, y + 9, { align: 'center' });
-  doc.text('RESIDENCIAL ALTAVIK, S.L.', margin + 37, y + 13, { align: 'center' });
+  doc.text(promoterName, margin + 37, y + 13, { align: 'center' });
 
   const compradorLabel = datos.nombreCotitular
     ? `${datos.nombre}\ny ${datos.nombreCotitular}`

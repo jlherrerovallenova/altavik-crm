@@ -1,7 +1,7 @@
 import React from 'react';
-import { User, FolderOpen, Settings as SettingsIcon, Home, Users, MessageCircle } from 'lucide-react';
+import { User, FolderOpen, Settings as SettingsIcon, Home, Users, MessageCircle, Building } from 'lucide-react';
 
-export type SettingsTab = 'profile' | 'documents' | 'integrations' | 'inventory' | 'clients' | 'whatsapp';
+export type SettingsTab = 'profile' | 'promotion' | 'documents' | 'integrations' | 'inventory' | 'clients' | 'whatsapp';
 
 interface SettingsSidebarProps {
   activeTab: SettingsTab;
@@ -11,6 +11,7 @@ interface SettingsSidebarProps {
 export function SettingsSidebar({ activeTab, setActiveTab }: SettingsSidebarProps) {
   const menuItems: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Mi Perfil', icon: <User size={16} /> },
+    { id: 'promotion', label: 'Datos Promoción', icon: <Building size={16} /> },
     { id: 'documents', label: 'Documentos Venta', icon: <FolderOpen size={16} /> },
     { id: 'integrations', label: 'Integraciones', icon: <SettingsIcon size={16} /> },
     { id: 'inventory', label: 'Viviendas', icon: <Home size={16} /> },
