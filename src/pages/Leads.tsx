@@ -238,7 +238,7 @@ export default function Leads() {
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'client_quality_rating' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('client_quality_rating')}>
+              <div className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'client_quality_rating' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('client_quality_rating')}>
                 Valoración
                 {sortField === 'client_quality_rating' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
