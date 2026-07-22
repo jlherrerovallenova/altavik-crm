@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
  */
 export function useRealtimeSync(table: string, queryKey: any[]) {
   const queryClient = useQueryClient();
+  const queryKeyHash = JSON.stringify(queryKey);
 
   // react-doctor-disable-next-line effect-needs-cleanup
   useEffect(() => {
@@ -28,7 +29,7 @@ export function useRealtimeSync(table: string, queryKey: any[]) {
         (payload) => {
           console.log(`🔔 Realtime update on ${table}:`, payload);
           // 2. Invalidar la caché de React Query para forzar un refresco
-          queryClient.invalidateQueries({ queryKey });
+          queryClient.invalidateQueries({ queryKey: JSON.parse(queryKeyHash) });
         }
       )
       .subscribe();
@@ -36,5 +37,5 @@ export function useRealtimeSync(table: string, queryKey: any[]) {
     // 3. Limpiar la suscripción al desmontar el componente
     const unsubscribe = () => { supabase.removeChannel(channel); };
     return unsubscribe;
-  }, [table, queryKey, queryClient]);
+  }, [table, queryKeyHash, queryClient]);
 }

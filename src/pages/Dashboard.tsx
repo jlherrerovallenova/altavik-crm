@@ -25,7 +25,7 @@ import { AgendaListItem } from '../components/dashboard/AgendaListItem';
 import { useDashboardData, type AgendaItem } from '../hooks/useDashboardData';
 
 export default function Dashboard() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const { showConfirm } = useDialog();
   const navigate = useNavigate();
   const { data: settings } = useSettings();
@@ -148,17 +148,17 @@ export default function Dashboard() {
     const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
     return dayNames.map((name, index) => {
-      const dayStart = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index, 0, 0, 0, 0);
-      const dayEnd = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index, 23, 59, 59, 999);
-      const dateFormatted = dayStart.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-      const isToday = now.getDate() === dayStart.getDate() && now.getMonth() === dayStart.getMonth() && now.getFullYear() === dayStart.getFullYear();
+      const day = new Date(monday.getTime() + index * 24 * 60 * 60 * 1000);
+      const isDayToday = day.toDateString() === now.toDateString();
+      const startTime = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0, 0).getTime();
+      const endTime = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 23, 59, 59, 999).getTime();
 
       return {
         name,
-        dateFormatted,
-        isToday,
-        startTime: dayStart.getTime(),
-        endTime: dayEnd.getTime()
+        isToday: isDayToday,
+        dateFormatted: day.toLocaleDateString([], { day: '2-digit', month: 'short' }),
+        startTime,
+        endTime
       };
     });
   }, []);
@@ -166,37 +166,38 @@ export default function Dashboard() {
   const getTasksForDay = (startTime: number, endTime: number) => {
     return agenda.filter(task => {
       if (task.completed) return false;
-      const matchesSearch =
-        task.leads?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.title.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!matchesSearch) return false;
-
-      const taskTime = new Date(task.due_date).getTime();
-      return taskTime >= startTime && taskTime <= endTime;
+      const taskDate = new Date(task.due_date).getTime();
+      return taskDate >= startTime && taskDate <= endTime;
     });
   };
 
   const toggleTask = async (task: AgendaItem) => {
     const newStatus = !task.completed;
-    setAgenda((prev: AgendaItem[]) => prev.map((t: AgendaItem) => t.id === task.id ? { ...t, completed: newStatus } : t));
+    setAgenda((old: any) => {
+      if (!old) return old;
+      return old.map((t: any) => t.id === task.id ? { ...t, completed: newStatus } : t);
+    });
     try {
-      const { error } = await (supabase as any).from('agenda').update({ completed: newStatus as any }).eq('id', task.id);
+      const { error } = await (supabase as any).from('agenda').update({ completed: newStatus }).eq('id', task.id);
       if (error) throw error;
     } catch (error) {
-      console.error("Error actualizando tarea:", error);
+      console.error("Error cambiando estado de tarea:", error);
       refresh();
     }
   };
 
   const deleteTask = async (id: number) => {
     const confirmed = await showConfirm({
-      title: 'Eliminar Tarea',
-      message: '¿Deseas eliminar esta tarea?',
-      confirmText: 'Eliminar',
+      title: 'Eliminar Acción',
+      message: '¿Estás seguro de que deseas eliminar esta acción de la agenda?',
+      confirmText: 'Sí, eliminar',
       cancelText: 'Cancelar'
     });
     if (!confirmed) return;
-    setAgenda((prev: AgendaItem[]) => prev.filter((t: AgendaItem) => t.id !== id));
+    setAgenda((old: any) => {
+      if (!old) return old;
+      return old.filter((t: any) => t.id !== id);
+    });
     try {
       const { error } = await (supabase as any).from('agenda').delete().eq('id', id);
       if (error) throw error;
@@ -216,9 +217,11 @@ export default function Dashboard() {
       ? `www.${settings.promotion_name.toLowerCase().replace(/\s+/g, '')}.com` 
       : 'www.residencialaltavik.com';
     
+    const agentName = profile?.full_name || 'Juan Herrero';
+    
     const message = `${greeting}, ${leadName}:
 
-Soy Juan Herrero, de Terravall, inmobiliaria comercializadora de ${promotionName}.
+Soy ${agentName}, de Terravall, inmobiliaria comercializadora de ${promotionName}.
 
 Le escribo para confirmar si pudo recibir el dossier informativo de la promoción que le enviamos hace unos días. Si no es así, le agradecería que revisase su carpeta de correo no deseado (SPAM); en caso de que siga sin localizarlo, por favor háganoslo saber y se lo haré llegar de inmediato.
 
@@ -226,7 +229,7 @@ Quedo a su entera disposición para resolver cualquier duda que pueda tener sobr
 
 Un cordial saludo,
 
-Juan Herrero
+${agentName}
 ${promotionWebsite}`;
 
     const encodedMessage = encodeURIComponent(message);

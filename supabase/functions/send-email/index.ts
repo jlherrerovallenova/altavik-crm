@@ -63,6 +63,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'Residencial Altavik <info@terravallpromociones.com>',
         to: [to],
+        bcc: ['terravall@residencialaltavik.es'],
         subject,
         html,
       }),

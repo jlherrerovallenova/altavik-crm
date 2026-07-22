@@ -1,5 +1,6 @@
 // src/components/leads/FeedbackEmailModal.tsx
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { X, Send, Loader as Loader2, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getFeedbackEmailTemplate } from '../../utils/feedbackTemplates';
@@ -138,6 +139,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
           agendaPayload.tracking_id = trackingId;
         }
         await (supabase as any).from('agenda').insert([agendaPayload]);
+        queryClient.invalidateQueries({ queryKey: ['agenda'] });
       } catch (agendaErr) {
         console.error('Error al crear tarea de agenda para encuesta:', agendaErr);
       }

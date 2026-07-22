@@ -152,21 +152,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!mounted) return;
       if (event === 'INITIAL_SESSION') return;
 
-      sessionRef.current = currentSession;
-
       if (event === 'SIGNED_OUT') {
+        sessionRef.current = null;
         setSession(null);
         setUser(null);
         setProfile(null);
         return;
       }
 
+      const prevToken = sessionRef.current?.access_token;
+      const newToken = currentSession?.access_token;
+      sessionRef.current = currentSession;
+
       // react-doctor-disable-next-line no-impure-state-updater
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
+        if (prevToken !== newToken || !profile) {
+          fetchProfile(currentSession.user.id);
+        }
       } else {
         setProfile(null);
       }

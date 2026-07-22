@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { useRealtimeSync } from './useRealtimeSync';
 import type { Database } from '../types/supabase';
 
 export type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
@@ -22,6 +23,12 @@ export interface RecentLead {
 
 export function useDashboardData(userId: string | undefined) {
   const queryClient = useQueryClient();
+
+  // Escuchar cambios en tiempo real en la agenda y los clientes
+  useRealtimeSync('agenda', ['dashboard_agenda']);
+  useRealtimeSync('leads', ['dashboard_stats']);
+  useRealtimeSync('leads', ['dashboard_recent']);
+  useRealtimeSync('leads', ['dashboard_critical']);
 
   const { data: statsData, isLoading: loadingStats, refetch: refetchStats } = useQuery({
     queryKey: ['dashboard_stats', userId],

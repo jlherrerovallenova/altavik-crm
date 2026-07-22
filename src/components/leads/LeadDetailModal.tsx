@@ -44,10 +44,12 @@ interface Props {
   onUpdate: (deleted?: boolean) => void;
 }
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateLead, useDeleteLead } from '../../hooks/useLeads';
 
 export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
-  const { session } = useAuth();
+  const queryClient = useQueryClient();
+  const { session, profile } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -130,9 +132,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     fetchTasks();
     fetchWaData();
   // react-doctor-disable-next-line exhaustive-deps
-  // react-doctor-disable-next-line exhaustive-deps
-  // react-doctor-disable-next-line exhaustive-deps
-  }, [lead.id, fetchHistory, fetchTasks, fetchWaData]);
+  }, [lead.id]);
 
   useEffect(() => {
     const handleResend = (e: Event) => {
@@ -168,7 +168,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const unsubscribe = () => { supabase.removeChannel(trackingChannel); };
     return unsubscribe;
   // react-doctor-disable-next-line exhaustive-deps
-  }, [lead.id, fetchHistory]);
+  }, [lead.id]);
 
   // react-doctor-disable-next-line effect-needs-cleanup
   useEffect(() => {
@@ -192,7 +192,7 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const unsubscribe = () => { supabase.removeChannel(agendaChannel); };
     return unsubscribe;
   // react-doctor-disable-next-line exhaustive-deps
-  }, [lead.id, fetchTasks]);
+  }, [lead.id]);
 
   async function fetchHistory() {
     const { data } = await (supabase as any).from('sent_documents').select('*').eq('lead_id', lead.id).order('sent_at', { ascending: false });
@@ -353,6 +353,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
       });
       
       await fetchTasks();
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
       if (onUpdate) await onUpdate(); // Notificar al padre para que refresque si es necesario
 
     } catch (error) {
@@ -372,7 +374,11 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     });
     if (!confirmed) return;
     const { error } = await supabase.from('agenda').delete().eq('id', id);
-    if (!error) fetchTasks();
+    if (!error) {
+      fetchTasks();
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
+    }
   };
 
   const startEditingTask = (task: AgendaItem) => {
@@ -391,6 +397,8 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     const newStatus = !task.completed;
     setTasks(tasks.map(t => t.id === task.id ? { ...t, completed: newStatus } : t));
     await (supabase as any).from('agenda').update({ completed: newStatus }).eq('id', task.id);
+    queryClient.invalidateQueries({ queryKey: ['agenda'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
   };
 
   /** Calcula el siguiente slot dentro del horario comercial (10-14h y 17-20h) */
@@ -521,11 +529,12 @@ export default function LeadDetailModal({ lead, onClose, onUpdate }: Props) {
     cleanPhone = `34${cleanPhone}`;
   }
 
+  const agentName = profile?.full_name || 'Juan Herrero';
   const currentHour = new Date().getHours();
   const greeting = currentHour < 14 ? 'Buenos días' : 'Buenas tardes';
   const waMessage = `${greeting} ${formData.name || ''}:
 
-Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
+Mi nombre es ${agentName}, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
 
 Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
 

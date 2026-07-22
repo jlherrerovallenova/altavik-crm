@@ -1,6 +1,7 @@
 // src/pages/Agenda.tsx
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -30,6 +31,7 @@ type AgendaItem = Database['public']['Tables']['agenda']['Row'] & {
 const ITEMS_PER_PAGE = 8;
 
 export default function Agenda() {
+  const queryClient = useQueryClient();
   const { session } = useAuth();
   const [items, setItems] = useState<AgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +123,8 @@ export default function Agenda() {
     const newStatus = !item.completed;
     await (supabase as any).from('agenda').update({ completed: newStatus }).eq('id', item.id);
     fetchAgenda();
+    queryClient.invalidateQueries({ queryKey: ['agenda'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
   };
 
   const deleteItem = async (id: number) => {
@@ -135,6 +139,8 @@ export default function Agenda() {
       const { error } = await supabase.from('agenda').delete().eq('id', id);
       if (error) throw error;
       fetchAgenda();
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
     } catch (error) {
       await showAlert({ title: 'Error', message: 'No se pudo eliminar la tarea' });
     }

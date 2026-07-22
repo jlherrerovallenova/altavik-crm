@@ -1,6 +1,7 @@
 // src/pages/LeadDetail.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import {
   ArrowLeft,
@@ -64,6 +65,7 @@ export default function LeadDetail() {
   const [savingStatus, setSavingStatus] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string>('');
 
+  const queryClient = useQueryClient();
   const { session } = useAuth();
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [savingTask, setSavingTask] = useState(false);
@@ -229,6 +231,8 @@ export default function LeadDetail() {
       });
       setIsAddingTask(false);
       fetchLeadData();
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
     } catch (error) {
       console.error("Error guardando tarea:", error);
       await showAlert({ title: 'Error', message: 'No se pudo agendar la tarea.' });
@@ -249,6 +253,8 @@ export default function LeadDetail() {
       const { error } = await (supabase as any).from('agenda').delete().eq('id', taskId);
       if (error) throw error;
       fetchLeadData();
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
     } catch (error) {
       console.error("Error eliminando tarea:", error);
     }

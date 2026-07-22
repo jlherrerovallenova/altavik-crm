@@ -13,14 +13,14 @@ export const META_PRIMER_CONTACTO_TEMPLATE = 'plantilla_mensaje_inicial';
 export const META_SEGUIMIENTO_TEMPLATE     = 'seguimiento_sin_respuesta';
 export const META_CIERRE_TEMPLATE          = 'cierre_solicitud';
 
-// Texto real de la plantilla aprobada (sin variables, estático)
-export const META_PRIMER_CONTACTO_BODY = `Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
+// Texto real de la plantilla aprobada (con variables)
+export const META_PRIMER_CONTACTO_BODY = `Mi nombre es {agente}, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK (C/ Isaac Peral 20, Arroyo de la Encomienda).
 
 Para enviarle las opciones que mejor se ajusten a lo que busca, coménteme brevemente:
 
 1️⃣ ¿Qué tipo de vivienda prefiere? (Bajo, planta intermedia o ático).
 2️⃣ ¿Cuántos dormitorios necesita?
-3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ampliemos la información con todo detalle?
+3️⃣ ¿Desea concertar una visita en nuestras oficinas para que le ambiemos la información con todo detalle?
 
 Quedo a la espera de sus comentarios. ¡Muchas gracias y un saludo!`;
 
@@ -45,7 +45,7 @@ export const getGreeting = () => {
 export const parseTemplate = (
   body: string,
   lead: { name: string },
-  metadata?: { property?: string; fecha_visita?: string; hora_visita?: string }
+  metadata?: { property?: string; fecha_visita?: string; hora_visita?: string; agente?: string }
 ) => {
   const firstName = lead.name.split(' ')[0];
   const greeting = getGreeting();
@@ -57,14 +57,15 @@ export const parseTemplate = (
     .replace(/{interesado}/g, interested)
     .replace(/{propiedad}/g, metadata?.property || 'nuestra promoción')
     .replace(/{fecha_visita}/g, metadata?.fecha_visita || '[fecha]')
-    .replace(/{hora_visita}/g, metadata?.hora_visita || '[hora]');
+    .replace(/{hora_visita}/g, metadata?.hora_visita || '[hora]')
+    .replace(/{agente}/g, metadata?.agente || 'Juan Herrero');
 };
 
 export const getSystemTemplates = (): WhatsAppTemplate[] => [
   {
     name: 'Primer Contacto (Altavik)',
     category: 'system',
-    body: '¡{saludo}, {nombre}! Mi nombre es Juan Herrero, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK. ¿Desea concertar una visita?'
+    body: '¡{saludo}, {nombre}! Mi nombre es {agente}, de inmobiliaria TERRAVALL. Le escribo porque hemos recibido su solicitud de información sobre la promoción ALTAVIK. ¿Desea concertar una visita?'
   },
   {
     name: 'Confirmación de Visita',

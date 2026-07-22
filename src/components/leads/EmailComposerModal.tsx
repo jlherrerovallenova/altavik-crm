@@ -1,5 +1,6 @@
 // src/components/leads/EmailComposerModal.tsx
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Mail, MessageCircle, Paperclip, Loader as Loader2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Building2, Zap, LayoutGrid as Layout } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useDialog } from '../../context/DialogContext';
@@ -70,9 +71,11 @@ export default function EmailComposerModal({
   initialMessage,
   initialSelectedDocNames
 }: Props) {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const { showAlert } = useDialog();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
+  const agentName = profile?.full_name || 'Juan Herrero';
   const [method, setMethod, clearMethod] = useAutosave<'email' | 'whatsapp'>(`draft-email-method-${leadId}`, initialMethod || 'email');
 
   const createTaskRecord = async (sentMethod: 'email' | 'whatsapp', trackingId?: string) => {
@@ -96,6 +99,8 @@ export default function EmailComposerModal({
       }
 
       await (supabase as any).from('agenda').insert([payload]);
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
     } catch (error) {
       console.error('Error al crear tarea de agenda:', error);
     }
@@ -133,9 +138,9 @@ export default function EmailComposerModal({
       const firstContact = templates.find(t => t.name.includes('Primer Contacto')) || templates[0];
       if (firstContact) {
         setSelectedTemplateId(firstContact.id || firstContact.name);
-        setMessage(parseTemplate(firstContact.body, { name: leadName }));
+        setMessage(parseTemplate(firstContact.body, { name: leadName }, { agente: agentName }));
         if (method === 'email') {
-          setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+          setSubject(`Información Promoción ALTAVIK - ${agentName}`);
         }
       }
     } else if (!message && templates.length > 0) {
@@ -148,9 +153,9 @@ Tal y como acabamos de hablar, le envío adjunta toda la información sobre RESI
 
 ¡Un saludo!
 
-Juan Herrero - TERRAVALL`);
+${agentName} - TERRAVALL`);
     }
-  }, [initialTemplate, templates, leadName, method, message, selectedTemplateId, initialSubject, initialMessage]);
+  }, [initialTemplate, templates, leadName, method, message, selectedTemplateId, initialSubject, initialMessage, agentName]);
 
   const applyTemplate = async (templateId: string) => {
     const template = templates.find(t => (t.id || t.name) === templateId);
@@ -185,13 +190,13 @@ Juan Herrero - TERRAVALL`);
         });
       }
 
-      setMessage(parseTemplate(template.body, { name: leadName }, { fecha_visita, hora_visita }));
+      setMessage(parseTemplate(template.body, { name: leadName }, { fecha_visita, hora_visita, agente: agentName }));
     } else {
-      setMessage(parseTemplate(template.body, { name: leadName }));
+      setMessage(parseTemplate(template.body, { name: leadName }, { agente: agentName }));
     }
 
     if (template.name.includes('Primer Contacto') && method === 'email') {
-      setSubject(`Información Promoción ALTAVIK - Juan Herrero`);
+      setSubject(`Información Promoción ALTAVIK - ${agentName}`);
     }
   };
 
@@ -636,7 +641,9 @@ Juan Herrero - TERRAVALL`);
                   <div className="px-3 sm:px-4 py-4 bg-white">
                     <p className="text-[11px] text-slate-400 font-medium mb-3 italic">Este mensaje se enviará directamente al cliente sin abrir el navegador:</p>
                     <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-100">
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">{META_PRIMER_CONTACTO_BODY}</p>
+                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">
+                        {parseTemplate(META_PRIMER_CONTACTO_BODY, { name: leadName }, { agente: agentName })}
+                      </p>
                     </div>
                     <p className="text-[10px] text-slate-400 mt-3">📌 Pie de página: <span className="font-semibold">Terravall · Plaza Mayor 8 1ºA · 983342132</span></p>
                   </div>

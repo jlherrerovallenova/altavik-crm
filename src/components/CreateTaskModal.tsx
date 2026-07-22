@@ -1,6 +1,7 @@
 // src/components/CreateTaskModal.tsx
 import React, { useState, useEffect } from 'react';
 import { X, Clock, User, Save, Loader2, Search, Smartphone, CheckCircle2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
+  const queryClient = useQueryClient();
   const { session } = useAuth();
   const { showAlert } = useDialog();
   const [loading, setLoading] = useState(false);
@@ -85,6 +87,9 @@ export default function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
       const { error } = await (supabase as any).from('agenda').insert([taskData]);
 
       if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_agenda'] });
 
       // 1. Generar URL para Google Calendar
       const endParsedDate = new Date(parsedDate.getTime() + 60 * 60 * 1000); // +1h

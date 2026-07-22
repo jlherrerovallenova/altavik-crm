@@ -17,7 +17,8 @@ interface BulkWhatsAppModalProps {
 }
 
 export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: BulkWhatsAppModalProps) {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
+  const agentName = profile?.full_name || 'Juan Herrero';
   const { templates, loading } = useWhatsAppTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [sentLeads, setSentLeads] = useState<string[]>([]);
@@ -38,7 +39,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
     const template = templates.find(t => (t.id || t.name) === selectedTemplateId);
     if (!template) return;
 
-    const personalizedMessage = parseTemplate(template.body, { name: lead.name });
+    const personalizedMessage = parseTemplate(template.body, { name: lead.name }, { agente: agentName });
     
     try {
       if (isCloudConfigured) {
@@ -184,7 +185,7 @@ export default function BulkWhatsAppModal({ isOpen, onClose, leads, title }: Bul
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Vista Previa (Borrador)</label>
                 <div className="w-full h-48 p-5 bg-white/50 border border-slate-100 rounded-[1.5rem] text-sm text-slate-500 font-medium overflow-y-auto italic">
                   {selectedTemplate ? (
-                    parseTemplate(selectedTemplate.body, { name: 'Cliente' })
+                    parseTemplate(selectedTemplate.body, { name: 'Cliente' }, { agente: agentName })
                   ) : (
                     'Selecciona una plantilla para ver la previsualización...'
                   )}
