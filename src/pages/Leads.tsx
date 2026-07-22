@@ -233,7 +233,7 @@ export default function Leads() {
                 Cliente
                 {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
               </div>
-              <div>Teléfono</div><div>Email</div><div>Origen</div><div className="pl-2">Estado</div>
+              <div>Teléfono</div><div>Email</div><div className="text-center">Origen</div><div className="pl-2">Estado</div>
               <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('created_at')}>
                 Alta
                 {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}

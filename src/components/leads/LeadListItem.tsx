@@ -50,7 +50,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
           </div>
         </div>
 
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
           <SourceIcon source={lead.source} />
         </div>
 
