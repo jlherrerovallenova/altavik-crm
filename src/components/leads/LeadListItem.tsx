@@ -23,7 +23,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
     >
       {/* ================= DESKTOP VIEW ================= */}
       <div className="hidden md:grid grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-4 items-center">
-        <div className="flex items-center justify-center gap-3.5 min-w-0">
+        <div className="flex items-center justify-start gap-3.5 min-w-0">
           <div className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0">
             <User size={18} strokeWidth={2.5} />
           </div>
