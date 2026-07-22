@@ -228,21 +228,24 @@ export default function Leads() {
           </div>
         ) : (
           <div className="flex-1">
-            <div className="grid md:grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 border-l-4 border-transparent hidden md:grid">
-              <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('name')}>
+            <div className="grid md:grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-3.5 bg-altavik-600 text-white text-[10px] font-black uppercase tracking-widest border-b border-altavik-700 hidden md:grid rounded-t-2xl shadow-sm">
+              <div className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'name' ? 'text-white font-bold' : 'hover:text-white/80 text-white/90'}`} onClick={() => handleSort('name')}>
                 Cliente
-                {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
+                {sortField === 'name' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-50" />}
               </div>
-              <div>Teléfono</div><div>Email</div><div className="text-center">Origen</div><div className="pl-2">Estado</div>
-              <div className={`flex items-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('created_at')}>
+              <div className="flex items-center justify-center">Teléfono</div>
+              <div className="flex items-center justify-center">Email</div>
+              <div className="flex items-center justify-center">Origen</div>
+              <div className="flex items-center justify-center">Estado</div>
+              <div className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'created_at' ? 'text-white font-bold' : 'hover:text-white/80 text-white/90'}`} onClick={() => handleSort('created_at')}>
                 Alta
-                {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
+                {sortField === 'created_at' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-50" />}
               </div>
-              <div className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'client_quality_rating' ? 'text-slate-700' : 'hover:text-slate-600'}`} onClick={() => handleSort('client_quality_rating')}>
+              <div className={`flex items-center justify-center gap-1 cursor-pointer select-none transition-colors ${sortField === 'client_quality_rating' ? 'text-white font-bold' : 'hover:text-white/80 text-white/90'}`} onClick={() => handleSort('client_quality_rating')}>
                 Valoración
-                {sortField === 'client_quality_rating' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-30" />}
+                {sortField === 'client_quality_rating' ? (sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} className="opacity-50" />}
               </div>
-              <div>Acciones</div>
+              <div className="flex items-center justify-center">Acciones</div>
             </div>
 
             {leads.map((lead) => (

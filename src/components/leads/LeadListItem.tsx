@@ -23,7 +23,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
     >
       {/* ================= DESKTOP VIEW ================= */}
       <div className="hidden md:grid grid-cols-[22fr_12fr_18fr_10fr_12fr_10fr_8fr_8fr] gap-4 px-6 py-4 items-center">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center justify-center gap-3.5 min-w-0">
           <div className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0">
             <User size={18} strokeWidth={2.5} />
           </div>
@@ -32,7 +32,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
           </div>
         </div>
 
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
           <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
             <div className="w-5 h-5 rounded-md bg-altavik-50 flex items-center justify-center shrink-0">
               <Phone size={11} className="text-altavik-400" />
@@ -41,7 +41,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
           </div>
         </div>
 
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
           <div className="flex items-center gap-2 text-xs text-slate-500 truncate">
             <div className="w-5 h-5 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
               <Mail size={11} className="text-blue-400" />
@@ -54,11 +54,11 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
           <SourceIcon source={lead.source} />
         </div>
 
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
           <StatusBadge status={lead.status} />
         </div>
 
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
           <p className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
             {new Date(lead.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
           </p>
@@ -75,7 +75,7 @@ export function LeadListItem({ lead, isSelected, onClick, onCompose, onSendFeedb
           )}
         </div>
 
-        <div className="flex items-center justify-start gap-1 transition-opacity">
+        <div className="flex items-center justify-center gap-1 transition-opacity">
           <button type="button" onClick={(e) => { e.stopPropagation(); onCompose(lead, 'whatsapp'); }} className="p-1.5 text-slate-400 hover:text-altavik-600 hover:bg-altavik-50 rounded-lg transition-all" title="WhatsApp"><MessageCircle strokeWidth={2.5} size={15} /></button>
           <button type="button" onClick={(e) => { e.stopPropagation(); onCompose(lead, 'email'); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Email"><Mail strokeWidth={2.5} size={15} /></button>
           <button type="button" onClick={(e) => { e.stopPropagation(); onSendFeedback(lead); }} className="p-1.5 text-slate-400 hover:text-pink-500 hover:bg-pink-50 rounded-lg transition-all" title="Enviar Encuesta de Opinión"><Heart strokeWidth={2.5} size={15} /></button>
