@@ -26,6 +26,7 @@ export default function FeedbackEmailModal({ isOpen, onClose, lead, onSuccess }:
   const { showAlert, showConfirm } = useDialog();
   const { session } = useAuth();
   const { data: settings } = useSettings();
+  const queryClient = useQueryClient();
 
   if (!isOpen) return null;
 

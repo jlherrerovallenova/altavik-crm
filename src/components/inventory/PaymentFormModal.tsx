@@ -17,6 +17,7 @@ import { saveAs } from 'file-saver';
 import MortgageSimulatorModal from './MortgageSimulatorModal';
 import { generatePropertyPDFBlob } from '../../utils/fichasVivienda';
 import type { MortgageParams } from '../../utils/fichasVivienda';
+import { useSettings } from '../../hooks/useSettings';
 
 interface Property {
   id: string;
@@ -47,6 +48,7 @@ interface PaymentFormModalProps {
 export default function PaymentFormModal({ isOpen, onClose, property }: PaymentFormModalProps) {
   const [showSimulator, setShowSimulator] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const { data: settings } = useSettings();
 
   if (!isOpen) return null;
 
