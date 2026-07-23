@@ -574,8 +574,8 @@ export default function Inventory() {
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Portal</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Planta/Letra</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Dorm/Baños</th>
-                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Útil/Const.</th>
+                  <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Terrazas/Porches</th>
                   <th className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Orientación</th>
                   <th 
                     className="px-4 py-5 text-xs font-bold text-slate-500 uppercase tracking-widest text-center cursor-pointer hover:bg-slate-50 transition-colors"
@@ -654,17 +654,17 @@ export default function Inventory() {
                     </td>
                     <td className="px-4 py-5 text-center">
                       <div className="flex flex-col items-center">
+                        <span className="font-bold text-slate-700 text-sm">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                        <span className="text-[11px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-5 text-center">
+                      <div className="flex flex-col items-center">
                         <span className="font-bold text-slate-700 text-sm">
                           {((property.sup_terrazas || 0) + (property.sup_porche || 0)).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²
                         </span>
                         <span className="text-[10px] text-slate-400 font-medium leading-tight">Terraza: {property.sup_terrazas?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                         <span className="text-[10px] text-slate-400 font-medium leading-tight">Porche: {property.sup_porche?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-5 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-700 text-sm">{property.sup_util?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
-                        <span className="text-[11px] text-slate-400 font-medium">Const: {property.sup_construida?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</span>
                       </div>
                     </td>
                     <td className="px-4 py-5">
